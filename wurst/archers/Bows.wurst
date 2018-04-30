@@ -4,6 +4,8 @@ import Player
 import RegisterEvents
 import EventHelper
 
+import Objects
+
 // Constants
 constant int ARCHER_RESEARCH = 'R001'
 
@@ -12,13 +14,20 @@ constant string ORDER_STOP = "stop"
 // Arrows
 
 // Bows
+/** Find the first item in the inventory of a unit which corresponds to a bow */
+function findBow(unit whichUnit) returns item
+    for itemSlot = 0 to 6
+        item itemInSlot = UnitItemInSlot(whichUnit, itemSlot)
+        ObjectType obj = getObject(itemInSlot)
+        if obj != null and obj.getFamily() == ObjectFamily.BOW
+            return itemInSlot
 
-//
-init
+    return null
+
     // Test bow
     registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
         unit archer = GetAttacker()
         player owner = GetOwningPlayer(archer)
         if GetPlayerTechCountSimple(ARCHER_RESEARCH, owner) > 0
             Log.debug("Unit is attacked by an archer : " + GetUnitName(archer))
-            archer.issueImmediateOrder(ORDER_STOP)
+            //archer.issueImmediateOrder(ORDER_STOP)

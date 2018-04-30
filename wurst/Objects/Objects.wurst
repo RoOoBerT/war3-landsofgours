@@ -1,20 +1,51 @@
 package Objects
 
-enum ObjectType
+import HashMap
+
+/** Families of objects (weapon, scroll spell, quest item, etc.) */
+public enum ObjectFamily
     ARROWS
     BOW
     NORMAL
     SPELL_SCROLL
 
-class Object
-    private ObjectType objectType
-    private int itemType
+/** Types of objects and associated metadata */
+public class ObjectType
+    private ObjectFamily family
+    int itemType
     private boolean unique
+    private item uniqueInstance = null
 
-    construct (ObjectType objectType, int itemType, boolean unique)
-        this.objectType = objectType
+    construct (ObjectFamily family, int itemType, boolean unique)
+        this.family = family
         this.itemType = itemType
         this.unique = unique
+    
+    function getFamily() returns ObjectFamily
+        return this.family
 
-constant Object OBJECT_ARC = new Object(ObjectType.BOW, 'I00O', false)
-constant Object OBJECT_FLECHES = new Object(ObjectType.BOW, 'I00N', false)
+    function getType() returns int
+        return this.itemType
+
+    function isUnique() returns boolean
+        return this.unique
+    
+    function getUniqueInstance() returns item
+        return this.uniqueInstance
+
+public constant ObjectType OBJECT_ARC = new ObjectType(ObjectFamily.BOW, 'I00O', false)
+public constant ObjectType OBJECT_FLECHES = new ObjectType(ObjectFamily.BOW, 'I00N', false)
+
+public constant HashMap<int, ObjectType> OBJECT_TYPES_MAP = new HashMap<int, ObjectType>
+
+public function registerObject(ObjectType o)
+    OBJECT_TYPES_MAP.put(o.itemType, o)
+
+/***/
+public public function getObject(item whichItem) returns ObjectType
+    // Check in cache
+    public ObjectType obj = OBJECT_TYPES_MAP.get(whichItem.getTypeId())
+    if (obj == null)
+        public Log.error("ObjectType type not found for : " + GetItemName(whichItem))
+    
+    return obj
