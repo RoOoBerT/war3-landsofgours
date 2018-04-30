@@ -1,0 +1,17 @@
+package Dummy
+
+class Dummy
+    private unit dummyUnit
+    private unit originalCaster
+    private int abilityId
+    private int abilityLevel
+    private int orderId
+    private location targetPoint
+
+    construct(unit dummyUnit, int orderId, location targetPoint)
+        this.dummyUnit = dummyUnit
+        this.orderId = orderId
+        this.targetPoint = targetPoint
+    
+    ondestroy
+        this.dummyUnit.remove()

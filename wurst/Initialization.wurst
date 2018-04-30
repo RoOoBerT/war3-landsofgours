@@ -1,0 +1,9 @@
+package Initialization
+
+init
+    // Is there only one player ?
+    if localPlayer != null
+        Log.setLevel(Loglevel.TRACE)
+        Log.info("Single player detected. Log level : " + Loglevel.TRACE.getTag())
+    else
+        Log.setLevel(Loglevel.ERROR)

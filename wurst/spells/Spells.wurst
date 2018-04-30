@@ -1,0 +1,36 @@
+package Spells
+
+import RegisterEvents
+import EventHelper
+
+// SPELL CONSTANTS
+constant int ABILITY_RAIN_OF_ARROWS = 'A00V'
+
+/** Unit-type ID of generic invisible Dummy */
+constant int DUMMY_TYPE_ID = 'h001'
+
+/** Unit-type ID of visible Dummy (for debugging) */
+constant int DUMMY_TYPE_ID_VISIBLE = 'h009'
+
+/** Create a dummy unit and order it to launch a spell at a point */
+public function dummySpellPoint(player owner, int unitid, int abilityId, int abilityLevel, string order, vec2 targetPoint) returns boolean
+    unit dummyUnit = CreateUnit(owner, unitid, targetPoint.x, targetPoint.y, 0)
+        ..addAbility(abilityId)
+        ..setAbilityLevel(abilityId, abilityLevel)
+        ..setTimedLife(15.0)
+    boolean spellCastResult = dummyUnit.issuePointOrder(order, targetPoint)
+    if not spellCastResult
+        Log.error("Failure launching dummy spell : " + GetAbilityName(abilityId))
+    return spellCastResult
+
+init
+    // Rain of arrows
+    registerSpellEffectEvent(ABILITY_RAIN_OF_ARROWS) ->
+        Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
+        
+        int abilityLevel = 1
+        int dummyAbilId = 'A009'
+        string orderString = "dreadlordinferno"
+        vec2 targetPoint = getSpellTargetPos()
+        Log.debug("Spell order : " + GetAbilityName(dummyAbilId) + " -> " + orderString)
+        dummySpellPoint(GetOwningPlayer(GetTriggerUnit()), DUMMY_TYPE_ID, dummyAbilId, abilityLevel, orderString, targetPoint)

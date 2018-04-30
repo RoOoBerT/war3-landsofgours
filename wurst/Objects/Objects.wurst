@@ -1,0 +1,20 @@
+package Objects
+
+enum ObjectType
+    ARROWS
+    BOW
+    NORMAL
+    SPELL_SCROLL
+
+class Object
+    private ObjectType objectType
+    private int itemType
+    private boolean unique
+
+    construct (ObjectType objectType, int itemType, boolean unique)
+        this.objectType = objectType
+        this.itemType = itemType
+        this.unique = unique
+
+constant Object OBJECT_ARC = new Object(ObjectType.BOW, 'I00O', false)
+constant Object OBJECT_FLECHES = new Object(ObjectType.BOW, 'I00N', false)

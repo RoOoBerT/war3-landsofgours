@@ -1,0 +1,24 @@
+package Bows
+
+import Player
+import RegisterEvents
+import EventHelper
+
+// Constants
+constant int ARCHER_RESEARCH = 'R001'
+
+constant string ORDER_STOP = "stop"
+
+// Arrows
+
+// Bows
+
+//
+init
+    // Test bow
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
+        unit archer = GetAttacker()
+        player owner = GetOwningPlayer(archer)
+        if GetPlayerTechCountSimple(ARCHER_RESEARCH, owner) > 0
+            Log.debug("Unit is attacked by an archer : " + GetUnitName(archer))
+            archer.issueImmediateOrder(ORDER_STOP)
