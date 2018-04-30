@@ -53,20 +53,37 @@ class CommandHelp extends Command
         // List the commands
         for Command command in COMMANDS_LIST
             if not command.cheat or cheatsAllowed
-                string message = "|cff4040{0}|r - {1}\n{2}".format(command.keyword, command.syntax, command.description)
+                string message = "|cff4040{0}|r - {1}\n{2}".format(
+                    command.keyword, command.syntax, command.description)
                 DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
 
 class CommandSpells extends Command
     construct()
-        super(false, "spells", "-spells [<index>]", "Show the list of available wizard spells")
+        super(false, "spellbook", "-spellbook [<index>]", "Show the list of available wizard spells")
     
     override function onCall(player who, LinkedList<string> params)
-        // List the commands
-        for WizardSpell spell in Spells.
-            if not command.cheat or cheatsAllowed
-                string message = "|cff4040{0}|r - {1}\n{2}".format(command.keyword, command.syntax, command.description)
-                DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
+        LinkedList<Spell> spellbook = null
 
+        // Show a specific spell ?
+        string abilityId = params.pop()
+        if abilityId.isNotBlank()
+            // Display one specific spell
+            Spell spell = Spell.SPELLS_MAP.get(abilityId.toAbilityId())
+            if spell != null
+                showSpell(who, spell)
+            else
+                DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort inconnu <" + abilityId + " (" + I2S(abilityId.toAbilityId()) + ")>")
+        else
+            // List all available spell(s)
+            for Spell spell in Spell.SPELLS_LIST
+                showSpell(who, spell)
+    
+    static function showSpell(player who, Spell spell)
+        if spell instanceof WizardSpell
+            WizardSpell wizardSpell = spell castTo WizardSpell
+            string message = "|cff4040{0}|r - {1} - Niveaux 1-{2}".format(
+                AbilityId2String(wizardSpell.abilityId), wizardSpell.school.getColoredName(), I2S(wizardSpell.maxLevel))
+            DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
 
 // Initialization
 init
@@ -74,8 +91,10 @@ init
         string text = GetEventPlayerChatString()
         player typer = GetEventDetectingPlayer()
 
+        Log.trace("Message received from " + typer.getName() + " : " + text)
+
         // Is the message a command ?
-        if (text.isNotBlank() and text.startsWith(COMMANDS_CHAR))
+        if text.isNotBlank() and text.startsWith(COMMANDS_CHAR)
             // Parse the substrings
             LinkedList<string> params = text.split(" ")
             if not params.isEmpty()

@@ -21,6 +21,9 @@ function findBow(unit whichUnit) returns item
 init
     // Bow handling
     Log.debug("Bows initialization...")
+    /* TODO FIXME
+<FrottyZ> see DamageDetection package
+<FrottyZ> addOnDamageFunc */
     registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
         unit archer = GetAttacker()
         player owner = GetOwningPlayer(archer)
