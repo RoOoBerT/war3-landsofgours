@@ -13,21 +13,39 @@ constant string ORDER_STOP = "stop"
 
 // Arrows
 
-// Bows
-/** Find the first item in the inventory of a unit which corresponds to a bow */
+// Bows API
+/** Find the first usable bow of the unit */
 function findBow(unit whichUnit) returns item
-    for itemSlot = 0 to 6
-        item itemInSlot = UnitItemInSlot(whichUnit, itemSlot)
-        ObjectType obj = getObject(itemInSlot)
-        if obj != null and obj.getFamily() == ObjectFamily.BOW
-            return itemInSlot
+    return findFirstObjectOfFamily(whichUnit, ObjectFamily.BOW)
 
-    return null
-
-    // Test bow
+init
+    // Bow handling
+    Log.debug("Bows initialization...")
     registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
         unit archer = GetAttacker()
         player owner = GetOwningPlayer(archer)
         if GetPlayerTechCountSimple(ARCHER_RESEARCH, owner) > 0
             Log.debug("Unit is attacked by an archer : " + GetUnitName(archer))
-            //archer.issueImmediateOrder(ORDER_STOP)
+
+            // Check if the attacker has a bow
+            item bow = findBow(archer)
+            if bow != null
+                // Check if the attacker has ammo
+                item arrows = findFirstObjectOfFamily(archer, ObjectFamily.ARROWS)
+                if arrows != null
+                    int charges = arrows.getCharges() - 1
+                    if (charges > 0)
+                        // Consume one arrow
+                        arrows.setCharges(charges)
+                    else
+                        // Empty arrows stack
+                        arrows.remove()
+                else
+                    DisplayTimedTextToPlayer(owner, 0, 0, 3, "You need arrows to use " + bow.getName() + " !")
+                    //archer.issueImmediateOrder(ORDER_STOP)
+                    archer.interruptAttack()
+            else
+                DisplayTimedTextToPlayer(owner, 0, 0, 3, "You cannot attack because you have no bow !")
+                //archer.issueImmediateOrder(ORDER_STOP)
+                archer.interruptAttack()
+

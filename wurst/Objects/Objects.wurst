@@ -1,6 +1,11 @@
 package Objects
 
+// Standard imports
 import HashMap
+import LinkedList
+
+// Custom imports
+import Spells
 
 /** Families of objects (weapon, scroll spell, quest item, etc.) */
 public enum ObjectFamily
@@ -9,13 +14,20 @@ public enum ObjectFamily
     NORMAL
     SPELL_SCROLL
 
+public constant LinkedList<ObjectType> OBJECT_TYPES_LIST = new LinkedList<ObjectType>
+public constant HashMap<int, ObjectType> OBJECT_TYPES_MAP = new HashMap<int, ObjectType>
+
 /** Types of objects and associated metadata */
 public class ObjectType
+    // Properties
+    int itemType    
     private ObjectFamily family
-    int itemType
+    
+    // Unique items
     private boolean unique
     private item uniqueInstance = null
 
+    // Functions
     construct (ObjectFamily family, int itemType, boolean unique)
         this.family = family
         this.itemType = itemType
@@ -33,19 +45,58 @@ public class ObjectType
     function getUniqueInstance() returns item
         return this.uniqueInstance
 
-public constant ObjectType OBJECT_ARC = new ObjectType(ObjectFamily.BOW, 'I00O', false)
-public constant ObjectType OBJECT_FLECHES = new ObjectType(ObjectFamily.BOW, 'I00N', false)
+/** Describes metadata of a bow object */
+public class ObjectBow extends ObjectType
+    // Properties
+    /** The bow requires arrows to be used */
+    constant boolean requiresArrows
 
-public constant HashMap<int, ObjectType> OBJECT_TYPES_MAP = new HashMap<int, ObjectType>
+    // Functions
+    construct(int itemType, boolean unique, boolean requiresArrows)
+        super(ObjectFamily.BOW, itemType, unique)
+        this.requiresArrows = requiresArrows
+    
+    function isRequiresArrows() returns boolean
+        return this.requiresArrows 
 
-public function registerObject(ObjectType o)
-    OBJECT_TYPES_MAP.put(o.itemType, o)
+/** Describes metadata of an arrow object (ammo) */
+public class ObjectArrows extends ObjectType
+    // Properties
+    constant int abilityId
+    constant TargetType target
 
-/***/
-public public function getObject(item whichItem) returns ObjectType
+    // Functions
+    construct(int itemType, boolean unique, int abilityId, TargetType target)
+        super(ObjectFamily.BOW, itemType, unique)
+        this.abilityId = abilityId
+        this.target = target
+        OBJECT_TYPES_LIST.add(this)
+        OBJECT_TYPES_MAP.put(itemType, this)
+
+// -------- OBJECTS DIRECTORY -------
+public constant ObjectBow OBJECT_ARC = new ObjectBow('I00O', false, true)
+public constant ObjectArrows OBJECT_FLECHES = new ObjectArrows('I00N', false, 'A00Z', TargetType.NONE)
+
+init
+    Log.info("Objects loaded.")
+
+// -------- OBJECT FUNCTIONS --------
+/** Return object metadata of an item type */
+public function getObject(item whichItem) returns ObjectType
     // Check in cache
-    public ObjectType obj = OBJECT_TYPES_MAP.get(whichItem.getTypeId())
+    ObjectType obj = OBJECT_TYPES_MAP.get(whichItem.getTypeId())
     if (obj == null)
-        public Log.error("ObjectType type not found for : " + GetItemName(whichItem))
+        Log.error("ObjectType type not found for : " + GetItemName(whichItem))
     
     return obj
+
+/** Find the first item of a certain family in the inventory of a unit */
+public function findFirstObjectOfFamily(unit whichUnit, ObjectFamily family) returns item
+    for itemSlot = 0 to 5
+        item itemInSlot = UnitItemInSlot(whichUnit, itemSlot)
+        if itemInSlot != null
+            ObjectType obj = getObject(itemInSlot)
+            if obj != null and obj.getFamily() == family
+                return itemInSlot
+
+    return null

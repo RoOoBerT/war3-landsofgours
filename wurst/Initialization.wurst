@@ -1,9 +1,21 @@
 package Initialization
 
+// Standard imports
+
+// Custom imports
+import Bows
+import Spells
+import Objects
+
 init
     // Is there only one player ?
     if localPlayer != null
         Log.setLevel(Loglevel.TRACE)
-        Log.info("Single player detected. Log level : " + Loglevel.TRACE.getTag())
+        Log.trace("Trace")
+        Log.debug("Debug")
+        Log.info("Info")
+        Log.warn("Warn")
+        Log.error("Error")
+        Log.info("Single player detected. Log level : " + DEBUG_LEVEL.getTag())
     else
         Log.setLevel(Loglevel.ERROR)

@@ -1,0 +1,4 @@
+package Printing_config
+
+@config public var DEBUG_LEVEL = Loglevel.TRACE
+@config public var DEBUG_MSG_DURATION = 15.0

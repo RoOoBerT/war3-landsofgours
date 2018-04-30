@@ -1,7 +1,12 @@
 package Spells
 
-import RegisterEvents
+// Standard imports
 import EventHelper
+import HashMap
+import LinkedList
+import RegisterEvents
+
+// Custom imports
 
 // SPELL CONSTANTS
 constant int ABILITY_RAIN_OF_ARROWS = 'A00V'
@@ -12,6 +17,66 @@ constant int DUMMY_TYPE_ID = 'h001'
 /** Unit-type ID of visible Dummy (for debugging) */
 constant int DUMMY_TYPE_ID_VISIBLE = 'h009'
 
+/** Available types of targets */
+public enum TargetType
+    NONE
+    LOCATION
+    UNIT
+
+/** Describes a school of magic */
+public class SpellSchool
+    // Properties
+    constant string name
+    constant color col
+
+    // Functions
+    private construct(string name, color col)
+        this.name = name
+        this.col = col
+        Log.debug("Ecole de magie : " + this.getColoredName())
+
+    function getColoredName() returns string
+        return this.col.toColorString() + this.name + "|r"
+    
+    function getName() returns string
+        return this.name
+    
+    // Values
+    static constant ABJURATION = new SpellSchool("Abjuration", color(0, 0, 255))
+    static constant ENTROPIE = new SpellSchool("Entropie", color(255, 128, 0))
+    static constant EVOCATION = new SpellSchool("Evocation", color(255, 0, 0))
+    static constant INVOCATION = new SpellSchool("Invocation", color(255, 255, 0))
+    static constant NECROMANCIE = new SpellSchool("Nécromancie", color (32, 32, 32))
+    static constant TRANSMUTATION = new SpellSchool("Transmutation", color(0, 255, 0))
+
+/** Describes a spell and associated metadata */
+public class Spell
+    constant int abilityId
+    constant int maxLevel
+
+    construct(int abilityId, int maxLevel)
+        this.abilityId = abilityId
+        this.maxLevel = maxLevel
+
+        SPELLS_LIST.add(this)
+        SPELLS_MAP.put(this.abilityId, this)
+    
+    static constant LinkedList<Spell> SPELLS_LIST = new LinkedList<Spell>
+    static constant HashMap<int, Spell> SPELLS_MAP = new HashMap<int, Spell>
+
+/** Describes a wizard spell, associated to a specific school and learnable with a scroll */
+public class WizardSpell extends Spell
+    constant SpellSchool school
+    constant int scrollId
+
+    construct(int abilityId, SpellSchool school, int maxLevel, int scrollId)
+        super(abilityId, maxLevel)
+        this.school = school
+        this.scrollId = scrollId
+    
+    constant static WizardSpell SPELL_WIZARD_PROJECTILE_MAGIQUE = new WizardSpell('A004', SpellSchool.EVOCATION, 20, 'I009')
+
+// Functions
 /** Create a dummy unit and order it to launch a spell at a point */
 public function dummySpellPoint(player owner, int unitid, int abilityId, int abilityLevel, string order, vec2 targetPoint) returns boolean
     unit dummyUnit = CreateUnit(owner, unitid, targetPoint.x, targetPoint.y, 0)
@@ -24,6 +89,8 @@ public function dummySpellPoint(player owner, int unitid, int abilityId, int abi
     return spellCastResult
 
 init
+    Log.trace("Init spells")
+
     // Rain of arrows
     registerSpellEffectEvent(ABILITY_RAIN_OF_ARROWS) ->
         Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())

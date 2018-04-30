@@ -1,0 +1,96 @@
+package Commands
+
+// Standard imports
+import HashMap
+import LinkedList
+import RegisterEvents
+import StringUtils
+
+// Custom imports
+import Spells
+
+@configurable public string COMMANDS_CHAR = "!"
+@configurable public boolean COMMANDS_CHEATS = false
+
+constant LinkedList<Command> COMMANDS_LIST = new LinkedList<Command>
+constant HashMap<string, Command> COMMANDS_MAP = new HashMap<string, Command>
+
+/** Defines available commands */
+abstract class Command
+    boolean cheat
+    string keyword
+    string syntax
+    string description
+
+    construct(boolean cheat, string keyword, string syntax, string description)
+        this.cheat = cheat
+        this.keyword = keyword.toLowerCase()
+        this.syntax = syntax
+        this.description = description
+        COMMANDS_MAP.put(this.keyword, this)
+    
+    /** A player is allowed to cheat if he is the first player OR if cheats are globally enabled */
+    static function isAllowedCheating(player who) returns boolean
+        return COMMANDS_CHEATS or who == Player(0)
+
+    abstract function onCall(player who, LinkedList<string> params)
+    
+    static constant HELP = new CommandHelp()
+    static constant SPELL = new CommandSpells()
+
+class CommandHelp extends Command
+    construct()
+        super(false, "help", "-help", "Show the list of available commands")
+    
+    override function onCall(player who, LinkedList<string> params)
+        // Should cheating commands be listed ?
+        boolean cheatsAllowed = Command.isAllowedCheating(who)
+        if cheatsAllowed
+            DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Listing all commands available (including cheats)")
+        else
+            DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Listing all commands available to you (excluding cheats)")
+        
+        // List the commands
+        for Command command in COMMANDS_LIST
+            if not command.cheat or cheatsAllowed
+                string message = "|cff4040{0}|r - {1}\n{2}".format(command.keyword, command.syntax, command.description)
+                DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
+
+class CommandSpells extends Command
+    construct()
+        super(false, "spells", "-spells [<index>]", "Show the list of available wizard spells")
+    
+    override function onCall(player who, LinkedList<string> params)
+        // List the commands
+        for WizardSpell spell in Spells.
+            if not command.cheat or cheatsAllowed
+                string message = "|cff4040{0}|r - {1}\n{2}".format(command.keyword, command.syntax, command.description)
+                DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
+
+
+// Initialization
+init
+    registerPlayerEvent(EVENT_PLAYER_CHAT) ->
+        string text = GetEventPlayerChatString()
+        player typer = GetEventDetectingPlayer()
+
+        // Is the message a command ?
+        if (text.isNotBlank() and text.startsWith(COMMANDS_CHAR))
+            // Parse the substrings
+            LinkedList<string> params = text.split(" ")
+            if not params.isEmpty()
+                // Is this an available command ?
+                string keyword = params.removeAt(0).substring(COMMANDS_CHAR.length()).toLowerCase()
+                Command cmd = COMMANDS_MAP.get(keyword)
+                if cmd != null
+                    if not cmd.cheat or Command.isAllowedCheating(typer)
+                        cmd.onCall(typer, params)
+                    else
+                        // Command refused (cheat) : notify players for fun
+                        DisplayTimedTextToPlayer(typer, 0, 0, 5, "Vous n'avez pas le droit d'utiliser la commande " + cmd.keyword + " (triche) !")
+                        for int i = 0 to 19
+                            DisplayTimedTextToPlayer(Player(i), 0, 0, 5, "{0} a essayé de tricher avec la commande {1} !".format(typer.getName(), cmd.keyword))
+                else
+                    DisplayTimedTextToPlayer(typer, 0, 0, 5, "Commande inconnue <" + keyword + ">. Essayez '-help'.")
+            else
+                Log.error("Failure splitting text into parameters : <" + text + ">")
