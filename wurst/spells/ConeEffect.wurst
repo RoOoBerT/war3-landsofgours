@@ -1,35 +1,311 @@
 package ConeEffect
 
-/*
-======== Hashtable ========
-Key = Dummy
-0 -> [REAL] Begin time
-1 -> [REAL] End time
-2 -> [UNIT] Original spell caster
-3 -> [REAL] Angle (Degrees) : Fixed OR Negative = Follow caster
-4 -> [REAL] Full angle of spread (Degrees)
+// Standard imports
+import ClosureForGroups
+import ClosureTimers
+import EventHelper
+import GameTimer
+import LinkedList
+import RegisterEvents
 
-==== Range = A * <time> + B ====
-10 -> [REAL] Queue Speed : A
-11 -> [REAL] Queue Speed : B
-12 -> [REAL] Head Speed : A
-13 -> [REAL] Head Speed : B
-14 -> [REAL] Max Range
+// Custom imports
+import Spells
 
-==== Graphics ====
-20 -> [STR] Special effect path (or empty)
-21 -> [REAL] Time interval for special effects
-22 -> [REAL] Previous time of special effect
-23 -> [REAL] Radius of special effect
+@configurable public constant real CONE_EFFECTS_UPDATE_FREQUENCY = 0.1 //ANIMATION_PERIOD
 
-==== Graphics (HEAD) ====
-24 -> [STR] Special effect path for HEAD (or empty)
-25 -> [REAL] Time interval for special effects
-26 -> [REAL] Previous time of special effect
-27 -> [REAL] Radius of special effect
+/** Interface used to dispatch events related to units interacting with cone effects */
+public interface ConeUnitHandler
+    function onUnitAffected(ConeEffect cone, unit who)
 
-==== Effects ====
-30 -> [INT] Dummy ability index (Unit-targeted)
-31 -> [REAL] Interval of cast
-32 -> [REAL] Previous time of cast
-*/
+/** Stores graphical metadata associated to a conic wave (part of a cone effect) */
+public class ConicWaveGraphics
+    /** Head special effect path (optional) */
+    constant string effectPath
+
+    /** Time interval for head special effects */
+    constant real effectInterval
+
+    /** Radius of head special effect */
+    constant real effectRadius
+
+    /** Time of last head special effect */
+    real effectLastTime = getElapsedGameTime()
+
+    construct(string effectPath, real effectInterval, real effectRadius)
+        this.effectPath = effectPath
+        this.effectInterval = effectInterval
+        this.effectRadius = max(1.0, effectRadius)
+
+/** Data related to a spell with a line/cone/circle shape */
+public class ConeEffect
+    // Generic properties
+    /** The currentTime at which the effect started */
+    real beginTime = getElapsedGameTime()
+
+    /** The currentTime at which the effect will stop */
+    real endTime
+
+    /** The initial unit that casted the spell */
+    constant unit emitter
+
+    /** Orientation of the cone */
+    angle ang = 0.0.asAngleDegrees()
+
+    /** Origin of the cone */
+    vec3 origin
+
+    // Propagation properties
+    /** An optional unit that the effect should follow, or null */
+    unit followUnit = null
+
+    /** Speed of propagation : Head = <y> + <x> * currentTime */
+    vec2 headPropagationSpeed = vec2(0, 0)
+
+    /** Speed of propagation : Queue = <y> + <x> * currentTime */
+    vec2 queuePropagationSpeed = vec2(0, 0)
+
+    /** Angle of spread of the effect */
+    angle spreadAngle = 0.0.asAngleRadians()
+
+    /** Maximum range of the effect, or 0 if none */
+    real maxRange = 0
+
+    // Graphics
+    ConicWaveGraphics queue
+    ConicWaveGraphics head
+
+    // Handlers
+    ConeUnitHandler unitEnteringHandler
+    ConeUnitHandler unitLeavingHandler
+    real unitsChecksFrequency = 0
+    real unitsLastCheckTime = this.beginTime
+    group unitsInCone = CreateGroup()
+    
+    // Cone effects directory
+    /** Directory of all active cone effects */
+    static constant LinkedList<ConeEffect> LIST = new LinkedList<ConeEffect>
+
+    construct(real duration, vec3 origin, unit emitter, unit followUnit)
+        this.endTime = this.beginTime + duration
+        this.origin = origin
+        this.emitter = emitter
+        this.followUnit = followUnit
+
+        // Register this cone effect
+        LIST.add(this)
+    
+    ondestroy
+        DestroyGroup(this.unitsInCone)
+
+    function setBeginTime(real beginTime)
+        this.beginTime = beginTime
+
+    function setEndTime(real endTime)
+        this.endTime = endTime
+
+    function setAngle(angle ang)
+        this.ang = ang
+
+    function setOrigin(vec3 origin)
+        this.origin = origin
+
+    function setFollowUnit(unit followUnit)
+        this.followUnit = followUnit
+        
+    function setHeadPropagationSpeed(vec2 headPropagationSpeed)
+        this.headPropagationSpeed = headPropagationSpeed
+
+    function setQueuePropagationSpeed(vec2 queuePropagationSpeed)
+        this.queuePropagationSpeed = queuePropagationSpeed
+    
+    function setSpreadAngle(angle spreadAngle)
+        this.spreadAngle = spreadAngle
+
+    function setMaxRange(real maxRange)
+        this.maxRange = maxRange
+
+    function setQueue(ConicWaveGraphics queue)
+        this.queue = queue
+    
+    function setHead(ConicWaveGraphics head)
+        this.head = head
+
+    function setUnitEnteringHandler(ConeUnitHandler unitEnteringHandler)
+        this.unitEnteringHandler = unitEnteringHandler
+
+    function setUnitLeavingHandler(ConeUnitHandler unitLeavingHandler)
+        this.unitLeavingHandler = unitLeavingHandler
+
+    function handleGraphics(ConicWaveGraphics gfx, real queuePosition, real headPosition)
+        if currentTime - gfx.effectLastTime >= gfx.effectInterval
+            gfx.effectLastTime += gfx.effectInterval
+
+            // All along the way
+            real currentPosition = queuePosition
+            while currentPosition <= headPosition
+                //Log.trace("Cone propagating : " + currentPosition.toString(0) + " / " + headPosition.toString(0))
+
+                // All the angle
+                //let circonference = currentPosition * PI2 * this.spreadAngle.degrees() / 360.0
+                let circonference = currentPosition * this.spreadAngle.radians()
+                let iterationsCount = max(1, (circonference / gfx.effectRadius).round())
+                let angleStep = this.spreadAngle.op_divReal(iterationsCount.toReal())
+                
+                angle currentAngle = this.ang - (this.spreadAngle / 2)
+                for int i = 1 to iterationsCount
+                    let currentPoint = this.origin.toVec2().polarOffset(currentAngle, currentPosition)
+
+                    // Show effect
+                    addEffect(gfx.effectPath, currentPoint.withZ(this.origin.z))
+                        ..destr()
+
+                    // Increase angle
+                    currentAngle = currentAngle.op_plus(angleStep)
+
+                // Increase distance
+                currentPosition += gfx.effectRadius
+
+    /** Compute the position (offset) of the cone at the provided date, considering the provided speed */
+    function computePosition(real time, vec2 speed) returns real
+        let timeElapsed = max(0, time - this.beginTime)
+        real position = speed.x + timeElapsed * speed.y
+        if this.maxRange > 0
+            position = min(this.maxRange, position)
+        return position
+
+    /** Computes whether a unit is in the area of the specified cone shape */
+    static function isPointInCone(vec2 origin, angle ang, angle spreadAngle, real queuePosition, real headPosition, vec2 point) returns boolean
+        // Check distance
+        real dist2 = origin.distanceToSq(point)
+        if dist2 > queuePosition * queuePosition and dist2 <= headPosition * headPosition
+            Log.trace("Location in cone range : " + point.toString())
+            // Distance ok -> check angle
+            angle a = origin.angleTo(point).op_minus(ang)
+            if ModuloReal(a.degrees(), 360) < spreadAngle.degrees() // No mod because spreadAngle can be 360
+                return true
+        return false
+
+    /** Handles cone effect propagation. Returns true if the cone disappered and should be deleted */
+    function propagate() returns boolean
+        // Is it finished ?
+        let currentTime = getElapsedGameTime()
+        if currentTime >= this.endTime
+            // Notify units leaving the area
+            if this.unitLeavingHandler != null
+                for unit u from this.unitsInCone
+                    this.unitLeavingHandler.onUnitAffected(this, u)
+
+            return true // Caller destroy this object
+        
+        // Has it started ?
+        if currentTime < this.beginTime
+            return false // Not started yet
+        
+        // Follow a unit ?
+        if this.followUnit != null
+            this.origin = this.followUnit.getPos3Real()
+        
+        // Compute cone progression
+        //let timeElapsed = currentTime - this.beginTime
+        let headPosition = this.computePosition(currentTime, this.headPropagationSpeed)
+        let queuePosition = min(headPosition,  this.computePosition(currentTime, this.queuePropagationSpeed))
+        
+        //Log.trace("Cone propagating : " + this.emitter.getName() + " from " + queuePosition.toString(0) + " to " + headPosition.toString(0))
+        
+        // Queue graphics : All along the way
+        if this.queue != null
+            this.handleGraphics(this.queue, queuePosition, headPosition)
+        
+        // Head graphics : ahead
+        if this.head != null
+            this.handleGraphics(this.head, headPosition, headPosition)
+        
+        // Shall we refresh entering/leaving units ?
+        if this.unitEnteringHandler != null or this.unitLeavingHandler != null
+            if currentTime - this.unitsLastCheckTime >= this.unitsChecksFrequency
+                // Check the previous position of cone 
+                let previousHeadPosition = this.computePosition(this.unitsLastCheckTime, this.headPropagationSpeed)
+
+                let newUnitsInCone = CreateGroup()
+
+                // Find units that entered the area
+                vec2 center = this.origin.toVec2()
+                forUnitsInRange(center, headPosition) u ->
+                    Log.trace("Unit is maybe cone range : " + u.getName())
+                    if ConeEffect.isPointInCone(center, this.ang, this.spreadAngle, previousHeadPosition, headPosition, u.getPos())
+                        newUnitsInCone.addUnit(u)
+
+                        // Did this unit just enter the area ?
+                        if this.unitEnteringHandler != null and not this.unitsInCone.contains(u)
+                            this.unitEnteringHandler.onUnitAffected(this, u)
+                
+                // Find units that just left the area
+                if this.unitLeavingHandler != null
+                    for unit u from this.unitsInCone
+                        if not newUnitsInCone.contains(u)
+                            this.unitLeavingHandler.onUnitAffected(this, u)
+
+                DestroyGroup(this.unitsInCone)
+                this.unitsInCone = newUnitsInCone
+                
+                // Update last check time
+                this.unitsLastCheckTime = currentTime
+        
+        // Not finished
+        return false
+
+init
+    Log.trace("Init cone effects")
+    
+    // Periodically propagation current cone effects
+    doPeriodically(CONE_EFFECTS_UPDATE_FREQUENCY) cb -> 
+        let iter = ConeEffect.LIST.iterator()
+        while iter.hasNext()
+            ConeEffect cone = iter.next()
+            if cone.propagate()
+                // Finished !
+                //Log.trace("Cone finished : " + cone.emitter.getName())
+                destroy cone
+                iter.remove()
+    
+    // Feu solaire
+    registerSpellEffectEvent(WizardSpell.FEU_SOLAIRE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        //vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 2
+
+        //ConicWaveGraphics queue = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
+        ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
+        ConeEffect _cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+                ..setMaxRange(1024.0)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(32, 512))
+                ..setHeadPropagationSpeed(vec2(32, 512))
+                ..setQueue(null)
+                ..setHead(head)
+    
+    // Bouclier de glace
+    registerSpellEffectEvent(WizardSpell.BOUCLIER_GLACE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        unit target = GetSpellTargetUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 15.0 + level
+
+        ConeUnitHandler enterConeHandler = (cone, who) ->
+            Log.debug("Unit entered cone effect : " + who.getName())
+
+        ConeUnitHandler leaveConeHandler = (cone, who) ->
+            Log.debug("Unit left cone effect : " + who.getName())
+
+        ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Weapons\\ZigguratFrostMissile\\ZigguratFrostMissile.mdl", 0.4, 64)
+        ConeEffect _cone = new ConeEffect(duration, target.getPos().withZ(0.0), emitter, target)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(64, 1))
+                ..setHeadPropagationSpeed(vec2(128, 1))
+                ..setQueue(null)
+                ..setHead(head)
+                ..setUnitEnteringHandler(enterConeHandler)
+                ..setUnitLeavingHandler(leaveConeHandler)
+    
+    

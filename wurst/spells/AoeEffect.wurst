@@ -1,10 +1,9 @@
-package AoESpells
+package AoeEffect
 
 // Standard imports
 import ClosureTimers
 import ClosureForGroups
 import EventHelper
-import Fx
 import GameTimer
 import LinkedList
 import RegisterEvents
@@ -12,7 +11,7 @@ import RegisterEvents
 // Custom imports
 import Spells
 
-@configurable public constant real AOE_SPELLS_FREQUENCY = 0.25 //ANIMATION_PERIOD
+@configurable public constant real AOE_SPELLS_FREQUENCY = 0.1 //ANIMATION_PERIOD
 
 /** AoE Impact Handler */
 public interface AoeImpactHandler
@@ -21,18 +20,16 @@ public interface AoeImpactHandler
 public class GenericImpactHandler implements AoeImpactHandler
     constant string effectPath
     constant real scale
-    constant colorA color
+    constant color col
     constant real delay
     constant real radius
     constant real damage
     constant attacktype attackType = ATTACK_TYPE_CHAOS
 
-    Fx fx
-
-    construct(string effectPath, real scale, colorA color, real delay, real radius, real damage)
+    construct(string effectPath, real scale, color col, real delay, real radius, real damage)
         this.effectPath = effectPath
         this.scale = scale
-        this.color = color
+        this.col = col
         this.delay = delay
         this.radius = radius
         this.damage = damage
@@ -41,9 +38,10 @@ public class GenericImpactHandler implements AoeImpactHandler
 
     function onImpact(AoeEffect aoe, vec2 where)
         // Create impact effect
-        this.fx = new Fx(where, this.effectPath)
-            ..setColor(this.color)
+        addEffect(this.effectPath, where)
             ..setScale(this.scale)
+            ..setColor(this.col.red, this.col.green, this.col.blue)
+            ..destr()
 
         // Impact after some delay
         doAfter(this.delay) ->
@@ -51,7 +49,6 @@ public class GenericImpactHandler implements AoeImpactHandler
             if this.damage != 0.
                 forUnitsInRange(where, aoe.radius) u ->
                     aoe.emitter.damageTarget(u, this.damage, this.attackType)
-    
 
 /** Data related to a spell with an Area of Effect (AoE) */
 public class AoeEffect
@@ -78,6 +75,7 @@ public class AoeEffect
     /** Time at which the last effect occured */
     real lastEffectTime
 
+    /** Directory of all active AoEs */
     static constant LinkedList<AoeEffect> LIST = new LinkedList<AoeEffect>
 
     construct(real endTime, unit emitter, vec3 center, real radius, real frequency, AoeImpactHandler impactHandler)
@@ -131,7 +129,7 @@ init
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real frequency = 0.21 - (0.01 * level)
 
-        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, colorA(0, 0, 0, 0), 1, 250, 40)
+        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
         AoeEffect _aoe = new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
 
     // Nuée de météores
@@ -142,5 +140,5 @@ init
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real frequency = 0.5 - (0.01 * level)
         
-        AoeImpactHandler handler = new GenericImpactHandler("Units\\Demon\\Infernal\\InfernalBirth.mdl", 1, colorA(255, 0, 0, 0), 1, 250, 4)
+        AoeImpactHandler handler = new GenericImpactHandler("Units\\Demon\\Infernal\\InfernalBirth.mdl", 1, color(255, 0, 0), 1, 250, 4)
         AoeEffect _aoe = new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)

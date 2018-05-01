@@ -81,10 +81,18 @@ public class WizardSpell extends Spell
         this.school = school
         this.scrollId = scrollId
     
-    // Spell book register
+    // ======== SPELL BOOK DIRECTORY ========
     constant static WizardSpell PROJECTILE_MAGIQUE = new WizardSpell('A004', 20, TargetType.UNIT, "creepthunderbolt", SpellSchool.EVOCATION, 'I009')
+    
+    // AoE
     constant static WizardSpell TOILES_ARAIGNEE = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION, 'I00T')
     constant static WizardSpell NUEE_METEORES = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION, 'I00K')
+    
+    // Conic spells
+    constant static WizardSpell INCINERATEUR_AGANAZZAR = new WizardSpell('A00T', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
+    constant static WizardSpell CONE_FROID = new WizardSpell('A00X', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
+    constant static WizardSpell FEU_SOLAIRE = new WizardSpell('A00Y', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
+    constant static WizardSpell BOUCLIER_GLACE = new WizardSpell('A016', 20, TargetType.UNIT, "frostarmor", SpellSchool.EVOCATION, 'I00K')
 
 public class DummySpell extends Spell
     constant int dummyType

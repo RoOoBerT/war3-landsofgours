@@ -176,7 +176,7 @@ init
     trigger chatListener = CreateTrigger()
     ACTIVE_PLAYERS.forEach(p -> chatListener.registerPlayerChatEvent(p, COMMANDS_CHAR, false))
     chatListener.addAction() ->
-        string text = GetEventPlayerChatString()
+        string text = GetEventPlayerChatString().trim()
         player typer = GetTriggerPlayer()
         
         Log.trace("Message received from " + typer.getName() + " : " + text)
