@@ -3,10 +3,7 @@ package Initialization
 // Standard imports
 
 // Custom imports
-import Bows
 import LinkedList
-import Objects
-import Spells
 
 /** Maximum number of players */
 @configurable public int PLAYERS_MAX = 20
@@ -15,22 +12,17 @@ import Spells
 public constant LinkedList<player> ACTIVE_PLAYERS = new LinkedList<player>
 
 init
-    // Is there only one player ?
-    if localPlayer != null
-        Log.setLevel(Loglevel.TRACE)
-        Log.trace("Trace")
-        Log.debug("Debug")
-        Log.info("Info")
-        Log.warn("Warn")
-        Log.error("Error")
-        Log.info("Single player detected. Log level : " + DEBUG_LEVEL.getTag())
-    else
-        Log.setLevel(Loglevel.ERROR)
-    
     // Detect current players
     for int i = 0 to PLAYERS_MAX - 1
         player p = players[i]
         if p.isIngame() and p.getSlotState() == PLAYER_SLOT_STATE_PLAYING
             ACTIVE_PLAYERS.add(p)
-        
+
+    // Is there only one player ?
+    if ACTIVE_PLAYERS.size() == 1
+        Log.setLevel(Loglevel.TRACE)
+        Log.info("Single player detected. Log level : " + DEBUG_LEVEL.getTag())
+    else
+        Log.setLevel(Loglevel.ERROR)
+    
     Log.debug("Number of active players : " + I2S(ACTIVE_PLAYERS.size()))

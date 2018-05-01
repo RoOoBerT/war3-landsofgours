@@ -19,8 +19,10 @@ constant int DUMMY_TYPE_ID_VISIBLE = 'h009'
 
 /** Available types of targets */
 public enum TargetType
-    NONE
     LOCATION
+    LOCATION_OR_UNIT
+    NONE
+    //PASSIVE
     UNIT
 
 /** Describes a school of magic */
@@ -53,41 +55,64 @@ public class SpellSchool
 public class Spell
     constant int abilityId
     constant int maxLevel
+    constant TargetType target
+    constant string order
 
-    construct(int abilityId, int maxLevel)
+    construct(int abilityId, int maxLevel, TargetType target, string order)
         this.abilityId = abilityId
         this.maxLevel = maxLevel
+        this.target = target
+        //this.orderId = OrderId(order)
+        this.order = order
 
-        SPELLS_LIST.add(this)
-        SPELLS_MAP.put(this.abilityId, this)
+        LIST.add(this)
+        MAP.put(this.abilityId, this)
     
-    static constant LinkedList<Spell> SPELLS_LIST = new LinkedList<Spell>
-    static constant HashMap<int, Spell> SPELLS_MAP = new HashMap<int, Spell>
+    static constant LinkedList<Spell> LIST = new LinkedList<Spell>
+    static constant HashMap<int, Spell> MAP = new HashMap<int, Spell>
 
 /** Describes a wizard spell, associated to a specific school and learnable with a scroll */
 public class WizardSpell extends Spell
     constant SpellSchool school
     constant int scrollId
 
-    construct(int abilityId, SpellSchool school, int maxLevel, int scrollId)
-        super(abilityId, maxLevel)
+    construct(int abilityId, int maxLevel, TargetType target, string order, SpellSchool school, int scrollId)
+        super(abilityId, maxLevel, target, order)
         this.school = school
         this.scrollId = scrollId
     
-    constant static WizardSpell SPELL_WIZARD_PROJECTILE_MAGIQUE = new WizardSpell('A004', SpellSchool.EVOCATION, 20, 'I009')
+    // Spell book register
+    constant static WizardSpell PROJECTILE_MAGIQUE = new WizardSpell('A004', 20, TargetType.UNIT, "creepthunderbolt", SpellSchool.EVOCATION, 'I009')
+    constant static WizardSpell TOILES_ARAIGNEE = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION, 'I00T')
+    constant static WizardSpell NUEE_METEORES = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION, 'I00K')
+
+public class DummySpell extends Spell
+    constant int dummyType
+    
+    construct(int abilityId, int maxLevel, TargetType target, string order)
+        super(abilityId, maxLevel, target, order)
+        this.dummyType = DUMMY_TYPE_ID
+    
+    // Methods
+    /** Create a dummy unit and order it to launch a spell at a point */
+    function castPoint(player owner, vec2 fromPoint, vec2 toPoint, int level) returns boolean
+        unit dummyUnit = CreateUnit(owner, this.dummyType, fromPoint.x, fromPoint.y, 0)
+            ..addAbility(abilityId)
+            ..setAbilityLevel(abilityId, level)
+            ..setTimedLife(1.0)
+        boolean spellCastResult = dummyUnit.issuePointOrder(order, toPoint)
+        if not spellCastResult
+            Log.error("Failure launching dummy spell : " + GetAbilityName(abilityId))
+        return spellCastResult
+
+    // Dummy spells
+    constant static DummySpell FLECHES_PRIMITIVES = new DummySpell('A00Z', 20, TargetType.LOCATION, "clusterrockets")
+    constant static DummySpell FLECHES_DE_BRONZE = new DummySpell('A010', 20, TargetType.LOCATION, "clusterrockets")
+    constant static DummySpell FLECHES_DE_GIVRE = new DummySpell('A011', 20, TargetType.LOCATION, "clusterrockets")
+    
+    constant static DummySpell TOILE_ARAIGNEE = new DummySpell('A015', 20, TargetType.LOCATION, "dreadlordinferno")
 
 // Functions
-/** Create a dummy unit and order it to launch a spell at a point */
-public function dummySpellPoint(player owner, int unitid, int abilityId, int abilityLevel, string order, vec2 targetPoint) returns boolean
-    unit dummyUnit = CreateUnit(owner, unitid, targetPoint.x, targetPoint.y, 0)
-        ..addAbility(abilityId)
-        ..setAbilityLevel(abilityId, abilityLevel)
-        ..setTimedLife(15.0)
-    boolean spellCastResult = dummyUnit.issuePointOrder(order, targetPoint)
-    if not spellCastResult
-        Log.error("Failure launching dummy spell : " + GetAbilityName(abilityId))
-    return spellCastResult
-
 init
     Log.trace("Init spells")
 
@@ -96,8 +121,6 @@ init
         Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
         
         int abilityLevel = 1
-        int dummyAbilId = 'A009'
-        string orderString = "dreadlordinferno"
+        vec2 fromPoint = GetTriggerUnit().getPos()
         vec2 targetPoint = getSpellTargetPos()
-        Log.debug("Spell order : " + GetAbilityName(dummyAbilId) + " -> " + orderString)
-        dummySpellPoint(GetOwningPlayer(GetTriggerUnit()), DUMMY_TYPE_ID, dummyAbilId, abilityLevel, orderString, targetPoint)
+        DummySpell.FLECHES_DE_BRONZE.castPoint(GetOwningPlayer(GetTriggerUnit()), fromPoint, targetPoint, abilityLevel)

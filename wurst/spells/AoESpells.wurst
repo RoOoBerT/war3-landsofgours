@@ -1,0 +1,146 @@
+package AoESpells
+
+// Standard imports
+import ClosureTimers
+import ClosureForGroups
+import EventHelper
+import Fx
+import GameTimer
+import LinkedList
+import RegisterEvents
+
+// Custom imports
+import Spells
+
+@configurable public constant real AOE_SPELLS_FREQUENCY = 0.25 //ANIMATION_PERIOD
+
+/** AoE Impact Handler */
+public interface AoeImpactHandler
+    function onImpact(AoeEffect aoe, vec2 where)
+
+public class GenericImpactHandler implements AoeImpactHandler
+    constant string effectPath
+    constant real scale
+    constant colorA color
+    constant real delay
+    constant real radius
+    constant real damage
+    constant attacktype attackType = ATTACK_TYPE_CHAOS
+
+    Fx fx
+
+    construct(string effectPath, real scale, colorA color, real delay, real radius, real damage)
+        this.effectPath = effectPath
+        this.scale = scale
+        this.color = color
+        this.delay = delay
+        this.radius = radius
+        this.damage = damage
+
+    ondestroy
+
+    function onImpact(AoeEffect aoe, vec2 where)
+        // Create impact effect
+        this.fx = new Fx(where, this.effectPath)
+            ..setColor(this.color)
+            ..setScale(this.scale)
+
+        // Impact after some delay
+        doAfter(this.delay) ->
+            // Impact happened
+            if this.damage != 0.
+                forUnitsInRange(where, aoe.radius) u ->
+                    aoe.emitter.damageTarget(u, this.damage, this.attackType)
+    
+
+/** Data related to a spell with an Area of Effect (AoE) */
+public class AoeEffect
+    // AoE properties
+    /** The time at which the effect will stop */
+    constant real endTime
+
+    /** The initial unit that casted the spell */
+    constant unit emitter
+
+    /** Center of the AoE */
+    constant vec3 center
+
+    /** Radius of the AoE */
+    constant real radius
+
+    // Impact(s) properties
+    /** Frequency at which effects appear inside the AoE */
+    constant real frequency
+
+    /** Impact handler */
+    constant AoeImpactHandler impactHandler
+
+    /** Time at which the last effect occured */
+    real lastEffectTime
+
+    static constant LinkedList<AoeEffect> LIST = new LinkedList<AoeEffect>
+
+    construct(real endTime, unit emitter, vec3 center, real radius, real frequency, AoeImpactHandler impactHandler)
+        this.endTime = endTime
+        this.emitter = emitter
+        this.center = center
+        this.radius = radius
+        this.frequency = max(frequency, 0.01)
+        this.impactHandler = impactHandler
+        
+        this.lastEffectTime = getElapsedGameTime()
+        
+        // Register this AoE
+        LIST.add(this)
+
+init
+    Log.trace("Init AoE spells")
+    
+    // Periodically check current AoE
+    doPeriodically(AOE_SPELLS_FREQUENCY) cb -> 
+        let iter = AoeEffect.LIST.iterator()
+        while iter.hasNext()
+            AoeEffect aoe = iter.next()
+            
+            // Is it currently effective ?
+            real time = getElapsedGameTime()
+            if time < aoe.endTime
+                //Log.trace("AoE running : " + AbilityId2String(aoe.spell.abilityId))
+                // Shall we create new effects ?
+                while time - aoe.lastEffectTime > aoe.frequency
+                    aoe.lastEffectTime += aoe.frequency
+
+                    // Create a new effect now
+                    angle ang = GetRandomDirectionDeg().asAngleDegrees()
+                    real dist = GetRandomReal(0, aoe.radius)
+                    vec2 target = aoe.center.toVec2().polarOffset(ang, dist)
+
+                    // Call the impact effect
+                    aoe.impactHandler.onImpact(aoe, target)
+            else
+                // Finished !
+                //Log.trace("AoE finished : " + AbilityId2String(aoe.spell.abilityId))
+                destroy aoe
+                iter.remove()
+
+    // Toiles d'araignee
+    registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
+        real endTime = getElapsedGameTime() + 25.0
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 0.21 - (0.01 * level)
+
+        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, colorA(0, 0, 0, 0), 1, 250, 40)
+        AoeEffect _aoe = new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
+
+    // Nuée de météores
+    registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
+        real endTime = getElapsedGameTime() + 20.0
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 0.5 - (0.01 * level)
+        
+        AoeImpactHandler handler = new GenericImpactHandler("Units\\Demon\\Infernal\\InfernalBirth.mdl", 1, colorA(255, 0, 0, 0), 1, 250, 4)
+        AoeEffect _aoe = new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)

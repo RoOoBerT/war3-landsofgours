@@ -3,7 +3,6 @@ package Commands
 // Standard imports
 import HashMap
 import LinkedList
-import RegisterEvents
 import StringUtils
 
 // Custom imports
@@ -42,6 +41,7 @@ abstract class Command
     static constant HashMap<string, Command> MAP = new HashMap<string, Command>
 
     static constant HELP = new CommandHelp()
+    static constant CHEATS = new CommandCheats()
     static constant SPELLBOOK = new CommandSpellBook()
     static constant SPELL_LEARN = new CommandSpellLearn()
 
@@ -66,44 +66,82 @@ class CommandHelp extends Command
                     command.keyword, command.syntax, command.description)
                 DisplayTimedTextToPlayer(who, 0, 0, 60.0, message)
 
+class CommandCheats extends Command
+    construct()
+        super(false, "cheats", "-cheats [true|false]", "Afficher/modifier les autorisations de triche")
+
+    override function onCall(player who, LinkedList<string> params)
+        // Enable/disable cheats
+        if not params.isEmpty()
+            COMMANDS_CHEATS = params.removeAt(0).toBool()
+        
+        // Show current cheats status
+        DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Activation des codes de triche : " + COMMANDS_CHEATS.toString())
+
+class CommandDebug extends Command
+    construct()
+        super(false, "debug", "-debug [TRACE|DEBUG|INFO|WARNING|ERROR]", "Modifier le niveau de traces")
+
+    override function onCall(player who, LinkedList<string> params)
+        // Update debug level
+        if not params.isEmpty()
+            string level = params.removeAt(0).toLowerCase()
+            switch level
+                case "trace"
+                    Log.setLevel(Loglevel.TRACE)
+                case "debug"
+                    Log.setLevel(Loglevel.DEBUG)
+                case "info"
+                    Log.setLevel(Loglevel.INFO)
+                case "warning"
+                    Log.setLevel(Loglevel.WARNING)
+                case "error"
+                    Log.setLevel(Loglevel.ERROR)
+                default
+                    DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Niveau de traces invalide : " + level)
+                    Log.setLevel(Loglevel.TRACE)
+        
+        // Show current debug level
+        DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Niveau de traces actuel : " + DEBUG_LEVEL.getTag())
+
 class CommandSpellBook extends Command
     construct()
-        super(false, "spellbook", "-spellbook [<index>]", "Show the list of available wizard spells")
+        super(false, "spellbook", "-spellbook [<index>]", "Affiche la liste des sorts de mage")
     
     override function onCall(player who, LinkedList<string> params)
         // Show a specific spell ?
         string abilityId = params.removeAt(0)
         if abilityId.isNotBlank()
             // Display one specific spell
-            Spell spell = Spell.SPELLS_MAP.get(abilityId.toAbilityId())
+            Spell spell = Spell.MAP.get(abilityId.toAbilityId())
             if spell != null
                 showSpell(who, spell)
             else
                 DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort inconnu <" + abilityId + " (" + I2S(abilityId.toAbilityId()) + ")>")
         else
             // List all available spell(s)
-            for Spell spell in Spell.SPELLS_LIST
+            for Spell spell in Spell.LIST
                 showSpell(who, spell)
     
     static function showSpell(player who, Spell spell)
         if spell instanceof WizardSpell
-            int index = Spell.SPELLS_LIST.indexOf(spell)
+            int index = Spell.LIST.indexOf(spell)
             WizardSpell wizardSpell = spell castTo WizardSpell
-            string message = "|c00ff4040{0}|r ({1}) - {2} - Niveaux 1-{3}".format(
-                AbilityId2String(wizardSpell.abilityId), I2S(index), wizardSpell.school.getColoredName(), I2S(wizardSpell.maxLevel))
+            string message = "|c00ff4040 {0} |r ({1}) - {2} - Niveaux 1-{3}".format(
+                GetAbilityName(wizardSpell.abilityId), I2S(index), wizardSpell.school.getColoredName(), I2S(wizardSpell.maxLevel))
             DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
 
 class CommandSpellLearn extends Command
     construct()
-        super(true, "learn", "-learn [<index> [<level>]]", "Learn a spell")
+        super(true, "learn", "-learn [<index> [<level>]]", "Apprend un sort de magicien")
     
     override function onCall(player who, LinkedList<string> params)
         // Learn what spell ?
         string strIndex = params.removeAt(0)
         if strIndex != null and strIndex.isNotBlank()
             int index = strIndex.toInt()
-            if index >= 0 and index < Spell.SPELLS_LIST.size()
-                Spell spell = Spell.SPELLS_LIST.get(index)
+            if index >= 0 and index < Spell.LIST.size()
+                Spell spell = Spell.LIST.get(index)
 
                 // At what level ?
                 int level = 1
@@ -127,10 +165,10 @@ class CommandSpellLearn extends Command
                     // Remove ability
                     hero.removeAbility(spell.abilityId)
                     DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort oublie : " + GetAbilityName(spell.abilityId))
-                
             else
                 DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort inconnu " + strIndex)
         else
+            DisplayTimedTextToPlayer(who, 0, 0, 5, "Specifiez un index de sort")
 
 // Initialization
 init

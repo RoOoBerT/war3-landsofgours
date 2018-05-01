@@ -1,0 +1,74 @@
+package Projectiles
+
+// Standard imports
+import ClosureTimers
+//import DamageDetection
+//import Effect
+import Fx
+import HashMap
+import LinkedList
+//import Player
+import RegisterEvents
+//import EventHelper
+
+// Custom imports
+
+/** Projectiles impact check frequency */
+@configurable public constant real PROJECTILES_IMPACT_CHECK_FREQUENCY = ANIMATION_PERIOD
+
+@configurable public constant string EFFECT_PATH = "Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl"
+
+/** Interface for receiving projectile impact events */
+public interface ImpactHandler
+    function onImpact(Projectile projectile, vec3 impactPoint) returns boolean
+
+/** A projectile object which can be followed over time and emits a notification upon impact */
+public class Projectile
+    constant Fx fx
+    constant ImpactHandler impactHandler
+    constant vec3 dest
+
+    constant unit emitter
+
+    static constant LinkedList<Projectile> LIST = new LinkedList<Projectile>
+
+    construct(vec3 origin, vec3 dest, ImpactHandler impactHandler, unit emitter, string effectPath, real speed, real scale)
+        this.fx = new Fx(origin, effectPath)    
+        this.impactHandler = impactHandler
+        this.dest = dest
+        this.emitter = emitter
+        
+        // Register projectile
+        LIST.add(this)
+
+        // Move effect
+        fx.setScale(scale)
+        fx.getDummy()
+            ..setMoveSpeed(speed)
+            ..issuePointOrder("move", dest.toVec2())
+    
+    function getPos() returns vec2
+        return this.fx.getDummy().getPos()
+
+    ondestroy // TODO ??
+        //destroy this.fx
+
+init
+    Log.trace("Init projectiles")
+    
+    // Periodically check impacted projectiles
+    doPeriodically(PROJECTILES_IMPACT_CHECK_FREQUENCY) cb ->
+        //Log.trace("Check projectiles impact : " + I2S(Projectile.LIST.size()))
+
+        let iter = Projectile.LIST.iterator()
+        while iter.hasNext()
+            Projectile projectile = iter.next()
+            
+            // Check impact
+            vec2 pos = projectile.getPos()
+            //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
+            if pos.distanceToSq(projectile.dest.toVec2()) <= (32 * 32)
+                // Boom !
+                projectile.impactHandler.onImpact(projectile, projectile.dest)
+                destroy projectile
+                iter.remove()

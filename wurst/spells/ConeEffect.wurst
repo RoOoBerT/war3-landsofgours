@@ -1,0 +1,35 @@
+package ConeEffect
+
+/*
+======== Hashtable ========
+Key = Dummy
+0 -> [REAL] Begin time
+1 -> [REAL] End time
+2 -> [UNIT] Original spell caster
+3 -> [REAL] Angle (Degrees) : Fixed OR Negative = Follow caster
+4 -> [REAL] Full angle of spread (Degrees)
+
+==== Range = A * <time> + B ====
+10 -> [REAL] Queue Speed : A
+11 -> [REAL] Queue Speed : B
+12 -> [REAL] Head Speed : A
+13 -> [REAL] Head Speed : B
+14 -> [REAL] Max Range
+
+==== Graphics ====
+20 -> [STR] Special effect path (or empty)
+21 -> [REAL] Time interval for special effects
+22 -> [REAL] Previous time of special effect
+23 -> [REAL] Radius of special effect
+
+==== Graphics (HEAD) ====
+24 -> [STR] Special effect path for HEAD (or empty)
+25 -> [REAL] Time interval for special effects
+26 -> [REAL] Previous time of special effect
+27 -> [REAL] Radius of special effect
+
+==== Effects ====
+30 -> [INT] Dummy ability index (Unit-targeted)
+31 -> [REAL] Interval of cast
+32 -> [REAL] Previous time of cast
+*/

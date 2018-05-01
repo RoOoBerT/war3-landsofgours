@@ -11,11 +11,9 @@ import Spells
 public enum ObjectFamily
     ARROWS
     BOW
+    FRAGMENT
     NORMAL
     SPELL_SCROLL
-
-public constant LinkedList<ObjectType> OBJECT_TYPES_LIST = new LinkedList<ObjectType>
-public constant HashMap<int, ObjectType> OBJECT_TYPES_MAP = new HashMap<int, ObjectType>
 
 /** Types of objects and associated metadata */
 public class ObjectType
@@ -27,11 +25,18 @@ public class ObjectType
     private boolean unique
     private item uniqueInstance = null
 
+    // Directory
+    static constant LinkedList<ObjectType> LIST = new LinkedList<ObjectType>
+    static constant HashMap<int, ObjectType> MAP = new HashMap<int, ObjectType>
+
     // Functions
     construct (ObjectFamily family, int itemType, boolean unique)
         this.family = family
         this.itemType = itemType
         this.unique = unique
+
+        LIST.add(this)
+        MAP.put(itemType, this)
     
     function getFamily() returns ObjectFamily
         return this.family
@@ -44,9 +49,20 @@ public class ObjectType
     
     function getUniqueInstance() returns item
         return this.uniqueInstance
+    
+    static constant ObjectType ANNEAU_ELFIQUE_EN_OR = new ObjectType(ObjectFamily.NORMAL, 'I000', true)
+
+/** An instance of an object (item) with metadata */
+public class Object
+    constant item itm
+    constant ObjectType objectType
+
+    construct (item itm, ObjectType objectType)
+        this.itm = itm
+        this.objectType = objectType
 
 /** Describes metadata of a bow object */
-public class ObjectBow extends ObjectType
+public class ObjectTypeBow extends ObjectType
     // Properties
     /** The bow requires arrows to be used */
     constant boolean requiresArrows
@@ -57,26 +73,44 @@ public class ObjectBow extends ObjectType
         this.requiresArrows = requiresArrows
     
     function isRequiresArrows() returns boolean
-        return this.requiresArrows 
+        return this.requiresArrows
+    
+    // Bows directory
+    static constant ObjectTypeBow ARC_PRIMITIF = new ObjectTypeBow('I00O', false, true)
 
 /** Describes metadata of an arrow object (ammo) */
-public class ObjectArrows extends ObjectType
+public class ObjectTypeArrows extends ObjectType
     // Properties
-    constant int abilityId
-    constant TargetType target
-
+    constant DummySpell spell
+    
     // Functions
-    construct(int itemType, boolean unique, int abilityId, TargetType target)
-        super(ObjectFamily.BOW, itemType, unique)
-        this.abilityId = abilityId
-        this.target = target
-        OBJECT_TYPES_LIST.add(this)
-        OBJECT_TYPES_MAP.put(itemType, this)
+    construct(int itemType, boolean unique, DummySpell spell)
+        super(ObjectFamily.ARROWS, itemType, unique)
+        this.spell = spell
+    
+    static constant ObjectTypeArrows FLECHES_PRIMITIVES = new ObjectTypeArrows('I00N', false, DummySpell.FLECHES_PRIMITIVES)
+    static constant ObjectTypeArrows FLECHES_DE_BRONZE = new ObjectTypeArrows('I00R', false, DummySpell.FLECHES_DE_BRONZE)
+    static constant ObjectTypeArrows FLECHES_DE_GIVRE = new ObjectTypeArrows('I00S', false, DummySpell.FLECHES_DE_GIVRE)
 
-// -------- OBJECTS DIRECTORY -------
-public constant ObjectBow OBJECT_ARC = new ObjectBow('I00O', false, true)
-public constant ObjectArrows OBJECT_FLECHES = new ObjectArrows('I00N', false, 'A00Z', TargetType.NONE)
-
+/** Describes metadata of a fragment of object */
+public class ObjectTypeFragment extends ObjectType
+    // Properties
+    constant ObjectType fragmentOfWhat
+    constant int howManyRequired
+    
+    // Functions
+    construct(int itemType, boolean unique, ObjectType fragmentOfWhat)
+        super(ObjectFamily.FRAGMENT, itemType, unique)
+        this.fragmentOfWhat = fragmentOfWhat
+        this.howManyRequired = 1
+    
+    construct(int itemType, boolean unique, ObjectType fragmentOfWhat, int howManyRequired)
+        super(ObjectFamily.FRAGMENT, itemType, unique)
+        this.fragmentOfWhat = fragmentOfWhat
+        this.howManyRequired = howManyRequired
+    
+    static constant ObjectTypeFragment ANNEAU_ELFIQUE_1 = new ObjectTypeFragment('I002', false, ObjectType.ANNEAU_ELFIQUE_EN_OR, 2)
+    
 init
     Log.info("Objects loaded.")
 
@@ -84,19 +118,19 @@ init
 /** Return object metadata of an item type */
 public function getObject(item whichItem) returns ObjectType
     // Check in cache
-    ObjectType obj = OBJECT_TYPES_MAP.get(whichItem.getTypeId())
+    ObjectType obj = ObjectType.MAP.get(whichItem.getTypeId())
     if (obj == null)
         Log.error("ObjectType type not found for : " + GetItemName(whichItem))
     
     return obj
 
 /** Find the first item of a certain family in the inventory of a unit */
-public function findFirstObjectOfFamily(unit whichUnit, ObjectFamily family) returns item
+public function findFirstObjectOfFamily(unit whichUnit, ObjectFamily family) returns Object
     for itemSlot = 0 to 5
         item itemInSlot = UnitItemInSlot(whichUnit, itemSlot)
         if itemInSlot != null
-            ObjectType obj = getObject(itemInSlot)
-            if obj != null and obj.getFamily() == family
-                return itemInSlot
+            ObjectType objectType = getObject(itemInSlot)
+            if objectType != null and objectType.getFamily() == family
+                return new Object(itemInSlot, objectType)
 
     return null

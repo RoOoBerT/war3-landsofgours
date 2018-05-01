@@ -1,9 +1,17 @@
 package Bows
 
-import Player
+// Standard imports
+import ClosureTimers
+//import DamageDetection
+//import Effect
+//import HashMap
+//import Player
 import RegisterEvents
-import EventHelper
+//import EventHelper
 
+// Custom imports
+import Projectiles
+import Spells
 import Objects
 
 // Constants
@@ -11,44 +19,72 @@ constant int ARCHER_RESEARCH = 'R001'
 
 constant string ORDER_STOP = "stop"
 
-// Arrows
-
 // Bows API
 /** Find the first usable bow of the unit */
-function findBow(unit whichUnit) returns item
+function findBow(unit whichUnit) returns Object
     return findFirstObjectOfFamily(whichUnit, ObjectFamily.BOW)
 
 init
     // Bow handling
     Log.debug("Bows initialization...")
-    /* TODO FIXME
+
+    /* TODO
 <FrottyZ> see DamageDetection package
 <FrottyZ> addOnDamageFunc */
     registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
         unit archer = GetAttacker()
         player owner = GetOwningPlayer(archer)
+        unit targetUnit = GetTriggerUnit()
         if GetPlayerTechCountSimple(ARCHER_RESEARCH, owner) > 0
-            Log.debug("Unit is attacked by an archer : " + GetUnitName(archer))
+            //Log.trace("Unit is attacked by an archer : " + GetUnitName(archer))
 
             // Check if the attacker has a bow
-            item bow = findBow(archer)
+            Object bow = findBow(archer)
             if bow != null
                 // Check if the attacker has ammo
-                item arrows = findFirstObjectOfFamily(archer, ObjectFamily.ARROWS)
-                if arrows != null
-                    int charges = arrows.getCharges() - 1
+                Object arrowsObj = findFirstObjectOfFamily(archer, ObjectFamily.ARROWS)
+                if arrowsObj != null
+                    int charges = arrowsObj.itm.getCharges() - 1
                     if (charges > 0)
                         // Consume one arrow
-                        arrows.setCharges(charges)
+                        arrowsObj.itm.setCharges(charges)
                     else
                         // Empty arrows stack
-                        arrows.remove()
+                        arrowsObj.itm.remove()
+                    
+                    // Generate arrow effect
+                    ObjectTypeArrows arrows = arrowsObj.objectType castTo ObjectTypeArrows
+                    DummySpell spell = arrows.spell
+                    if spell != null
+                        vec2 sourcePoint = archer.getPos()
+                        vec2 targetPoint = targetUnit.getPos()
+                        
+                        // Impact handler
+                        ImpactHandler impactHandler = (Projectile projectile, vec3 impactPoint) ->
+                            addEffect(EFFECT_PATH, impactPoint)
+                            return true
+
+                        new Projectile(sourcePoint.withZ(50), targetPoint.withZ(50), impactHandler,
+                            archer, "Abilities\\Weapons\\BoatMissile\\BoatMissile.mdl", 500.0, 2)
+
+                        /*// Dummy spell
+                        if spell.castPoint(owner, sourcePoint, targetPoint, 1)
+                            real delay = sourcePoint.distanceTo(targetPoint) / 500.
+                            doAfter(delay) ->
+                                targetUnit.addEffect("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdl", "origin").destr()
+                        else
+                            Log.error("Failure creating arrow effect : " + GetAbilityName(spell.abilityId))*/
+                    else
+                        Log.warn("Arrows without spell effect : " + arrows.itemType.toString())
+                    
+                    // Cancel attack
+                    archer.interruptAttack()
                 else
-                    DisplayTimedTextToPlayer(owner, 0, 0, 3, "You need arrows to use " + bow.getName() + " !")
+                    DisplayTimedTextToPlayer(owner, 0, 0, 3, "Vous avec besoin de flèches pour utiliser " + bow.itm.getName() + " !")
                     //archer.issueImmediateOrder(ORDER_STOP)
                     archer.interruptAttack()
             else
-                DisplayTimedTextToPlayer(owner, 0, 0, 3, "You cannot attack because you have no bow !")
+                DisplayTimedTextToPlayer(owner, 0, 0, 3, "Vous devez équiper un arc pour attaquer !")
                 //archer.issueImmediateOrder(ORDER_STOP)
                 archer.interruptAttack()
 
