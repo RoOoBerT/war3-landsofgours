@@ -6,11 +6,11 @@ import LinkedList
 import StringUtils
 
 // Custom imports
-import Initialization
+import Players
 import Spells
 
 // Parameters
-@configurable public string COMMANDS_CHAR = "!"
+@configurable public string COMMANDS_CHAR = "-"
 @configurable public boolean COMMANDS_CHEATS = false
 
 // Constants
@@ -55,16 +55,16 @@ class CommandHelp extends Command
         // Should cheating commands be listed ?
         boolean cheatsAllowed = Command.isAllowedCheating(who)
         if cheatsAllowed
-            DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Listing all commands available (including cheats)")
+            displayMessage(MessageType.INFO, who, 30, "Listing all commands available (including cheats)")
         else
-            DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Listing all commands available to you (excluding cheats)")
+            displayMessage(MessageType.INFO, who, 30, "Listing all commands available to you (excluding cheats)")
         
         // List the commands
         for Command command in Command.LIST
             if not command.cheat or cheatsAllowed
                 string message = "|c00ff4040{0}|r | {1}\n{2}".format(
                     command.keyword, command.syntax, command.description)
-                DisplayTimedTextToPlayer(who, 0, 0, 60.0, message)
+                displayMessage(MessageType.INFO, who, 30, message)
 
 class CommandCheats extends Command
     construct()
@@ -76,7 +76,7 @@ class CommandCheats extends Command
             COMMANDS_CHEATS = params.removeAt(0).toBool()
         
         // Show current cheats status
-        DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Activation des codes de triche : " + COMMANDS_CHEATS.toString())
+        displayMessage(MessageType.INFO, who, 30, "Activation des codes de triche : " + COMMANDS_CHEATS.toString())
 
 class CommandDebug extends Command
     construct()
@@ -98,11 +98,11 @@ class CommandDebug extends Command
                 case "error"
                     Log.setLevel(Loglevel.ERROR)
                 default
-                    DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Niveau de traces invalide : " + level)
+                    displayMessage(MessageType.ERROR, who, 15.0, "Niveau de traces invalide : " + level)
                     Log.setLevel(Loglevel.TRACE)
         
         // Show current debug level
-        DisplayTimedTextToPlayer(who, 0, 0, 15.0, "Niveau de traces actuel : " + DEBUG_LEVEL.getTag())
+        displayMessage(MessageType.INFO, who, 15, "Niveau de traces actuel : " + DEBUG_LEVEL.getTag())
 
 class CommandSpellBook extends Command
     construct()
@@ -117,7 +117,7 @@ class CommandSpellBook extends Command
             if spell != null
                 showSpell(who, spell)
             else
-                DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort inconnu <" + abilityId + " (" + I2S(abilityId.toAbilityId()) + ")>")
+                displayMessage(MessageType.SUCCESS, who, 5, "Sort inconnu <" + abilityId + " (" + I2S(abilityId.toAbilityId()) + ")>")
         else
             // List all available spell(s)
             for Spell spell in Spell.LIST
@@ -127,9 +127,9 @@ class CommandSpellBook extends Command
         if spell instanceof WizardSpell
             int index = Spell.LIST.indexOf(spell)
             WizardSpell wizardSpell = spell castTo WizardSpell
-            string message = "|c00ff4040 {0} |r ({1}) - {2} - Niveaux 1-{3}".format(
+            string message = "#{1} - {2} - |c00ff4040{0}|r - Niveaux 1-{3}".format(
                 GetAbilityName(wizardSpell.abilityId), I2S(index), wizardSpell.school.getColoredName(), I2S(wizardSpell.maxLevel))
-            DisplayTimedTextToPlayer(who, 0, 0, 15.0, message)
+            displayMessage(MessageType.INFO, who, 15, message)
 
 class CommandSpellLearn extends Command
     construct()
@@ -156,25 +156,26 @@ class CommandSpellLearn extends Command
                         // Add ability at level
                         hero.addAbility(spell.abilityId)
                         hero.setAbilityLevel(spell.abilityId, level)
-                        DisplayTimedTextToPlayer(who, 0, 0, 5, "Apprentissage du sort {0} au niveau {1}".format(
+                        displayMessage(MessageType.SUCCESS, who, 5, "Apprentissage du sort {0} au niveau {1}".format(
                             GetAbilityName(spell.abilityId), I2S(level)))
                     else
-                        DisplayTimedTextToPlayer(who, 0, 0, 5, "Niveau invalide pour ce sort {0}. Attendu : 1-{1}".format(
+                        displayMessage(MessageType.ERROR, who, 5, "Niveau invalide pour ce sort {0}. Attendu : 1-{1}".format(
                             GetAbilityName(spell.abilityId), I2S(spell.maxLevel)))
                 else
                     // Remove ability
                     hero.removeAbility(spell.abilityId)
-                    DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort oublie : " + GetAbilityName(spell.abilityId))
+                    displayMessage(MessageType.SUCCESS, who, 5, "Sort oublie : " + GetAbilityName(spell.abilityId))
             else
-                DisplayTimedTextToPlayer(who, 0, 0, 5, "Sort inconnu " + strIndex)
+                displayMessage(MessageType.ERROR, who, 5, "Sort inconnu " + strIndex)
         else
-            DisplayTimedTextToPlayer(who, 0, 0, 5, "Specifiez un index de sort")
+            displayMessage(MessageType.ERROR, who, 5, "Specifiez un index de sort")
 
 // Initialization
 init
     // Create a trigger to listen to text messages from all players
     trigger chatListener = CreateTrigger()
-    ACTIVE_PLAYERS.forEach(p -> chatListener.registerPlayerChatEvent(p, COMMANDS_CHAR, false))
+    ACTIVE_PLAYERS.forEach() p ->
+        chatListener.registerPlayerChatEvent(p, COMMANDS_CHAR, false)
     chatListener.addAction() ->
         string text = GetEventPlayerChatString().trim()
         player typer = GetTriggerPlayer()
@@ -195,11 +196,9 @@ init
                         cmd.onCall(typer, params)
                     else
                         // Command refused (cheat) : notify players for fun
-                        DisplayTimedTextToPlayer(typer, 0, 0, 5, "Vous n'avez pas le droit d'utiliser la commande " + cmd.keyword + " (triche) !")
-                        for int i = 0 to 19
-                            DisplayTimedTextToPlayer(Player(i), 0, 0, 5, "{0} a essayé de tricher avec la commande {1} !".format(typer.getName(), cmd.keyword))
+                        displayMessage(MessageType.ERROR, typer, 5, "Vous n'avez pas le droit d'utiliser la commande " + cmd.keyword + " (triche) !")
+                        displayMessage(MessageType.PLAYER, null, 5, "{0} a essayé de tricher avec la commande {1} !".format(typer.getName(), cmd.keyword))
                 else
-                    DisplayTimedTextToPlayer(typer, 0, 0, 5, "Commande inconnue <" + keyword + ">. Essayez '-help'.")
+                    displayMessage(MessageType.ERROR, typer, 5, "Commande inconnue <" + keyword + ">. Essayez '-help'.")
             else
                 Log.error("Failure splitting text into parameters : <" + text + ">")
-                

@@ -1,0 +1,41 @@
+
+package CharacterClass
+
+// Standard imports
+import HashMap
+import LinkedList
+
+// Custom imports
+
+public class CharacterClass
+    constant int unitTypeId
+    constant string name
+    constant colorA col
+    constant int abil
+    //int initialInventorySlots = 1
+
+    // Directory
+    static constant LinkedList<CharacterClass> LIST = new LinkedList<CharacterClass>
+    static constant HashMap<int, CharacterClass> MAP = new HashMap<int, CharacterClass>
+
+    construct(int unitTypeId, string name, colorA col, int abil)
+        this.unitTypeId = unitTypeId
+        this.name = name
+        this.col = col
+        this.abil = abil
+
+        LIST.add(this)
+        MAP.put(this.unitTypeId, this)
+    
+    /*function setInitialInventorySlots(int initialInventorySlots)
+        this.initialInventorySlots = initialInventorySlots*/
+
+    function getName() returns string
+        return this.name
+    
+    function getColoredName() returns string
+        return "{1}{0}|r".format(this.name, this.col.toColorString())
+
+    static constant CharacterClass MAGICIEN = new CharacterClass('h000', "Magicien", colorA(32, 32, 255, 0), 'A013')
+    static constant CharacterClass ARCHER = new CharacterClass('h004', "Archer", colorA(32, 255, 32, 0), 'A012')
+    static constant CharacterClass PALADIN = new CharacterClass('h003', "Paladin", colorA(255, 32, 32, 0), '0')

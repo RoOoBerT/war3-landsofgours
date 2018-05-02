@@ -1,0 +1,21 @@
+package ItemTypeArrows
+
+// Standard imports
+
+// Custom imports
+import ItemType
+import Spells
+
+/** Describes metadata of an arrow ItemInstance (ammo) */
+public class ItemTypeArrows extends ItemType
+    // Properties
+    constant DummySpell spell
+    
+    // Functions
+    construct(int itemType, boolean unique, DummySpell spell)
+        super(itemType, unique)
+        this.spell = spell
+    
+    static constant ItemTypeArrows FLECHES_PRIMITIVES = new ItemTypeArrows('I00N', false, DummySpell.FLECHES_PRIMITIVES)
+    static constant ItemTypeArrows FLECHES_DE_BRONZE = new ItemTypeArrows('I00R', false, DummySpell.FLECHES_DE_BRONZE)
+    static constant ItemTypeArrows FLECHES_DE_GIVRE = new ItemTypeArrows('I00S', false, DummySpell.FLECHES_DE_GIVRE)

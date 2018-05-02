@@ -1,0 +1,80 @@
+package ItemType
+
+// Standard imports
+import HashMap
+import LinkedList
+
+// Custom imports
+
+/** An instance of an ItemType with metadata */
+public class ItemInstance
+    constant item itm
+    constant ItemType itemType
+
+    construct (item itm, ItemType itemType)
+        this.itm = itm
+        this.itemType = itemType
+
+public interface ItemFilter
+    function test(ItemType itemType, item itm) returns boolean
+
+/** Types of objects and associated metadata */
+public class ItemType
+    // Properties
+    int itemType
+    
+    // Unique items
+    private boolean unique
+    private item uniqueInstance = null
+
+    // Directory
+    static constant LinkedList<ItemType> LIST = new LinkedList<ItemType>
+    static constant HashMap<int, ItemType> MAP = new HashMap<int, ItemType>
+
+    // Functions
+    construct (int itemType, boolean unique)
+        this.itemType = itemType
+        this.unique = unique
+
+        LIST.add(this)
+        let collision = MAP.get(itemType)
+        MAP.put(itemType, this)
+
+        // Detect collisions
+        if collision != null
+            Log.error("Duplicate item type found : {0} !".format(I2S(this.itemType)))
+
+    function getType() returns int
+        return this.itemType
+
+    function isUnique() returns boolean
+        return this.unique
+    
+    function getUniqueInstance() returns item
+        return this.uniqueInstance
+    
+    /** Return ItemInstance metadata of an item type */
+    static function getObject(item whichItem) returns ItemType
+        // Check in cache
+        ItemType obj = ItemType.MAP.get(whichItem.getTypeId())
+        if obj == null
+            Log.error("ItemType type not found for : " + GetItemName(whichItem))
+        
+        return obj
+    
+    /** Find the first item matching a criterion in the inventory of a unit */
+    static function findFirstItem(unit whichUnit, ItemFilter filter) returns ItemInstance
+        for itemSlot = 0 to 5
+            item itemInSlot = UnitItemInSlot(whichUnit, itemSlot)
+            if itemInSlot != null
+                ItemType itemType = ItemType.getObject(itemInSlot)
+                if itemType != null and (filter == null or filter.test(itemType, itemInSlot))
+                    return new ItemInstance(itemInSlot, itemType)
+        
+        return null
+        
+    static constant ItemType ANNEAU_ELFIQUE_EN_OR = new ItemType('I000', true)
+
+init
+    Log.info("Objects loaded.")
+

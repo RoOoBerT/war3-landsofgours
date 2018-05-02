@@ -3,7 +3,7 @@ package ConeEffect
 // Standard imports
 import ClosureForGroups
 import ClosureTimers
-import EventHelper
+//import EventHelper
 import GameTimer
 import LinkedList
 import RegisterEvents
@@ -183,7 +183,7 @@ public class ConeEffect
             if spreadAngle.degrees() >= 360.0
                 return true // >= 360°
             
-            // FIXME : Might not work !
+            // FIXME : Seems not to work !
             angle a = origin.angleTo(point).op_minus(ang)
             if ModuloReal(a.degrees(), 360.0) < spreadAngle.degrees() // No mod because spreadAngle can be 360
                 return true
@@ -283,7 +283,7 @@ init
         //vec2 target = getSpellTargetPos()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real duration = 2
-
+        
         //ConicWaveGraphics queue = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
         ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
         ConeEffect _cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)

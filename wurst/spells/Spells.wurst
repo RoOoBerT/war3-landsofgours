@@ -22,7 +22,7 @@ public enum TargetType
     LOCATION
     LOCATION_OR_UNIT
     NONE
-    //PASSIVE
+    PASSIVE
     UNIT
 
 /** Describes a school of magic */
@@ -71,55 +71,77 @@ public class Spell
     static constant LinkedList<Spell> LIST = new LinkedList<Spell>
     static constant HashMap<int, Spell> MAP = new HashMap<int, Spell>
 
-/** Describes a wizard spell, associated to a specific school and learnable with a scroll */
-public class WizardSpell extends Spell
-    constant SpellSchool school
-    constant int scrollId
+    // Spells
+    static constant Spell INVENTORY_1_6_SLOTS = new Spell('A00J', 6, TargetType.PASSIVE, "")
 
-    construct(int abilityId, int maxLevel, TargetType target, string order, SpellSchool school, int scrollId)
-        super(abilityId, maxLevel, target, order)
-        this.school = school
-        this.scrollId = scrollId
-    
-    // ======== SPELL BOOK DIRECTORY ========
-    constant static WizardSpell PROJECTILE_MAGIQUE = new WizardSpell('A004', 20, TargetType.UNIT, "creepthunderbolt", SpellSchool.EVOCATION, 'I009')
-    
-    // AoE
-    constant static WizardSpell NUAGE_PUANT = new WizardSpell('A005', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION, 'I008')
-    constant static WizardSpell NUAGE_MORTEL = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION, 'I00A')
-    constant static WizardSpell NUAGE_INCENDIAIRE = new WizardSpell('A00A', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION, 'I00B')
-    constant static WizardSpell FLETRISSURE_ABOMINABLE_ABI_DALZIM = new WizardSpell('A00D', 20, TargetType.LOCATION, "", SpellSchool.NECROMANCIE, 'I007')
-    constant static WizardSpell NUEE_METEORES = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION, 'I00K')
-    constant static WizardSpell TOILES_ARAIGNEE = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION, 'I00T')
-    
-    // Conic spells
-    constant static WizardSpell INCINERATEUR_AGANAZZAR = new WizardSpell('A00T', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
-    constant static WizardSpell CONE_FROID = new WizardSpell('A00X', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
-    constant static WizardSpell FEU_SOLAIRE = new WizardSpell('A00Y', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
-    constant static WizardSpell BOUCLIER_GLACE = new WizardSpell('A016', 20, TargetType.UNIT, "frostarmor", SpellSchool.EVOCATION, 'I00K')
-
-public class DummySpell extends Spell
-    constant int dummyType
-    
-    construct(int abilityId, int maxLevel, TargetType target, string order)
-        super(abilityId, maxLevel, target, order)
-        this.dummyType = DUMMY_TYPE_ID
-    
-    // Methods
-    /** Create a dummy unit and order it to launch a spell at a point */
-    function castPoint(player owner, vec2 fromPoint, vec2 toPoint, int level) returns boolean
-        unit dummyUnit = CreateUnit(owner, this.dummyType, fromPoint.x, fromPoint.y, 0)
+    /** Create a dummy unit and order it to launch this spell */
+    function cast(player owner, vec2 fromPoint, int level) returns boolean
+        unit dummyUnitCaster = CreateUnit(owner, DUMMY_TYPE_ID, fromPoint.x, fromPoint.y, 0)
             ..addAbility(abilityId)
             ..setAbilityLevel(abilityId, level)
             ..setTimedLife(1.0)
-        boolean spellCastResult = dummyUnit.issuePointOrder(order, toPoint)
+        boolean spellCastResult = dummyUnitCaster.issueImmediateOrder(order)
         if not spellCastResult
             Log.error("Failure launching dummy spell : " + GetAbilityName(abilityId))
         return spellCastResult
 
+    /** Create a dummy unit and order it to launch this spell at a point */
+    function castPoint(player owner, vec2 fromPoint, vec2 toPoint, int level) returns boolean
+        unit dummyUnitCaster = CreateUnit(owner, DUMMY_TYPE_ID, fromPoint.x, fromPoint.y, 0)
+            ..addAbility(abilityId)
+            ..setAbilityLevel(abilityId, level)
+            ..setTimedLife(1.0)
+        boolean spellCastResult = dummyUnitCaster.issuePointOrder(order, toPoint)
+        if not spellCastResult
+            Log.error("Failure launching dummy spell : " + GetAbilityName(abilityId))
+        return spellCastResult
+    
+    /** Create a dummy unit and order it to launch this spell on a unit */
+    function castUnit(player owner, vec2 fromPoint, unit target, int level) returns boolean
+        unit dummyUnitCaster = CreateUnit(owner, DUMMY_TYPE_ID, fromPoint.x, fromPoint.y, 0)
+            ..addAbility(abilityId)
+            ..setAbilityLevel(abilityId, level)
+            ..setTimedLife(1.0)
+        boolean spellCastResult = dummyUnitCaster.issueTargetOrder(order, target)
+        if not spellCastResult
+            Log.error("Failure launching dummy spell : " + GetAbilityName(abilityId))
+        return spellCastResult
+
+/** Describes a wizard spell, associated to a specific school and learnable with a scroll */
+public class WizardSpell extends Spell
+    constant SpellSchool school
+
+    construct(int abilityId, int maxLevel, TargetType target, string order, SpellSchool school)
+        super(abilityId, maxLevel, target, order)
+        this.school = school
+    
+    // ======== SPELL BOOK DIRECTORY ========
+    constant static WizardSpell PROJECTILE_MAGIQUE                  = new WizardSpell('A004', 20, TargetType.UNIT    , "creepthunderbolt", SpellSchool.EVOCATION)
+    constant static WizardSpell NUAGE_PUANT                         = new WizardSpell('A005', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
+    constant static WizardSpell NUAGE_MORTEL                        = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
+    constant static WizardSpell NUAGE_INCENDIAIRE                   = new WizardSpell('A00A', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
+    constant static WizardSpell FLETRISSURE_ABOMINABLE_ABI_DALZIM   = new WizardSpell('A00D', 20, TargetType.LOCATION, "", SpellSchool.NECROMANCIE)
+    constant static WizardSpell TRANSMUTATION_CHAIR_PIERRE          = new WizardSpell('A00E', 20, TargetType.UNIT    , "", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell RENVOI_SORTS                        = new WizardSpell('A00I', 20, TargetType.UNIT    , "", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A00K', 20, TargetType.UNIT    , "", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "", SpellSchool.INVOCATION)
+    constant static WizardSpell HATE                                = new WizardSpell('A00O', 20, TargetType.NONE    , "", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell NUEE_METEORES                       = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION)
+    constant static WizardSpell INCINERATEUR_AGANAZZAR              = new WizardSpell('A00T', 20, TargetType.NONE    , "", SpellSchool.EVOCATION)
+    constant static WizardSpell CONE_FROID                          = new WizardSpell('A00X', 20, TargetType.NONE    , "", SpellSchool.EVOCATION)
+    constant static WizardSpell FEU_SOLAIRE                         = new WizardSpell('A00Y', 20, TargetType.NONE    , "", SpellSchool.EVOCATION)
+    constant static WizardSpell TOILES_ARAIGNEE                     = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION)
+    constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.EVOCATION)
+
+public class DummySpell extends Spell
+    construct(int abilityId, int maxLevel, TargetType target, string order)
+        super(abilityId, maxLevel, target, order)
+    
+    // Methods
+
     // Dummy spells
     constant static DummySpell FLECHES_PRIMITIVES = new DummySpell('A00Z', 20, TargetType.LOCATION, "clusterrockets")
-    constant static DummySpell FLECHES_DE_BRONZE = new DummySpell('A010', 20, TargetType.LOCATION, "bidon")
+    constant static DummySpell FLECHES_DE_BRONZE = new DummySpell('A010', 20, TargetType.LOCATION, "clusterrockets")
     constant static DummySpell FLECHES_DE_GIVRE = new DummySpell('A011', 20, TargetType.LOCATION, "clusterrockets")
     
     constant static DummySpell TOILE_ARAIGNEE = new DummySpell('A015', 20, TargetType.LOCATION, "dreadlordinferno")
@@ -132,17 +154,19 @@ init
     vec2 targetLoc = vec2(0, 0)
     for Spell spell in Spell.LIST
         if spell instanceof DummySpell
-            DummySpell dummySpell = spell castTo DummySpell
+            //DummySpell dummySpell = spell castTo DummySpell
             switch spell.target
-                case LOCATION
-                    if not dummySpell.castPoint(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetLoc, 1)
+                case PASSIVE // Nothing to do
+                case NONE
+                    if not spell.cast(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, 1)
                         Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
-
-                case LOCATION_OR_UNIT
-                    
-                case UNIT
+                case LOCATION
+                    if not spell.castPoint(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetLoc, 1)
+                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
                 default
-
+                    unit targetUnit = CreateUnit(players[PLAYER_NEUTRAL_PASSIVE], DUMMY_TYPE_ID, targetLoc.x, targetLoc.y, 0.0)
+                    if not spell.castUnit(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetUnit, 1)
+                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
 
     // Rain of arrows
     registerSpellEffectEvent(ABILITY_RAIN_OF_ARROWS) ->

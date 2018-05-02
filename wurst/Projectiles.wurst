@@ -5,10 +5,10 @@ import ClosureTimers
 //import DamageDetection
 //import Effect
 import Fx
-import HashMap
+//import HashMap
 import LinkedList
 //import Player
-import RegisterEvents
+//import RegisterEvents
 //import EventHelper
 
 // Custom imports
@@ -52,6 +52,21 @@ public class Projectile
 
     ondestroy // TODO ??
         //destroy this.fx
+    
+    /** Update the projectile position and returns true if it exploded */
+    function move() returns boolean
+        // Check impact
+        vec2 pos = this.getPos()
+        //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
+        if pos.distanceToSq(this.dest.toVec2()) <= (32 * 32)
+            // Boom !
+            if this.impactHandler != null
+                this.impactHandler.onImpact(this, this.dest)
+            return true
+        
+        // Not destroyed
+        return false
+    
 
 init
     Log.trace("Init projectiles")
@@ -64,11 +79,6 @@ init
         while iter.hasNext()
             Projectile projectile = iter.next()
             
-            // Check impact
-            vec2 pos = projectile.getPos()
-            //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
-            if pos.distanceToSq(projectile.dest.toVec2()) <= (32 * 32)
-                // Boom !
-                projectile.impactHandler.onImpact(projectile, projectile.dest)
+            if projectile.move()
                 destroy projectile
                 iter.remove()

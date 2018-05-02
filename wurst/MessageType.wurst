@@ -1,0 +1,23 @@
+package MessageType
+
+// Standard imports
+
+// Custom imports
+
+/** Class to handle messages sent to players */
+public class MessageType
+    constant string name
+    constant colorA col
+
+    construct(string name, colorA col)
+        this.name = name
+        this.col = col
+
+    // Message types directory
+    static constant MessageType ERROR = new MessageType("Erreur", colorA(255, 0, 0, 0))
+    static constant MessageType HINT = new MessageType("Astuce", colorA(64, 64, 255, 0))
+    static constant MessageType INFO = new MessageType("Info", colorA(0, 0, 0, 0))
+    static constant MessageType PLAYER = new MessageType("Joueur", colorA(0, 0, 255, 0))
+    static constant MessageType QUEST = new MessageType("Quete", colorA(255, 128, 32, 0))
+    static constant MessageType SUCCESS = new MessageType("OK", colorA(32, 255, 32, 0))
+    static constant MessageType WARNING = new MessageType("Alerte", colorA(255, 128, 32, 0))

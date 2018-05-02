@@ -1,0 +1,24 @@
+package ItemTypeBow
+
+// Standard imports
+
+// Custom imports
+import ItemType
+
+/** Describes a bow object */
+public class ItemTypeBow extends ItemType
+    // Properties
+    /** The bow requires arrows to be used */
+    constant boolean requiresArrows
+
+    // Functions
+    construct(int itemType, boolean unique, boolean requiresArrows)
+        super(itemType, unique)
+        this.requiresArrows = requiresArrows
+    
+    function isRequiresArrows() returns boolean
+        return this.requiresArrows
+    
+    // Bows directory
+    static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', false, true)
+    static constant ItemTypeBow ARC_PRIMITIF2 = new ItemTypeBow('I00O', false, true)

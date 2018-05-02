@@ -3,26 +3,65 @@ package Initialization
 // Standard imports
 
 // Custom imports
-import LinkedList
+//import ClosureForGroups
 
-/** Maximum number of players */
-@configurable public int PLAYERS_MAX = 20
+public interface UnitFilter
+    function isValid(unit u) returns boolean
 
-/** List of currently active (human) players */
-public constant LinkedList<player> ACTIVE_PLAYERS = new LinkedList<player>
+public class GenericUnitFilter implements UnitFilter
+    constant int unitTypeId
+    constant player owner
+
+    construct(int unitTypeId)
+        this.unitTypeId = unitTypeId
+        this.owner = null
+
+    construct(int unitTypeId, player owner)
+        this.unitTypeId = unitTypeId
+        this.owner = owner
+    
+    function isValid(unit u) returns boolean
+        return u != null
+            and (this.unitTypeId == 0 or u.getTypeId() == this.unitTypeId)
+            and (this.owner == null or u.getOwner() == this.owner)
+
+
+/** Fill a group with all units in an area matching a criterion.
+Returns the number of units matched. */
+public function findUnitsMatching(group gp, rect area, UnitFilter filter, int maxCount) returns int
+    gp.clear()
+    gp.enumUnitsInRect(area)
+
+    int count = 0
+    let iter = gp.iterator()
+    while iter.hasNext()
+        unit u = iter.next()
+        if filter.isValid(u) and count < maxCount
+            count++
+        else
+            gp.removeUnit(u)
+
+    return count
+
+/** Returns the first unit found on the map that matches a criterion */
+public function findFirstUnitMatching(UnitFilter filter) returns unit
+    group gp = CreateGroup()
+    findUnitsMatching(gp, GetPlayableMapRect(), filter, 1)
+    unit result = gp.next()
+    DestroyGroup(gp)
+    return result
 
 init
-    // Detect current players
-    for int i = 0 to PLAYERS_MAX - 1
-        player p = players[i]
-        if p.isIngame() and p.getSlotState() == PLAYER_SLOT_STATE_PLAYING
-            ACTIVE_PLAYERS.add(p)
+    // Minimap properties
+    FogEnableOn()
+    FogMaskEnableOn()
+    SetCreepCampFilterState(false)
+    EnableMinimapFilterButtons(true, false)
 
-    // Is there only one player ?
-    if ACTIVE_PLAYERS.size() == 1
-        Log.setLevel(Loglevel.TRACE)
-        Log.info("Single player detected. Log level : " + DEBUG_LEVEL.getTag())
-    else
-        Log.setLevel(Loglevel.ERROR)
-    
-    Log.debug("Number of active players : " + I2S(ACTIVE_PLAYERS.size()))
+    // Game time speed
+    SetTimeOfDayScale(1.0)
+    SetTimeOfDay(8.00)
+    SuspendTimeOfDay(false)
+
+    // Music
+    PlayMusic(gg_snd_MUSIC_HUMANVICTORY)

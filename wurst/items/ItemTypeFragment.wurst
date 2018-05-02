@@ -1,0 +1,25 @@
+package ItemTypeFragment
+
+// Standard imports
+
+// Custom imports
+import ItemType
+
+/** Describes metadata of a fragment of ItemInstance */
+public class ItemTypeFragment extends ItemType
+    // Properties
+    constant ItemType fragmentOfWhat
+    constant int howManyRequired
+    
+    // Functions
+    construct(int itemType, boolean unique, ItemType fragmentOfWhat)
+        super(itemType, unique)
+        this.fragmentOfWhat = fragmentOfWhat
+        this.howManyRequired = 1
+    
+    construct(int itemType, boolean unique, ItemType fragmentOfWhat, int howManyRequired)
+        super(itemType, unique)
+        this.fragmentOfWhat = fragmentOfWhat
+        this.howManyRequired = howManyRequired
+    
+    static constant ItemTypeFragment ANNEAU_ELFIQUE_1 = new ItemTypeFragment('I002', false, ItemType.ANNEAU_ELFIQUE_EN_OR, 2)

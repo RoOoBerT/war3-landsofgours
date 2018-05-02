@@ -1,0 +1,149 @@
+package Players
+
+// Standard imports
+import ClosureTimers
+import HashMap
+import LinkedList
+import RegisterEvents
+
+// Custom imports
+import Initialization
+import CharacterClass
+import public MessageType
+
+/** Maximum number of (active) players */
+@configurable public int PLAYERS_HUMAN_MAX = 20
+
+public constant player PLAYER_COLONS = players[21]
+public constant player PLAYER_GOURS_NEUTRAL = players[22]
+public constant player PLAYER_GOURS_HOSTILE = players[23]
+
+/** Maps each player to its main character */
+public constant HashMap<player, unit> PLAYERS_CHARACTER = new HashMap<player, unit>()
+
+/** List of currently active (human) players */
+public constant LinkedList<player> ACTIVE_PLAYERS = new LinkedList<player>
+
+// Functions
+/** Display a message of a certain type to a specific player */
+public function displayMessage(MessageType msgType, player toPlayer, real duration, string message)
+    string prefix = ""
+    if msgType != null
+        prefix = "[{1}{0}|r] ".format(msgType.name.toUpperCase(), msgType.col.toColorString())
+    let finalMessage = "{0}{1}".format(prefix, message)
+
+    // If player is null, send a message to everybody
+    if toPlayer == null
+        for player p in ACTIVE_PLAYERS
+            DisplayTimedTextToPlayer(p, 0, 0, duration, finalMessage)
+    else
+        DisplayTimedTextToPlayer(toPlayer, 0, 0, duration, finalMessage)
+
+/*public function player.setAlliance(player other, alliancetype whichAllianceSetting, boolean value)
+    SetPlayerAlliance(this, other, whichAllianceSetting, value)*/
+
+/** Called when a player leaves the game */
+function onPlayerLeave(player leaver)
+    ACTIVE_PLAYERS.remove(leaver)
+
+    // TODO : Update difficulty
+
+    // Notify all players
+    displayMessage(MessageType.PLAYER, null, 10.0, leaver.getNameColored() + " a quitté la partie !")
+
+/** Called when a player picks a character */
+function onCharacterSelected(unit seller, unit character)
+    // Register the selected character for this player
+    player owner = character.getOwner()
+    PLAYERS_CHARACTER.put(owner, character)
+
+    // Move the picked character
+    vec2 direction = character.getPos().polarOffset(0.0.asAngleDegrees(), 512.0)
+    character.issuePointOrder("move", direction)
+
+    // Select the character
+    owner.selectSingle(character)
+
+    // Check which character class it is
+    CharacterClass characterClass = CharacterClass.MAP.get(character.getTypeId())
+    displayMessage(MessageType.SUCCESS, owner, 10, "Félicitations ! " + owner.getName() + " est maintenant : " + characterClass.getColoredName())
+
+    // Specifics : ARCHER
+    if characterClass == CharacterClass.ARCHER
+        character.setAbilityLevel('A00J', 2) // 2 slots in inventory
+        character.addItemById('I00O') // Give bow
+        character.addItemById('I00N') // Give arrows
+            ..setCharges(25) // 25 arrows
+
+// Initialization
+init
+    // Detect current players
+    for int i = 0 to PLAYERS_HUMAN_MAX - 1
+        player p = players[i]
+        if p.isIngame() and p.getSlotState() == PLAYER_SLOT_STATE_PLAYING
+            ACTIVE_PLAYERS.add(p)
+
+    // Is there only one player ?
+    if ACTIVE_PLAYERS.size() == 1
+        Log.setLevel(Loglevel.TRACE)
+        Log.info("Single player detected. Log level : " + DEBUG_LEVEL.getTag())
+    else
+        Log.setLevel(Loglevel.ERROR)
+    
+    // Greetings text
+    Log.debug("Number of active players : " + I2S(ACTIVE_PLAYERS.size()))
+
+    displayMessage(MessageType.SUCCESS, null, 15, "Bienvenue dans Lands of Gours !")
+    displayMessage(MessageType.HINT, null, 15, "Choisissez une classe de personnage.")
+
+    // Units
+    let classSelector = findFirstUnitMatching(new GenericUnitFilter('n00E'))
+
+    // Initialization
+    ACTIVE_PLAYERS.forEach() p ->
+        // Set players properties
+        //p.setState(PLAYER_STATE_RESOURCE_FOOD_CAP, 1)
+        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_HELP_REQUEST, true)
+        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_HELP_RESPONSE, true)
+        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_SHARED_VISION, true)
+        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_PASSIVE, true)
+
+        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_HELP_REQUEST, false)
+        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_HELP_RESPONSE, false)
+        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_SHARED_VISION, false)
+        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_PASSIVE, true)
+
+        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_HELP_REQUEST, false)
+        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_HELP_RESPONSE, false)
+        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_SHARED_VISION, false)
+        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_PASSIVE, false)
+        
+        //Joueur - Make (Player((Integer A))) treat Joueur 22 (Neige) as an AlliÃ©
+        //Joueur - Make (Player((Integer A))) treat Joueur 23 (Ã‰meraude) as an Neutre
+        //Joueur - Make (Player((Integer A))) treat Joueur 24 (Bois) as an Ennemi
+
+        // Create a soul to select class
+        createUnit(p, 'h002', p.getStartLocation(), 180.0.asAngleDegrees())
+
+    // Start game : After a small delay
+    doAfter(1) ->
+        gg_snd_GLOBAL_START_GAME.play()
+        
+        ACTIVE_PLAYERS.forEach() p ->
+            // Select boat
+            p.selectSingle(classSelector)
+            p.panCamToTimed(classSelector, 0.5)
+
+    // Register : Handle player leaving
+    registerPlayerEvent(EVENT_PLAYER_LEAVE) ->
+        player leaver = GetTriggerPlayer()
+        onPlayerLeave(leaver)
+    
+    // Register : Class selection
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_SELL) ->
+        unit seller = GetTriggerUnit()
+        if seller.getTypeId() == 'n00E'
+            unit character = GetSoldUnit()
+            onCharacterSelected(seller, character)
+            
+

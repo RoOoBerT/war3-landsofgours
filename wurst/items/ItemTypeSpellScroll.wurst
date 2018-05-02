@@ -1,0 +1,66 @@
+package ItemTypeSpellScroll
+
+// Standard imports
+import RegisterEvents
+
+// Custom imports
+import CharacterClass
+import ItemType
+import Players
+import Spells
+
+/** Maps a spell scroll item to a castable spell */
+class ItemTypeSpellScroll extends ItemType
+    constant Spell learnableSpell
+
+    construct(int itemId, Spell learnableSpell)
+        super(itemId, false)
+        this.learnableSpell = learnableSpell
+
+    // ======== SPELL BOOK DIRECTORY ========
+    constant static ItemTypeSpellScroll PEAU_PIERRE                       = new ItemTypeSpellScroll('I004', WizardSpell.PEAU_PIERRE                      )
+    constant static ItemTypeSpellScroll TRANSMUTATION_CHAIR_PIERRE        = new ItemTypeSpellScroll('I005', WizardSpell.TRANSMUTATION_CHAIR_PIERRE       )
+    constant static ItemTypeSpellScroll FLETRISSURE_ABOMINABLE_ABI_DALZIM = new ItemTypeSpellScroll('I007', WizardSpell.FLETRISSURE_ABOMINABLE_ABI_DALZIM)
+    constant static ItemTypeSpellScroll NUAGE_PUANT                       = new ItemTypeSpellScroll('I008', WizardSpell.NUAGE_PUANT                      )
+    constant static ItemTypeSpellScroll PROJECTILE_MAGIQUE                = new ItemTypeSpellScroll('I009', WizardSpell.PROJECTILE_MAGIQUE               )
+    constant static ItemTypeSpellScroll NUAGE_MORTEL                      = new ItemTypeSpellScroll('I00A', WizardSpell.NUAGE_MORTEL                     )
+    constant static ItemTypeSpellScroll NUAGE_INCENDIAIRE                 = new ItemTypeSpellScroll('I00B', WizardSpell.NUAGE_INCENDIAIRE                )
+    constant static ItemTypeSpellScroll HATE                              = new ItemTypeSpellScroll('I00I', WizardSpell.HATE                             )
+    constant static ItemTypeSpellScroll RENVOI_SORTS                      = new ItemTypeSpellScroll('I00J', WizardSpell.RENVOI_SORTS                     )
+    constant static ItemTypeSpellScroll BOUCLIER_GLACE                    = new ItemTypeSpellScroll('I00K', WizardSpell.BOUCLIER_GLACE                   )
+    constant static ItemTypeSpellScroll BAIES_NOURRICIERES                = new ItemTypeSpellScroll('I00M', WizardSpell.BAIES_NOURRICIERES               )
+    constant static ItemTypeSpellScroll CONE_FROID                        = new ItemTypeSpellScroll('I00P', WizardSpell.CONE_FROID                       )
+    constant static ItemTypeSpellScroll INCINERATEUR_AGANAZZAR            = new ItemTypeSpellScroll('I00Q', WizardSpell.INCINERATEUR_AGANAZZAR           )
+    constant static ItemTypeSpellScroll TOILES_ARAIGNEE                   = new ItemTypeSpellScroll('I00T', WizardSpell.TOILES_ARAIGNEE                  )
+    constant static ItemTypeSpellScroll FEU_SOLAIRE                       = new ItemTypeSpellScroll('I00U', WizardSpell.FEU_SOLAIRE                      )
+    constant static ItemTypeSpellScroll NUEE_METEORES                     = new ItemTypeSpellScroll('I00V', WizardSpell.NUEE_METEORES                    )
+
+init
+    // Use spell scroll
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_USE_ITEM) ->
+        item what = GetManipulatedItem()
+        unit who = GetTriggerUnit()
+        player owner = who.getOwner()
+
+        Log.debug("Item used by " + who.getName() + " : " + what.getName())
+
+        // Is the object manipulated a spell scroll ?
+        ItemType itemType = ItemType.MAP.get(what.getTypeId())
+        if itemType != null and itemType instanceof ItemTypeSpellScroll
+            ItemTypeSpellScroll scroll = itemType castTo ItemTypeSpellScroll
+
+            // Is the user a qualified wizard ?
+            int wizardLevel = who.getAbilityLevel(CharacterClass.MAGICIEN.abil)
+            if wizardLevel > 0
+                let spell = scroll.learnableSpell
+                int spellLevel = who.getAbilityLevel(spell.abilityId)
+                if spellLevel == 0
+                    addEffect("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdl", who.getPos())
+                    who.addAbility(spell.abilityId)
+                    who.setAbilityLevel(spell.abilityId, 1)
+                else
+                    displayMessage(MessageType.ERROR, owner, 10, "Vous connaissez déjà ce sort : " + GetAbilityName(spellLevel))
+            else
+                displayMessage(MessageType.ERROR, owner, 10, "Seul un magicien pour utiliser cet objet !")
+
+    
