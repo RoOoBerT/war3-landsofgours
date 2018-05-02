@@ -85,8 +85,12 @@ public class WizardSpell extends Spell
     constant static WizardSpell PROJECTILE_MAGIQUE = new WizardSpell('A004', 20, TargetType.UNIT, "creepthunderbolt", SpellSchool.EVOCATION, 'I009')
     
     // AoE
-    constant static WizardSpell TOILES_ARAIGNEE = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION, 'I00T')
+    constant static WizardSpell NUAGE_PUANT = new WizardSpell('A005', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION, 'I008')
+    constant static WizardSpell NUAGE_MORTEL = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION, 'I00A')
+    constant static WizardSpell NUAGE_INCENDIAIRE = new WizardSpell('A00A', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION, 'I00B')
+    constant static WizardSpell FLETRISSURE_ABOMINABLE_ABI_DALZIM = new WizardSpell('A00D', 20, TargetType.LOCATION, "", SpellSchool.NECROMANCIE, 'I007')
     constant static WizardSpell NUEE_METEORES = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION, 'I00K')
+    constant static WizardSpell TOILES_ARAIGNEE = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION, 'I00T')
     
     // Conic spells
     constant static WizardSpell INCINERATEUR_AGANAZZAR = new WizardSpell('A00T', 20, TargetType.NONE, "", SpellSchool.EVOCATION, '0')
@@ -115,7 +119,7 @@ public class DummySpell extends Spell
 
     // Dummy spells
     constant static DummySpell FLECHES_PRIMITIVES = new DummySpell('A00Z', 20, TargetType.LOCATION, "clusterrockets")
-    constant static DummySpell FLECHES_DE_BRONZE = new DummySpell('A010', 20, TargetType.LOCATION, "clusterrockets")
+    constant static DummySpell FLECHES_DE_BRONZE = new DummySpell('A010', 20, TargetType.LOCATION, "bidon")
     constant static DummySpell FLECHES_DE_GIVRE = new DummySpell('A011', 20, TargetType.LOCATION, "clusterrockets")
     
     constant static DummySpell TOILE_ARAIGNEE = new DummySpell('A015', 20, TargetType.LOCATION, "dreadlordinferno")
@@ -123,6 +127,22 @@ public class DummySpell extends Spell
 // Functions
 init
     Log.trace("Init spells")
+
+    // Check dummy spells order strings
+    vec2 targetLoc = vec2(0, 0)
+    for Spell spell in Spell.LIST
+        if spell instanceof DummySpell
+            DummySpell dummySpell = spell castTo DummySpell
+            switch spell.target
+                case LOCATION
+                    if not dummySpell.castPoint(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetLoc, 1)
+                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
+
+                case LOCATION_OR_UNIT
+                    
+                case UNIT
+                default
+
 
     // Rain of arrows
     registerSpellEffectEvent(ABILITY_RAIN_OF_ARROWS) ->

@@ -177,11 +177,15 @@ public class ConeEffect
     static function isPointInCone(vec2 origin, angle ang, angle spreadAngle, real queuePosition, real headPosition, vec2 point) returns boolean
         // Check distance
         real dist2 = origin.distanceToSq(point)
-        if dist2 > queuePosition * queuePosition and dist2 <= headPosition * headPosition
-            Log.trace("Location in cone range : " + point.toString())
+        if dist2 > (queuePosition * queuePosition) and dist2 <= (headPosition * headPosition)
+            //Log.trace("Location in cone range : " + point.toString())
             // Distance ok -> check angle
+            if spreadAngle.degrees() >= 360.0
+                return true // >= 360°
+            
+            // FIXME : Might not work !
             angle a = origin.angleTo(point).op_minus(ang)
-            if ModuloReal(a.degrees(), 360) < spreadAngle.degrees() // No mod because spreadAngle can be 360
+            if ModuloReal(a.degrees(), 360.0) < spreadAngle.degrees() // No mod because spreadAngle can be 360
                 return true
         return false
 
@@ -223,16 +227,21 @@ public class ConeEffect
         // Shall we refresh entering/leaving units ?
         if this.unitEnteringHandler != null or this.unitLeavingHandler != null
             if currentTime - this.unitsLastCheckTime >= this.unitsChecksFrequency
-                // Check the previous position of cone 
-                let previousHeadPosition = this.computePosition(this.unitsLastCheckTime, this.headPropagationSpeed)
+
+                // TODO Check whether the cone is moving/rotating/etc
+                // Check the previous position of cone
+                let minimumPosition = min (
+                    this.computePosition(this.unitsLastCheckTime, this.headPropagationSpeed),
+                    queuePosition
+                )
 
                 let newUnitsInCone = CreateGroup()
 
                 // Find units that entered the area
                 vec2 center = this.origin.toVec2()
                 forUnitsInRange(center, headPosition) u ->
-                    Log.trace("Unit is maybe cone range : " + u.getName())
-                    if ConeEffect.isPointInCone(center, this.ang, this.spreadAngle, previousHeadPosition, headPosition, u.getPos())
+                    //Log.trace("Unit is maybe cone range : " + u.getName())
+                    if ConeEffect.isPointInCone(center, this.ang, this.spreadAngle, minimumPosition, headPosition, u.getPos())
                         newUnitsInCone.addUnit(u)
 
                         // Did this unit just enter the area ?
