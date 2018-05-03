@@ -11,6 +11,7 @@ public class ItemTypeBow extends ItemType
     /** The bow requires arrows to be used */
     constant boolean requiresArrows
 
+
     // Functions
     construct(int itemType, boolean unique, boolean requiresArrows)
         super(itemType, unique)
@@ -22,3 +23,9 @@ public class ItemTypeBow extends ItemType
     // Bows directory
     static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', false, true)
     static constant ItemTypeBow ARC_PRIMITIF2 = new ItemTypeBow('I00O', false, true)
+    // Bow constrictor
+    // Spirit string bow
+    // Robin hood bow
+    // Poignes lunaires
+    // [MAUDIT] String of Hawkeye : Tire sur les allies
+    // Eye of Legolas : True Strike. +% attack speed. +Range.

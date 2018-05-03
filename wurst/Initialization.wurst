@@ -25,8 +25,12 @@ public class GenericUnitFilter implements UnitFilter
             and (this.unitTypeId == 0 or u.getTypeId() == this.unitTypeId)
             and (this.owner == null or u.getOwner() == this.owner)
 
+/** Fill a group of units in <area> matching the criterion <filter>.
+Returns the number of units matched. */
+public function findUnitsMatching(group gp, rect area, UnitFilter filter) returns int
+    return findUnitsMatching(gp, area, filter, INT_MAX)
 
-/** Fill a group with all units in an area matching a criterion.
+/** Fill a group with at most <maxCount> units in <area> matching the criterion <filter>.
 Returns the number of units matched. */
 public function findUnitsMatching(group gp, rect area, UnitFilter filter, int maxCount) returns int
     gp.clear()
@@ -36,7 +40,7 @@ public function findUnitsMatching(group gp, rect area, UnitFilter filter, int ma
     let iter = gp.iterator()
     while iter.hasNext()
         unit u = iter.next()
-        if filter.isValid(u) and count < maxCount
+        if filter.isValid(u) and (maxCount == 0 or count < maxCount)
             count++
         else
             gp.removeUnit(u)

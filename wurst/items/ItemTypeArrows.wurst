@@ -8,14 +8,52 @@ import Spells
 
 /** Describes metadata of an arrow ItemInstance (ammo) */
 public class ItemTypeArrows extends ItemType
-    // Properties
-    constant DummySpell spell
-    
+    // Graphical information
+    private constant string effectPath
+    private constant real arc = 0.5
+
+    // Arrows properties
+    private constant boolean followUnit = false
+    private constant real timeLimit = 0.0
+
+    ///** Does the arrow pierce the ennemies */
+    // TODO constant int pierceAmount = 0
+
+    ///** Does the arrow */
+    // TODO constant real knockBackPower = 0.0
+
+    ///***/
+    //constant real leechLifeRate
+    //constant real poisonRate
+    //constant real fireRate
+    //constant real leechLifeRate
+    //constant real explosionRate
+
     // Functions
-    construct(int itemType, boolean unique, DummySpell spell)
-        super(itemType, unique)
-        this.spell = spell
+    construct(int itemType, string effectPath, real arc, boolean followUnit, real timeLimit)
+        super(itemType, false)
+        this.effectPath = effectPath
+        this.arc = arc
+        this.followUnit = followUnit
+        this.timeLimit = timeLimit
     
-    static constant ItemTypeArrows FLECHES_PRIMITIVES = new ItemTypeArrows('I00N', false, DummySpell.FLECHES_PRIMITIVES)
-    static constant ItemTypeArrows FLECHES_DE_BRONZE = new ItemTypeArrows('I00R', false, DummySpell.FLECHES_DE_BRONZE)
-    static constant ItemTypeArrows FLECHES_DE_GIVRE = new ItemTypeArrows('I00S', false, DummySpell.FLECHES_DE_GIVRE)
+    construct(int itemType, string effectPath)
+        super(itemType, false)
+        this.effectPath = effectPath
+    
+    function getEffectPath() returns string
+        return this.effectPath
+
+    function getArc() returns real
+        return this.arc
+
+    function isFollowUnit() returns boolean
+        return this.followUnit
+
+    function getTimeLimit() returns real
+        return this.timeLimit
+    
+    static constant ItemTypeArrows FLECHES_PRIMITIVES = new ItemTypeArrows('I00N', "Abilities\\Weapons\\Arrow\\ArrowMissile.mdl")
+    static constant ItemTypeArrows FLECHES_DE_BRONZE = new ItemTypeArrows('I00R', "Abilities\\Weapons\\GuardTowerMissile\\GuardTowerMissile.mdl")
+    static constant ItemTypeArrows FLECHES_DE_GIVRE = new ItemTypeArrows('I00S', "Abilities\\Weapons\\ColdArrow\\ColdArrowMissile.mdl")
+    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', "Abilities\\Spells\\Other\\TinkerRocket\\TinkerRocketMissile.mdl", 0.5, true, 15.0)

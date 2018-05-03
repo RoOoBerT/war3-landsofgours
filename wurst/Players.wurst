@@ -53,6 +53,9 @@ function onPlayerLeave(player leaver)
 
 /** Called when a player picks a character */
 function onCharacterSelected(unit seller, unit character)
+    // Remove soul
+    GetBuyingUnit().remove()
+
     // Register the selected character for this player
     player owner = character.getOwner()
     PLAYERS_CHARACTER.put(owner, character)

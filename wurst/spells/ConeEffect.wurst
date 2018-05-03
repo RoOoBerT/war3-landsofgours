@@ -11,7 +11,7 @@ import RegisterEvents
 // Custom imports
 import Spells
 
-@configurable public constant real CONE_EFFECTS_UPDATE_FREQUENCY = 0.1 //ANIMATION_PERIOD
+@configurable public constant real CONE_EFFECTS_UPDATE_FREQUENCY = ANIMATION_PERIOD
 
 /** Interface used to dispatch events related to units interacting with cone effects */
 public interface ConeUnitHandler
@@ -97,6 +97,7 @@ public class ConeEffect
     ondestroy
         DestroyGroup(this.unitsInCone)
 
+    // Modifiers
     function setBeginTime(real beginTime)
         this.beginTime = beginTime
 

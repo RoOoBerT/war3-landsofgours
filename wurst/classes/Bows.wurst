@@ -17,11 +17,6 @@ import ItemTypeBow
 import Players
 import Projectiles
 
-// Constants
-constant int ARCHER_RESEARCH = 'R001'
-
-constant string ORDER_STOP = "stop"
-
 // Bows API
 /** Find the first usable bow of the unit (if any) */
 function findBow(unit whichUnit) returns ItemInstance
@@ -63,18 +58,28 @@ init
                     
                     // Generate arrow effect
                     ItemTypeArrows arrows = arrowsObj.itemType castTo ItemTypeArrows
-                    vec2 sourcePoint = archer.getPos()
-                    vec2 targetPoint = targetUnit.getPos()
+                    let sourcePoint = archer.getPos3Real()
+                    let targetPoint = targetUnit.getPos3Real()
                     
                     //Log.trace("Archer " + archer.getName() + " uses " + bow.itm.getName() + " with " + arrowsObj.itm.getName())
-
+                    
                     // Impact handler
                     ImpactHandler impactHandler = (Projectile projectile, vec3 impactPoint) ->
                         addEffect(EFFECT_PATH, impactPoint)
                         return true
                     
-                    new Projectile(sourcePoint.withZ(50), targetPoint.withZ(50), impactHandler,
-                        archer, "Abilities\\Weapons\\BoatMissile\\BoatMissile.mdl", 500.0, 2)
+                    if not arrows.isFollowUnit()
+                        new StandardProjectile(archer, arrows.getEffectPath(), sourcePoint)
+                            ..setDestination(targetPoint)
+                            ..setSpeed(600)
+                            ..setArc(arrows.getArc())
+                            ..setImpactHandler(impactHandler)
+                            ..launch()
+                    else
+                        new FollowingProjectile(archer, arrows.getEffectPath(), sourcePoint, targetUnit)
+                            ..setImpactHandler(impactHandler)
+                            ..setSpeed(600)
+                            ..launch()
                     
                     // Cancel attack
                     archer.interruptAttack()

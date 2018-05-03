@@ -1,0 +1,68 @@
+package Adventure
+
+// Standard imports
+import LinkedList
+
+// Custom imports
+import Initialization
+import Players
+
+/** Represents an adventure */
+public abstract class Adventure
+    private static int indexCounter = 0
+    private constant int index
+    private constant string name
+    private constant string description
+    private constant rect area
+
+    static constant LinkedList<Adventure> LIST = new LinkedList<Adventure>
+
+    construct(string name, string description, rect area)
+        this.index = LIST.size()
+        this.name = name
+        this.description = description
+        this.area = area
+
+        LIST.add(this)
+
+    // Accessors
+    function getIndex() returns int
+        return this.index
+    
+    function getName() returns string
+        return this.name
+
+    function getDescription() returns string
+        return this.description
+
+    function getArea() returns rect
+        return this.area
+    
+    abstract function onStart() returns boolean
+
+    abstract function onEnd() returns boolean
+
+// 
+init
+    Log.info("Nombre d'adventures disponibles : " + Adventure.LIST.size().toString())
+
+    for Adventure adventure in Adventure.LIST
+        Log.info("Adventure #" + adventure.getIndex().toString() + " : " + adventure.getName())
+
+        // Filter
+        UnitFilter filter = (unit u) -> u.getOwner() == PLAYER_GOURS_HOSTILE
+
+        // Recherche de marqueurs dans la zone
+        group gp = CreateGroup()
+        findUnitsMatching(gp, adventure.getArea(), filter, 0)
+        Log.debug("Adventure #" + adventure.getIndex().toString() + " - Nombre de marqueurs repertories : " + gp.size().toString())
+
+        // Parcours des unites trouvees
+        for unit u in gp
+
+            // Supprimer l'unite
+            u.remove()
+
+        // Nettoyage memoire
+        DestroyGroup(gp)
+
