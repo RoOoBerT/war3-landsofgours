@@ -14,7 +14,7 @@ import LinkedList
 // Custom imports
 
 /** Projectiles impact check frequency */
-@configurable public constant real PROJECTILES_IMPACT_CHECK_FREQUENCY = ANIMATION_PERIOD
+@configurable public constant real PROJECTILES_UPDATE_PERIOD = ANIMATION_PERIOD
 
 @configurable public constant string EFFECT_PATH = "Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl"
 
@@ -27,36 +27,56 @@ public class Projectile
     constant Fx fx
     constant ImpactHandler impactHandler
     constant vec3 dest
+    constant real speed
 
     constant unit emitter
+
+    real epp
 
     static constant LinkedList<Projectile> LIST = new LinkedList<Projectile>
 
     construct(vec3 origin, vec3 dest, ImpactHandler impactHandler, unit emitter, string effectPath, real speed, real scale)
-        this.fx = new Fx(origin, effectPath)    
+        this.fx = new Fx(origin, effectPath)
         this.impactHandler = impactHandler
         this.dest = dest
+        this.speed = speed
+
         this.emitter = emitter
         
         // Register projectile
         LIST.add(this)
 
+        this.epp = origin.distanceTo(dest) * 0.5
+
         // Move effect
         fx.setScale(scale)
         fx.getDummy()
-            ..setMoveSpeed(speed)
-            ..issuePointOrder("move", dest.toVec2())
+            //..setMoveSpeed(speed)
+            //..issuePointOrder("move", dest.toVec2())
     
     function getPos() returns vec2
         return this.fx.getDummy().getPos()
 
-    ondestroy // TODO ??
-        //destroy this.fx
+    ondestroy
+        destroy this.fx
     
     /** Update the projectile position and returns true if it exploded */
     function move() returns boolean
-        // Check impact
         vec2 pos = this.getPos()
+        let dist = this.speed * PROJECTILES_UPDATE_PERIOD
+
+        // Check ground position
+        let groundAngle = pos.angleTo(this.dest.toVec2())
+        this.fx.setXYAngle(groundAngle)
+        let groundVector = groundAngle.direction(dist)
+        let groundPos = pos.op_plus(groundVector)
+        this.fx.setXY(groundPos)
+
+        // Set Z
+        this.epp -= this.speed * PROJECTILES_UPDATE_PERIOD
+        this.fx.setZ(this.fx.getZ() + this.epp)
+
+        // Check impact
         //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
         if pos.distanceToSq(this.dest.toVec2()) <= (32 * 32)
             // Boom !
@@ -72,9 +92,7 @@ init
     Log.trace("Init projectiles")
     
     // Periodically check impacted projectiles
-    doPeriodically(PROJECTILES_IMPACT_CHECK_FREQUENCY) cb ->
-        //Log.trace("Check projectiles impact : " + I2S(Projectile.LIST.size()))
-
+    doPeriodically(PROJECTILES_UPDATE_PERIOD) cb ->
         let iter = Projectile.LIST.iterator()
         while iter.hasNext()
             Projectile projectile = iter.next()

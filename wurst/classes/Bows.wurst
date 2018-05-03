@@ -11,6 +11,7 @@ import RegisterEvents
 //import EventHelper
 
 // Custom imports
+import CharacterClass
 import ItemTypeArrows
 import ItemTypeBow
 import Players
@@ -43,8 +44,8 @@ init
         unit archer = GetAttacker()
         player owner = GetOwningPlayer(archer)
         unit targetUnit = GetTriggerUnit()
-        if GetPlayerTechCountSimple(ARCHER_RESEARCH, owner) > 0
-            //Log.trace("Unit is attacked by an archer : " + GetUnitName(archer))
+        if archer.getAbilityLevel(CharacterClass.ARCHER.abil) > 0
+            //Log.trace("Unit is attacked by an archer : " + archer.getName())
 
             // Check if the attacker has a bow
             ItemInstance bow = findBow(archer)
@@ -65,6 +66,8 @@ init
                     vec2 sourcePoint = archer.getPos()
                     vec2 targetPoint = targetUnit.getPos()
                     
+                    //Log.trace("Archer " + archer.getName() + " uses " + bow.itm.getName() + " with " + arrowsObj.itm.getName())
+
                     // Impact handler
                     ImpactHandler impactHandler = (Projectile projectile, vec3 impactPoint) ->
                         addEffect(EFFECT_PATH, impactPoint)
