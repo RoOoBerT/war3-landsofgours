@@ -1,0 +1,33 @@
+package AdventureMarker
+
+// Standard imports
+
+// Custom imports
+
+/** A marker (unit) used to place elements on the map for an adventure */
+public class AdventureMarker
+    private constant vec3 position
+    private constant angle orientation
+    private constant int unitTypeId
+
+    private constant int array[6] inventory
+
+    construct (unit u)
+        this.position = u.getPos3Real()
+        this.orientation = u.getFacingAngle()
+        this.unitTypeId = u.getTypeId()
+
+        for int i = 0 to 5
+            this.inventory[i] = u.itemInSlot(i).getTypeId()
+    
+    function getPosition() returns vec3
+        return this.position
+    
+    function getOrientation() returns angle
+        return this.orientation
+    
+    function getUnitTypeId() returns int
+        return this.unitTypeId
+    
+    function getInventory(int index) returns int
+        return this.inventory[index]
