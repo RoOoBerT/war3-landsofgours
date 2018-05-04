@@ -37,7 +37,11 @@ public abstract class Adventure
 
     function getArea() returns rect
         return this.area
-    
+
+    // Functions
+    function initialize()
+        
+
     abstract function onStart() returns boolean
 
     abstract function onEnd() returns boolean
