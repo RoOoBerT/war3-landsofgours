@@ -2,10 +2,12 @@ package Adventure
 
 // Standard imports
 import LinkedList
-import RegisterEvents
+import HashMap
 
 // Custom imports
 import AdventureMarker
+import AdventureCreaturePack
+import CreaturePack
 import Initialization
 import PlayerData
 
@@ -21,7 +23,11 @@ public abstract class Adventure
     /** List of available start locations */
     private constant LinkedList<AdventureStartLocation> startLocations = new LinkedList<AdventureStartLocation>
 
-    /** List of markers found on the area */
+    /** List of creature packs */
+    protected constant LinkedList<AdventureCreaturePack> creaturePacks = new LinkedList<AdventureCreaturePack>()
+    protected constant HashMap<int, CreaturePack> creaturePacksMap = new HashMap<int, CreaturePack>()
+
+    /** List of markers found on the area of the adventure */
     protected constant LinkedList<AdventureMarker> markers = new LinkedList<AdventureMarker>()
 
     construct(string name, string description, rect area)
@@ -46,8 +52,14 @@ public abstract class Adventure
         return this.area
     
     // Modifiers
+    function addStartLocation(AdventureStartLocation startLoc)
+        this.startLocations.add(startLoc)
+    
     function addMarker(AdventureMarker marker)
         this.markers.add(marker)
+    
+    function addCreaturePack(AdventureCreaturePack pack)
+        this.creaturePacks.add(pack)
 
     // Functions
     function pickRandomStartLocation() returns AdventureStartLocation
@@ -62,6 +74,29 @@ public abstract class Adventure
     abstract function onStart() returns boolean
 
     abstract function onEnd() returns boolean
+
+    /** Position every player's character */
+    function setup() returns AdventureStartLocation
+        // Position creatures
+        for AdventureMarker marker in this.markers
+            CreaturePack pack = this.creaturePacksMap.get(marker.getUnitTypeId())
+            if pack != null
+                pack.spawn(marker.getPosition(), marker.getOrientation())
+
+        // Position players
+        AdventureStartLocation startLocation = this.pickRandomStartLocation()
+        vec2 position = startLocation.getPos()
+        for player p in PlayerData.ACTIVE_PLAYERS
+            let pd = PlayerData.get(p.getId())
+            let character = pd.getCharacter()
+            character.setPos(position)
+            character.setFacing(startLocation.getOrientation())
+            p.panCamToTimed(character, 0.0)
+            p.selectSingle(character)
+
+            position = position.polarOffset(startLocation.getOrientation(), 32.0)
+
+        return startLocation
 
 /** Represents a start location for players of an adventure */
 public class AdventureStartLocation
@@ -103,6 +138,16 @@ public class AdventureManager
 
         return true
 
+    /** Run a random adventure. */
+    static function runRandom() returns boolean
+        if AdventureManager.LIST.isEmpty()
+            Log.error("No adventure registered !")
+            return false
+        
+        int index = GetRandomInt(0, AdventureManager.LIST.size())
+        Adventure adventure = AdventureManager.LIST.get(index)
+        return run(adventure)
+
     /** Initialize an adventure's data for later use */
     static function initialize(Adventure adventure)
         Log.info("Adventure #" + adventure.getIndex().toString() + " : " + adventure.getName())
@@ -110,14 +155,22 @@ public class AdventureManager
         // Filter
         UnitFilter filter = (unit u) -> u.getOwner() == PLAYER_GOURS_HOSTILE
 
-        // Recherche de marqueurs dans la zone
+        // Search for markers in the area
         group gp = CreateGroup()
         findUnitsMatching(gp, adventure.getArea(), filter, 0)
-
-        // Parcours des unites trouvees
         for unit u in gp
-            // Store the unit's data into a marker
-            adventure.addMarker(new AdventureMarker(u))
+            switch u.getTypeId()
+                case 'n00B'
+                    adventure.addStartLocation(new AdventureStartLocation(u.getPos(), u.getFacingAngle()))
+
+                default
+                    /*// Check if this is a marker of a known creatures pack
+                    CreaturePack pack = adventure.creaturePacksMap.get(u.getTypeId())
+                    if pack != null
+                        adventure.addCreaturePack(new AdventureCreaturePack(u.getPos(), u.getFacingAngle(), pack))
+                    else*/
+                        // Store the unit's data into a generic marker
+                        adventure.addMarker(new AdventureMarker(u))
 
             // Delete the unit
             u.remove()

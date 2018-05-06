@@ -1,0 +1,49 @@
+package AdventureCreaturePack
+
+// Standard imports
+
+// Custom imports
+import CreaturePack
+
+/** A marker (unit) used to place elements on the map for an adventure */
+public class AdventureCreaturePack
+    private constant vec2 position
+    private constant angle orientation
+    private constant CreaturePack creaturePack
+
+    private constant int array[6] inventory
+
+    construct (vec2 position, angle orientation, CreaturePack creaturePack)
+        this.position = position
+        this.orientation = orientation
+        this.creaturePack = creaturePack
+
+        /*for int i = 0 to 5
+            this.inventory[i] = 0*/
+    
+    // Marker types directory
+    static constant int MARKER_FEW_CREATURES_SMALL = 'n001'
+    static constant int MARKER_FEW_CREATURES_MEDIUM = 'n005'
+    static constant int MARKER_FEW_CREATURES_LARGE = 'n008'
+    static constant int MARKER_SEVERAL_CREATURES_SMALL = 'n000'
+    static constant int MARKER_SEVERAL_CREATURES_MEDIUM = 'n004'
+    static constant int MARKER_SEVERAL_CREATURES_LARGE = 'n007'
+    static constant int MARKER_MANY_CREATURES_SMALL = 'n002'
+    static constant int MARKER_MANY_CREATURES_MEDIUM = 'n003'
+    static constant int MARKER_MANY_CREATURES_LARGE = 'n006'
+
+    static constant int MARKER_MINI_BOSS = 'n009'
+    static constant int MARKER_BOSS = 'n00A'
+
+    // Accessors
+    function getPosition() returns vec2
+        return this.position
+    
+    function getOrientation() returns angle
+        return this.orientation
+    
+    function getCreaturePack() returns CreaturePack
+        return this.creaturePack
+    
+    function getInventory(int index) returns int
+        return this.inventory[index]

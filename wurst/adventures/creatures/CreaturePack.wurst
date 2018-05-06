@@ -49,9 +49,24 @@ public class CreaturePack
 
     private constant LinkedList<CreatureSpawn> spawns = new LinkedList<CreatureSpawn>()
 
+    construct (real spawnProbability, real powerIndication)
+        this.spawnProbability = spawnProbability
+        this.powerIndication = powerIndication
 
+    function addSpawn(CreatureSpawn spawn)
+        this.addSpawn(spawn)
 
     function spawn(vec2 where, angle orientation) returns int
-        
+        int count = 0
 
-        return 0
+        // Spawn this pack of creatures ?
+        if this.spawnProbability == 1.0 or GetRandomReal(0.0, 1.0) <= this.spawnProbability
+            real power = 0
+            for CreatureSpawn spawn in this.spawns
+                if spawn.getSpawnProbability() == 1.0 or GetRandomReal(0.0, 1.0) <= spawn.getSpawnProbability()
+                    CreatureType ctype = spawn.getCreatureType()
+                    unit u = ctype.spawn(where, orientation)
+                    power += spawn.getCreatureType().getPowerIndication()
+                    count++
+
+        return count

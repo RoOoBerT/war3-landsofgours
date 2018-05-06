@@ -3,6 +3,8 @@ package CreatureType
 // Standard imports
 
 // Custom imports
+import PlayerData
+
 public class CreatureType
     /** Bound unit type */
     private constant int unitTypeId
@@ -10,8 +12,18 @@ public class CreatureType
     /** TODO Flags : living/undead | organic/mecanic | boss | */
     private constant int flags
 
+    private constant real powerIndication
+
     construct(int unitTypeId)
         this.unitTypeId = unitTypeId
+
+    // Accessors
+    function getPowerIndication() returns real
+        return this.powerIndication
+
+    // Functions
+    function spawn(vec2 where, angle orientation) returns unit
+        return createUnit(PLAYER_GOURS_HOSTILE, this.unitTypeId, where.withZ(0), orientation)
 
     // ======= CREATURES DIRECTORY =======
     // Spider family

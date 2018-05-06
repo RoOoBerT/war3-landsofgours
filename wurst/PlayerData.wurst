@@ -26,6 +26,12 @@ public class PlayerData
     /** The player's main character */
     private unit character
 
+    /** TODO The player's main character's familiar */
+    private unit familiar
+
+    /** Is the player ready to go to the adventure ? */
+    private boolean ready
+
     construct(player play)
         this.play = play
 
@@ -38,10 +44,16 @@ public class PlayerData
     
     function getCharacter() returns unit
         return this.character
+
+    function isReady() returns boolean
+        return this.ready
     
     // Setters
     function setCharacter(unit character)
         this.character = character
+
+    function setReady(boolean ready)
+        this.ready = ready
 
     /** List of currently active (human) players */
     static constant LinkedList<player> ACTIVE_PLAYERS = new LinkedList<player>
@@ -51,6 +63,9 @@ public class PlayerData
 
     static function get(int index) returns PlayerData
         return MAP.get(index)
+    
+    static function get(player p) returns PlayerData
+        return MAP.get(p.getId())
 
 // Functions
 /** Display a message of a certain type to a specific player */
@@ -86,7 +101,7 @@ function onCharacterSelected(unit _seller, unit character)
 
     // Register the selected character for this player
     player owner = character.getOwner()
-    PlayerData.get(owner.getId()).setCharacter(character)
+    PlayerData.get(owner).setCharacter(character)
 
     // Move the picked character
     vec2 direction = character.getPos().polarOffset(0.0.asAngleDegrees(), 512.0)
@@ -98,6 +113,7 @@ function onCharacterSelected(unit _seller, unit character)
     // Check which character class it is
     CharacterClass characterClass = CharacterClass.MAP.get(character.getTypeId())
     displayMessage(MessageType.SUCCESS, owner, 10, "Félicitations ! " + owner.getName() + " est maintenant : " + characterClass.getColoredName())
+    owner.setName("[{1}] {0}".format(owner.getName(), characterClass.getColoredName()))
 
     // Specifics : ARCHER
     if characterClass == CharacterClass.ARCHER

@@ -6,21 +6,21 @@ package AdventureMarker
 
 /** A marker (unit) used to place elements on the map for an adventure */
 public class AdventureMarker
-    private constant vec3 position
+    private constant vec2 position
     private constant angle orientation
     private constant int unitTypeId
 
     private constant int array[6] inventory
 
     construct (unit u)
-        this.position = u.getPos3Real()
+        this.position = u.getPos()
         this.orientation = u.getFacingAngle()
         this.unitTypeId = u.getTypeId()
 
         for int i = 0 to 5
             this.inventory[i] = u.itemInSlot(i).getTypeId()
     
-    function getPosition() returns vec3
+    function getPosition() returns vec2
         return this.position
     
     function getOrientation() returns angle

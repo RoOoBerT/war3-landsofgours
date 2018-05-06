@@ -1,0 +1,55 @@
+package Town
+
+// Standard imports
+import ClosureTimers
+
+// Custom imports
+import Adventure
+import PlayerData
+
+function isEveryPlayerReadyToLeaveTown() returns boolean
+    for player p in PlayerData.ACTIVE_PLAYERS
+        if not PlayerData.get(p).isReady()
+            Log.debug("Player not yet ready : " + p.getName())
+            return false
+    return true
+
+/** Called when a unit is not ready anymore to leave town */
+function onUnitNotReadyToLeaveTown(unit who)
+    player owner = who.getOwner()
+    let pd = PlayerData.get(owner)
+    if pd != null and who == pd.getCharacter()
+        //displayMessage(MessageType.PLAYER, null, 10.0, "{0} n'est plus pret.")
+        pd.setReady(false)
+
+/** Called when a unit is ready to leave town and start the next adventure */
+public function onUnitReadyToLeaveTown(unit who)
+    player owner = who.getOwner()
+    let pd = PlayerData.get(owner)
+    if pd != null and who == pd.getCharacter()
+        pd.setReady(true)
+        if isEveryPlayerReadyToLeaveTown()
+            // Start the next adventure !
+            CinematicFadeBJ( bj_CINEFADETYPE_FADEOUT, 2.0, "ReplaceableTextures\\CameraMasks\\White_mask.blp", 0, 0, 0, 0)
+            doAfter(2.0) ->
+                AdventureManager.runRandom()
+                CinematicFadeBJ( bj_CINEFADETYPE_FADEIN, 2.0, "ReplaceableTextures\\CameraMasks\\White_mask.blp", 0, 0, 0, 0)
+        else
+            displayMessage(MessageType.PLAYER, null, 10.0, owner.getName() + " est pret a partir a l'aventure. Quand vous etes prets, rejoignez la sortie du campement.")
+
+// Town initialization
+init
+    region regionReady = CreateRegion()
+        ..addRect(gg_rct_TownExitReady)
+
+    // When a unit enters the "ready" region
+    CreateTrigger()
+        ..registerEnterRegion(regionReady, null)
+        ..addAction() ->
+            onUnitReadyToLeaveTown(GetTriggerUnit())
+
+    // When a unit leaves the "ready" region
+    CreateTrigger()
+        ..registerLeaveRegion(regionReady, null)
+        ..addAction() ->
+            onUnitNotReadyToLeaveTown(GetTriggerUnit())
