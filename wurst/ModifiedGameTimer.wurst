@@ -1,0 +1,13 @@
+package ModifiedGameTimer
+
+// Standard imports
+import GameTimer
+
+// Custom imports
+
+// TODO Handle time distortions
+public function getModifiedTime() returns real
+    return getElapsedGameTime()
+
+public function getModifiedTime(vec2 _where) returns real
+    return getModifiedTime()

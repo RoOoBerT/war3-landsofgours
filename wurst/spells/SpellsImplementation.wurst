@@ -1,0 +1,133 @@
+package SpellsImplementation
+
+// Standard imports
+import ClosureTimers
+import EventHelper
+import Fx
+import RegisterEvents
+
+// Custom imports
+import AoeEffect
+import ConeEffect
+import ModifiedGameTimer
+import Spells
+
+init
+    // Toiles d'araignee
+    registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
+        real endTime = getModifiedTime() + 25.0
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 1 / (1 + 0.25 * level)
+        real radius = 400.0 + 20.0 * level
+
+        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
+        new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
+            ..start()
+
+    // Nuée de météores
+    registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
+        real endTime = getModifiedTime() + 30.0
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 2.25 - level * 0.1
+        
+        AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
+            flashEffect("Units\\Demon\\Infernal\\InfernalBirth.mdl", where)
+
+            // Meteor burning ground
+            ConeEffect burningGroundEffect = new ConeEffect(5.0, where.withZ(0), emitter, null)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setMaxRange(150.0)
+                ..setHeadPropagationSpeed(vec2(75, 75.0))
+                ..setQueue(new ConicWaveGraphics("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdl", 0.65, 32.0))
+            doAfter(1.0) ->
+                burningGroundEffect.start()
+                
+        new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
+            ..start()
+    
+    // Feu solaire
+    registerSpellEffectEvent(WizardSpell.FEU_SOLAIRE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        //vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real speed = 512
+        real range = 256.0 + level * 32
+        real duration = range / speed
+        
+        ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
+        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+                ..setMaxRange(range)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(32, speed))
+                ..setHeadPropagationSpeed(vec2(32, speed))
+                ..setQueue(null)
+                ..setHead(head)
+                ..start()
+    
+    // Bouclier de glace
+    registerSpellEffectEvent(WizardSpell.BOUCLIER_GLACE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        unit target = GetSpellTargetUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 15.0 + level
+
+        ConeUnitHandler enterConeHandler = (cone, who) ->
+            Log.debug("Unit entered cone effect : " + who.getName())
+
+        ConeUnitHandler leaveConeHandler = (cone, who) ->
+            Log.debug("Unit left cone effect : " + who.getName())
+
+        ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Weapons\\ZigguratFrostMissile\\ZigguratFrostMissile.mdl", 0.4, 64)
+        new ConeEffect(duration, target.getPos().withZ(0.0), emitter, target)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(64, 1))
+                ..setHeadPropagationSpeed(vec2(128, 1))
+                ..setQueue(null)
+                ..setHead(head)
+                ..setUnitEnteringHandler(enterConeHandler)
+                ..setUnitLeavingHandler(leaveConeHandler)
+                ..start()
+
+    // Abominable flétrissure d'Abi-Dalzim
+    registerSpellEffectEvent(WizardSpell.FLETRISSURE_ABOMINABLE_ABI_DALZIM.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 5.0
+        real range = 400.0 + level * 25.0
+
+        ConeUnitHandler enterConeHandler = (cone, who) ->
+            Log.debug("Unit entered Abi Dalzim : " + who.getName())
+
+        ConeUnitHandler leaveConeHandler = (cone, who) ->
+            Log.debug("Unit left Abi Dalzim : " + who.getName())
+
+        // Skull effect
+        // buildings\\other\\SacrificialAltar\\SacrificialAltar.mdl
+        /*Fx fx = new Fx(target, 270.0.asAngleDegrees(), "buildings\\other\\SacrificialAltar\\SacrificialAltar.mdl")
+            ..setZ(-200)*/
+        /*fx.getDummy()
+            ..setFlyHeight(0, 50)*/
+
+        unit dummyFx = createUnit(players[PLAYER_NEUTRAL_PASSIVE], 'h006', target, 227.0.asAngleDegrees())
+            ..addAbility(HEIGHT_ENABLER)
+            ..removeAbility(HEIGHT_ENABLER)
+            ..setFlyHeight(300, 50)
+            ..setTimedLife(duration)
+        doAfter(duration) ->
+            dummyFx.remove()
+
+        // Abilities\\Spells\\Human\\Feedback\\ArcaneTowerAttack.mdl
+        ConicWaveGraphics queue = new ConicWaveGraphics("Abilities\\Spells\\Orc\\Devour\\DevourEffectArt.mdl", 0.3, 64)
+        new ConeEffect(duration, target.withZ(0.0), emitter, null)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setMaxRange(range)
+                ..setHeadPropagationSpeed(vec2(0, 250))
+                ..setQueue(queue)
+                ..setUnitEnteringHandler(enterConeHandler)
+                ..setUnitLeavingHandler(leaveConeHandler)
+                ..start()
