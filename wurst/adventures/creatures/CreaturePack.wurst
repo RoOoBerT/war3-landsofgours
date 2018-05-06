@@ -1,0 +1,56 @@
+package CreaturePack
+
+// Standard imports
+
+// Custom imports
+import CreatureType
+
+/** */
+public class CreatureSpawn
+    private constant CreatureType creatureType    
+    private real spawnProbability = 1.0
+    private int min = 0
+    private int max = 20
+
+    construct (CreatureType creatureType)
+        this.creatureType = creatureType
+    
+    // Accessors
+    function getSpawnProbability() returns real
+        return this.spawnProbability
+    
+    function getMin() returns int
+        return this.min
+    
+    function getMax() returns int
+        return this.max
+    
+    function getCreatureType() returns CreatureType
+        return this.creatureType
+    
+    // Modifiers
+    function setSpawnProbability(real spawnProbability)
+        this.spawnProbability = spawnProbability
+    
+    function setMin(int min)
+        this.min = min
+    
+    function setMax(int max)
+        this.max = max
+
+/** Describes a group of creatures that populate an adventure */
+public class CreaturePack
+    /***/
+    private constant real spawnProbability
+
+    /***/
+    private constant real powerIndication
+
+    private constant LinkedList<CreatureSpawn> spawns = new LinkedList<CreatureSpawn>()
+
+
+
+    function spawn(vec2 where, angle orientation) returns int
+        
+
+        return 0

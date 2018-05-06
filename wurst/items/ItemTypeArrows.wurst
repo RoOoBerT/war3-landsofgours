@@ -4,7 +4,6 @@ package ItemTypeArrows
 
 // Custom imports
 import ItemType
-import Spells
 
 /** Describes metadata of an arrow ItemInstance (ammo) */
 public class ItemTypeArrows extends ItemType

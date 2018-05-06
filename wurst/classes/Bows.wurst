@@ -14,7 +14,7 @@ import RegisterEvents
 import CharacterClass
 import ItemTypeArrows
 import ItemTypeBow
-import Players
+import PlayerData
 import Projectiles
 
 // Bows API

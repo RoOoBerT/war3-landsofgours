@@ -4,26 +4,32 @@ package Adventure
 import LinkedList
 
 // Custom imports
+import AdventureMarker
 import Initialization
-import Players
+import PlayerData
 
 /** Represents an adventure */
 public abstract class Adventure
     private static int indexCounter = 0
+
     private constant int index
     private constant string name
     private constant string description
     private constant rect area
 
-    static constant LinkedList<Adventure> LIST = new LinkedList<Adventure>
+    /** List of available start locations */
+    private constant LinkedList<AdventureStartLocation> startLocations = new LinkedList<AdventureStartLocation>
+
+    /** List of markers found on the area */
+    protected constant LinkedList<AdventureMarker> markers = new LinkedList<AdventureMarker>()
 
     construct(string name, string description, rect area)
-        this.index = LIST.size()
+        this.index = indexCounter
+        indexCounter++
+
         this.name = name
         this.description = description
         this.area = area
-
-        LIST.add(this)
 
     // Accessors
     function getIndex() returns int
@@ -37,20 +43,67 @@ public abstract class Adventure
 
     function getArea() returns rect
         return this.area
+    
+    // Modifiers
+    function addMarker(AdventureMarker marker)
+        this.markers.add(marker)
 
     // Functions
-    function initialize()
-        
+    function pickRandomStartLocation() returns AdventureStartLocation
+        if this.startLocations.isEmpty()
+            Logger.error("Adventure #" + this.index.toString() + " has no start location !")
+            return null
 
+        int index = GetRandomInt(0, this.startLocations.size() - 1)
+        return this.startLocations.get(index)
+
+    // Abstract functions
     abstract function onStart() returns boolean
 
     abstract function onEnd() returns boolean
 
-// 
-init
-    Log.info("Nombre d'adventures disponibles : " + Adventure.LIST.size().toString())
+/** Represents a start location for players of an adventure */
+public class AdventureStartLocation
+    private constant vec2 pos
+    private constant angle orientation
 
-    for Adventure adventure in Adventure.LIST
+    construct (vec2 pos, angle orientation)
+        this.pos = pos
+        this.orientation = orientation
+    
+    function getPos() returns vec2
+        return this.pos
+    
+    function getOrientation() returns angle
+        return this.orientation
+
+/** Manages the list of available adventures */
+public class AdventureManager
+    static constant LinkedList<Adventure> LIST = new LinkedList<Adventure>
+
+    /** The currently ongoing adventure, or null if players are in town */
+    private static Adventure currentAdventure = null
+
+    /** Returns the currently ongoing adventure, or null if players are in town */
+    static function getCurrent() returns Adventure
+        return AdventureManager.currentAdventure
+
+    /** Run the specified adventure. If null, gets back to town */
+    static function run(Adventure adventure) returns boolean
+        // Eventually stop/cleanup previous adventure
+        Adventure previous = AdventureManager.getCurrent()
+        if previous != null
+            previous.onEnd()
+
+        // Start the new adventure
+        AdventureManager.currentAdventure = adventure
+        if adventure != null
+            adventure.onStart()
+
+        return true
+
+    /** Initialize an adventure's data for later use */
+    static function initialize(Adventure adventure)
         Log.info("Adventure #" + adventure.getIndex().toString() + " : " + adventure.getName())
 
         // Filter
@@ -59,14 +112,23 @@ init
         // Recherche de marqueurs dans la zone
         group gp = CreateGroup()
         findUnitsMatching(gp, adventure.getArea(), filter, 0)
-        Log.debug("Adventure #" + adventure.getIndex().toString() + " - Nombre de marqueurs repertories : " + gp.size().toString())
 
         // Parcours des unites trouvees
         for unit u in gp
+            // Store the unit's data into a marker
+            adventure.addMarker(new AdventureMarker(u))
 
-            // Supprimer l'unite
+            // Delete the unit
             u.remove()
 
         // Nettoyage memoire
+        Log.debug("Adventure #" + adventure.getIndex().toString() + " - Nombre de marqueurs repertories : " + gp.size().toString())
         DestroyGroup(gp)
 
+    /** Register the adventure */
+    static function register(Adventure adventure)
+        Log.info("Adventure #" + adventure.getIndex().toString() + " registered")
+        LIST.addAt(adventure, adventure.getIndex())
+
+// 
+init

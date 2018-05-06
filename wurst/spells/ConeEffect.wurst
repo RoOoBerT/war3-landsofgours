@@ -3,13 +3,10 @@ package ConeEffect
 // Standard imports
 import ClosureForGroups
 import ClosureTimers
-//import EventHelper
-import GameTimer
 import LinkedList
-import RegisterEvents
 
 // Custom imports
-import Spells
+import ModifiedGameTimer
 
 @configurable public constant real CONE_EFFECTS_UPDATE_FREQUENCY = ANIMATION_PERIOD
 
@@ -29,7 +26,7 @@ public class ConicWaveGraphics
     constant real effectRadius
 
     /** Time of last head special effect */
-    real effectLastTime = getElapsedGameTime()
+    real effectLastTime = getModifiedTime()
 
     construct(string effectPath, real effectInterval, real effectRadius)
         this.effectPath = effectPath
@@ -40,7 +37,7 @@ public class ConicWaveGraphics
 public class ConeEffect
     // Generic properties
     /** The currentTime at which the effect started */
-    real beginTime = getElapsedGameTime()
+    real beginTime = getModifiedTime()
 
     /** The currentTime at which the effect will stop */
     real endTime
@@ -58,10 +55,10 @@ public class ConeEffect
     /** An optional unit that the effect should follow, or null */
     unit followUnit = null
 
-    /** Speed of propagation : Head = <y> + <x> * currentTime */
+    /** Speed of propagation : Head = <x> + <y> * currentTime */
     vec2 headPropagationSpeed = vec2(0, 0)
 
-    /** Speed of propagation : Queue = <y> + <x> * currentTime */
+    /** Speed of propagation : Queue = <x> + <y> * currentTime */
     vec2 queuePropagationSpeed = vec2(0, 0)
 
     /** Angle of spread of the effect */
@@ -90,6 +87,9 @@ public class ConeEffect
         this.origin = origin
         this.emitter = emitter
         this.followUnit = followUnit
+
+    function start()
+        this.beginTime = getModifiedTime()
 
         // Register this cone effect
         LIST.add(this)
@@ -138,6 +138,7 @@ public class ConeEffect
         this.unitLeavingHandler = unitLeavingHandler
 
     function handleGraphics(ConicWaveGraphics gfx, real queuePosition, real headPosition)
+        let currentTime = getModifiedTime()
         if currentTime - gfx.effectLastTime >= gfx.effectInterval
             gfx.effectLastTime += gfx.effectInterval
 
@@ -186,14 +187,14 @@ public class ConeEffect
             
             // FIXME : Seems not to work !
             angle a = origin.angleTo(point).op_minus(ang)
-            if ModuloReal(a.degrees(), 360.0) < spreadAngle.degrees() // No mod because spreadAngle can be 360
+            if ModuloReal(a.degrees(), 360.0) <= spreadAngle.degrees() // No mod because spreadAngle can be 360
                 return true
         return false
 
     /** Handles cone effect propagation. Returns true if the cone disappered and should be deleted */
     function propagate() returns boolean
         // Is it finished ?
-        let currentTime = getElapsedGameTime()
+        let currentTime = getModifiedTime()
         if currentTime >= this.endTime
             // Notify units leaving the area
             if this.unitLeavingHandler != null
@@ -267,7 +268,7 @@ public class ConeEffect
 init
     Log.trace("Init cone effects")
     
-    // Periodically propagation current cone effects
+    // Periodically propagate current cone effects
     doPeriodically(CONE_EFFECTS_UPDATE_FREQUENCY) cb -> 
         let iter = ConeEffect.LIST.iterator()
         while iter.hasNext()
@@ -277,45 +278,4 @@ init
                 //Log.trace("Cone finished : " + cone.emitter.getName())
                 destroy cone
                 iter.remove()
-    
-    // Feu solaire
-    registerSpellEffectEvent(WizardSpell.FEU_SOLAIRE.abilityId) ->
-        unit emitter = GetTriggerUnit()
-        //vec2 target = getSpellTargetPos()
-        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real duration = 2
-        
-        //ConicWaveGraphics queue = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
-        ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl", 0.1, 64)
-        ConeEffect _cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
-                ..setMaxRange(1024.0)
-                ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setQueuePropagationSpeed(vec2(32, 512))
-                ..setHeadPropagationSpeed(vec2(32, 512))
-                ..setQueue(null)
-                ..setHead(head)
-    
-    // Bouclier de glace
-    registerSpellEffectEvent(WizardSpell.BOUCLIER_GLACE.abilityId) ->
-        unit emitter = GetTriggerUnit()
-        unit target = GetSpellTargetUnit()
-        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real duration = 15.0 + level
 
-        ConeUnitHandler enterConeHandler = (cone, who) ->
-            Log.debug("Unit entered cone effect : " + who.getName())
-
-        ConeUnitHandler leaveConeHandler = (cone, who) ->
-            Log.debug("Unit left cone effect : " + who.getName())
-
-        ConicWaveGraphics head = new ConicWaveGraphics("Abilities\\Weapons\\ZigguratFrostMissile\\ZigguratFrostMissile.mdl", 0.4, 64)
-        ConeEffect _cone = new ConeEffect(duration, target.getPos().withZ(0.0), emitter, target)
-                ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setQueuePropagationSpeed(vec2(64, 1))
-                ..setHeadPropagationSpeed(vec2(128, 1))
-                ..setQueue(null)
-                ..setHead(head)
-                ..setUnitEnteringHandler(enterConeHandler)
-                ..setUnitLeavingHandler(leaveConeHandler)
-    
-    

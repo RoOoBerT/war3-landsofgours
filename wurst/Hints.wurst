@@ -29,7 +29,7 @@ class Hint
 
     function display()
         string message = "Astuce #{0} - {1}".format(this.index.toString(), this.replaceDynamicMarkers(this.text))
-        displayMessage(MessageType.HINT, null, 20.0, message)
+        displayMessage(MessageType.HINT, null, 30.0, message)
 
         // Play sound
         gg_snd_GLOBAL_HINT.play()
@@ -38,21 +38,21 @@ class Hint
 init
     // Hints directory
     new Hint("A leur récupération, les |c00ff4040pièces d'or|r sont réparties équitablement entre les joueurs. Pas besoin de se ruer dessus au péril de sa vie donc... Pigé {random player} ?")
-    new Hint("|c00ff4040Cromwell|r peut assembler des fragments d'objets pour reconstituer de légendaires artefacts.")
+    new Hint("Cromwell peut assembler des |c00ff4040fragments d'objets|r pour reconstituer de légendaires artefacts.")
     new Hint("{random player} a un petit zizi !")
     new Hint("Pour signaler un bug ou suggérer une nouvelle fonctionnalité, n'hésitez pas à vous connecter à cette adresse : https://github.com/RoOoBerT/war3-landsofgours/issues/new")
-    new Hint("Il n'est pas encore possible de diviser un stack d'objets.")
-    new Hint("Il est possible de retirer un objet maudit grâce à un sort de délivrance de la malédiction (qui n'existe pas encore).")
-    new Hint("La difficulté de la partie est adaptative, mais le jeu est plus intéressant avec une grande équipe.")
-    new Hint("La liste des commandes peut être affichée avec la commande '-help'.")
-    new Hint("Certaines astuces ne servent à rien.")
-    new Hint("Mon inspiration pour créer Lands of Gours : Jehal, Baldur's Gate II / D & D, Dialo II.")
-    new Hint("Si vous utilisez un arc, ses propriétés s'additionnent à celles des flèches que vous utilisez.")
-    new Hint("Les sorts de zone et les armes à projectiles peuvent blesser vos alliés, agissez avec prudence ! D'ailleurs {random player}.")
+    new Hint("Il n'est pas encore possible de diviser un |c00ff4040stack d'objets|r.")
+    new Hint("Il est possible de retirer un |c00ff4040objet maudit|r grâce à un sort de délivrance de la malédiction (qui n'existe pas encore).")
+    new Hint("La |c00ff4040difficulté|r de la partie est adaptative, mais le jeu est plus intéressant avec une grande équipe.")
+    new Hint("La |c00ff4040liste des commandes|r peut être affichée avec la commande '-help'.")
+    new Hint("Certaines astuces ne servent à |c00ff4040rien|r.")
+    new Hint("Mon inspiration pour créer |c00ff4040Lands of Gours|r : Jehal, Baldur's Gate II / D & D, Dialo II.")
+    new Hint("Si vous utilisez un |c00ff4040arc|r, ses propriétés s'additionnent à celles des |c00ff4040flèches|r que vous utilisez.")
+    new Hint("Les sorts de zone et les armes à projectiles peuvent |c00ff4040blesser vos alliés|r, agissez avec prudence ! D'ailleurs {random player}...")
     
     // Let's avoid showing twice the same hint, if possible
     LinkedList<Hint> nextHintsToShow = new LinkedList<Hint>()
-    doPeriodically(5.0) cb ->
+    doPeriodically(60.0) cb ->
         // Have we show every hint ?
         if nextHintsToShow.isEmpty()
             nextHintsToShow.addAll(Hint.LIST)
