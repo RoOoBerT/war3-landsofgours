@@ -11,8 +11,26 @@ import AoeEffect
 import ConeEffect
 import ModifiedGameTimer
 import Spells
+import WizardSpell
 
 init
+    // Baies nourricières
+    registerSpellEffectEvent(WizardSpell.BAIES_NOURRICIERES.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        item berries = createItem('I00L', emitter.getPos())
+            ..setCharges(level)
+        emitter.addItemHandle(berries)
+
+    // Rain of arrows
+    registerSpellEffectEvent('A00V') ->
+        Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
+        
+        int abilityLevel = 1
+        vec2 fromPoint = GetTriggerUnit().getPos()
+        vec2 targetPoint = getSpellTargetPos()
+        DummySpell.FLECHES_DE_BRONZE.castPoint(GetOwningPlayer(GetTriggerUnit()), fromPoint, targetPoint, abilityLevel)
+
     // Toiles d'araignee
     registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
         real endTime = getModifiedTime() + 25.0
@@ -121,7 +139,6 @@ init
         doAfter(duration) ->
             dummyFx.remove()
 
-        // Abilities\\Spells\\Human\\Feedback\\ArcaneTowerAttack.mdl
         ConicWaveGraphics queue = new ConicWaveGraphics("Abilities\\Spells\\Orc\\Devour\\DevourEffectArt.mdl", 0.3, 64)
         new ConeEffect(duration, target.withZ(0.0), emitter, null)
                 ..setSpreadAngle(360.0.asAngleDegrees())

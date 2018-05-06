@@ -2,6 +2,7 @@ package Adventure
 
 // Standard imports
 import LinkedList
+import RegisterEvents
 
 // Custom imports
 import AdventureMarker
@@ -132,3 +133,4 @@ public class AdventureManager
 
 // 
 init
+    //TODO register Players Ready

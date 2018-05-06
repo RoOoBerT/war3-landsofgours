@@ -9,6 +9,7 @@ import StringUtils
 import Adventure
 import PlayerData
 import Spells
+import WizardSpell
 
 // Parameters
 @configurable public string COMMANDS_CHAR = "-"
