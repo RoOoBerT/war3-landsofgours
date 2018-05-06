@@ -1,6 +1,7 @@
 package CreaturePack
 
 // Standard imports
+import LinkedList
 
 // Custom imports
 import CreatureType

@@ -51,7 +51,7 @@ public abstract class Adventure
     // Functions
     function pickRandomStartLocation() returns AdventureStartLocation
         if this.startLocations.isEmpty()
-            Logger.error("Adventure #" + this.index.toString() + " has no start location !")
+            Log.error("Adventure #" + this.index.toString() + " has no start location !")
             return null
 
         int index = GetRandomInt(0, this.startLocations.size() - 1)

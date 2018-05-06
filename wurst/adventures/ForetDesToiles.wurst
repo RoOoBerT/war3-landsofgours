@@ -27,5 +27,5 @@ init
     AdventureManager.initialize(ForetDesToiles.ADVENTURE)
 
     
-    ForetDesToiles.ADVENTURE.map('', )
+    //TODOForetDesToiles.ADVENTURE.map('', )
 

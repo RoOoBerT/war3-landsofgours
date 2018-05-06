@@ -1,9 +1,12 @@
 package ItemTypeBag
 
 // Standard imports
+import RegisterEvents
 
 // Custom imports
 import ItemType
+
+constant int ABILITY_INVENTORY = 'A00J'
 
 /** Describes a bag with a certain number of slots */
 public class ItemTypeBag extends ItemType
@@ -20,7 +23,34 @@ public class ItemTypeBag extends ItemType
     
     // Bags directory
     static constant ItemTypeBag POCHETTE_ROUGE = new ItemTypeBag('I00C', false, 2)
-    static constant ItemTypeBag SAC_MERCENAIRE = new ItemTypeBag('I00D', false, 6)
     static constant ItemTypeBag BOURSE_BLEUE = new ItemTypeBag('I00E', false, 3)
     static constant ItemTypeBag SACOCHE_ROSE = new ItemTypeBag('I00F', false, 4)
     static constant ItemTypeBag SAV_VERT_TISSU = new ItemTypeBag('I00G', false, 5)
+    static constant ItemTypeBag SAC_MERCENAIRE = new ItemTypeBag('I00D', false, 6)
+
+/** Called when a unit equips a bag */
+function onEquipBag(unit who, item bag, ItemTypeBag typ)
+    int previousInventoryLevel = who.getAbilityLevel(ABILITY_INVENTORY)
+    who.setAbilityLevel(ABILITY_INVENTORY, typ.getNumberOfSlots())
+    
+    switch previousInventoryLevel
+        case 1
+        case 2
+            UnitAddItemByIdSwapped(ItemTypeBag.POCHETTE_ROUGE.getType(), who)
+        case 3
+            UnitAddItemByIdSwapped(ItemTypeBag.BOURSE_BLEUE.getType(), who)
+        case 4
+            UnitAddItemByIdSwapped(ItemTypeBag.SACOCHE_ROSE.getType(), who)
+        case 5
+            UnitAddItemByIdSwapped(ItemTypeBag.SAV_VERT_TISSU.getType(), who)
+        case 6
+            UnitAddItemByIdSwapped(ItemTypeBag.SAC_MERCENAIRE.getType(), who)
+
+init
+    // Equip a bag
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_USE_ITEM) ->
+        item what = GetManipulatedItem()
+        ItemType typ = ItemType.MAP.get(what.getTypeId())
+        if typ != null and typ instanceof ItemTypeBag
+            unit who = GetTriggerUnit()
+            onEquipBag(who, what, typ castTo ItemTypeBag)

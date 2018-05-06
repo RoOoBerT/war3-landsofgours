@@ -1,0 +1,31 @@
+package StackableItems
+
+// Standard imports
+import RegisterEvents
+
+// Custom imports
+import ItemType
+
+/** Called when a unit picks up a stackable (charged) item */
+function onPickupStackableItem(unit who, item which)
+    int charges = which.getCharges()
+    if charges == 0
+        Log.warn("Item with " + charges.toString() + " charges ?!")
+        return
+
+    // Find an item of the same type
+    ItemFilter filter = (_, itm) ->
+        return itm != which and itm.getTypeId() == which.getTypeId()
+    ItemInstance found = ItemType.findFirstItem(who, filter)
+    if found != null and found.itm != null
+        // Found ! Cumulate the two item stacks
+        found.itm.setCharges(found.itm.getCharges() + charges)
+        which.remove()
+
+init
+    // Pickup a stackable item
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_PICKUP_ITEM) ->
+        item which = GetManipulatedItem()
+        if GetItemType(which) == ITEM_TYPE_CHARGED
+            unit who = GetTriggerUnit()
+            onPickupStackableItem(who, which)

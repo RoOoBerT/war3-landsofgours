@@ -1,0 +1,56 @@
+package GoldCoins
+
+// Standard imports
+import RegisterEvents
+
+// Custom imports
+import PlayerData
+
+public constant int GOLD_COIN_ITEM = 'I003'
+
+/** Create a gold coin with the defined amount of money */
+public function createGoldCoin(vec2 where, int amount)
+    createItem(GOLD_COIN_ITEM, where)
+        ..setCharges(amount)
+
+/** Plays the animations for gold pickup */
+public function giveGold(unit who, int amount)
+    // Increase player's gold amount
+    who.getOwner().addGold(amount)
+
+    // Display "gold" effect
+    flashEffect("Abilities\\Spells\\Items\\ResourceItems\\ResourceEffectTarget.mdl", who.getPos())
+
+    // Create text tag : +x
+    createTTEx(who.getPos3Real(), vec2(0, 0.05), "+{0}".format(amount.toString()), 10, 2.5, colorA(255, 255, 0, 0))
+
+/** Called when a unit picks up a gold coin */
+function onPickupGoldCoin(unit who, item coin)
+    int amount = coin.getCharges()
+    if amount == 0
+        Log.warn("Gold coin with " + amount.toString() + " gold ?!")
+        return
+    
+    // Play gold coin sound
+    location sndLoc = GetUnitLoc(who)
+    PlaySoundAtPointBJ(gg_snd_3D_ReceiveGold, 100, sndLoc, who.getFlyHeight())
+    RemoveLocation(sndLoc)
+
+    // Divide gold amount into the players
+    int numPlayers = PlayerData.ACTIVE_PLAYERS.size()
+    int dividedAmount = amount div numPlayers
+    for player p in PlayerData.ACTIVE_PLAYERS
+        if p == who.getOwner()
+            giveGold(PlayerData.get(p.getId()).getCharacter(), dividedAmount + amount mod numPlayers)
+        else
+            giveGold(PlayerData.get(p.getId()).getCharacter(), dividedAmount)
+
+init
+    // Pickup gold coins
+    //code condition = () -> 
+    //    return GetFilterItem().getTypeId() == GOLD_COIN_ITEM
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_PICKUP_ITEM) ->
+        item what = GetManipulatedItem()
+        if what.getTypeId() == GOLD_COIN_ITEM
+            unit who = GetTriggerUnit()
+            onPickupGoldCoin(who, what)

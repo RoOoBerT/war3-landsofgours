@@ -3,7 +3,7 @@ package CreatureType
 // Standard imports
 
 // Custom imports
-class CreatureType
+public class CreatureType
     /** Bound unit type */
     private constant int unitTypeId
 
