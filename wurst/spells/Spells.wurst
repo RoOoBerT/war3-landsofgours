@@ -1,10 +1,8 @@
 package Spells
 
 // Standard imports
-import EventHelper
 import HashMap
 import LinkedList
-import RegisterEvents
 
 // Custom imports
 

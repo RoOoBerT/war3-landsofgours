@@ -1,0 +1,49 @@
+package CreatureRace
+
+// Standard imports
+import LinkedList
+
+// Custom imports
+//import CharacterClass
+
+/** Represents a race with defined advantages and inconvenients */
+public class CreatureRace
+    /** Identifier for an ability which represents the race of the unit */
+    static constant int ABILITY = 'A017'
+
+    /** Index of the race in the LIST (= ability level - 1) */
+    constant int index
+
+    /** Is this race available to be picked by a player in the beginning of the game ? */
+    constant boolean playerAvailable
+
+    /** List of all existing races */
+    static constant LinkedList<CreatureRace> LIST = new LinkedList<CreatureRace>
+
+    construct(boolean playerAvailable)
+        this.index = LIST.size()
+        LIST.addAt(this, index)
+        this.playerAvailable = playerAvailable
+
+        LIST.add(this)
+
+    /** Retrieves the race of a unit, or null if unspecified */
+    static function getUnitRace(unit who) returns CreatureRace
+        int level = who.getAbilityLevel(CreatureRace.ABILITY)
+        if level > 0
+            return LIST.get(level - 1)
+        return null
+
+    /** Affiliate the specified unit with this race */
+    function setUnitRace(unit who)
+        who.addAbility(CreatureRace.ABILITY)
+        who.setAbilityLevel(CreatureRace.ABILITY, this.index + 1)
+
+    // Race directory
+    static constant CreatureRace ARACHNID = new CreatureRace(false)
+    static constant CreatureRace CENTAUR = new CreatureRace(true)
+    static constant CreatureRace ELF = new CreatureRace(true)
+    static constant CreatureRace EREDAR = new CreatureRace(true)
+    static constant CreatureRace HUMAN = new CreatureRace(true)
+    static constant CreatureRace UNDEAD = new CreatureRace(true)
+    static constant CreatureRace ORC = new CreatureRace(true)

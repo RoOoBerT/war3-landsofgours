@@ -1,0 +1,25 @@
+package AdventureExitLocation
+
+// Standard imports
+
+// Custom imports
+
+/** Represents an exit location for players of an adventure */
+public class AdventureExitLocation
+    private constant vec2 pos
+    private constant angle orientation
+    private constant real size
+
+    construct (vec2 pos, angle orientation, real size)
+        this.pos = pos
+        this.orientation = orientation
+        this.size = size
+    
+    function getPos() returns vec2
+        return this.pos
+    
+    function getOrientation() returns angle
+        return this.orientation
+
+    function getSize() returns real
+        return this.size

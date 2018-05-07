@@ -27,12 +27,12 @@ public class GenericUnitFilter implements UnitFilter
 
 /** Fill a group of units in <area> matching the criterion <filter>.
 Returns the number of units matched. */
-public function findUnitsMatching(group gp, rect area, UnitFilter filter) returns int
-    return findUnitsMatching(gp, area, filter, INT_MAX)
+public function findUnitsInRectMatching(group gp, rect area, UnitFilter filter) returns int
+    return findUnitsInRectMatching(gp, area, filter, INT_MAX)
 
 /** Fill a group with at most <maxCount> units in <area> matching the criterion <filter>.
 Returns the number of units matched. */
-public function findUnitsMatching(group gp, rect area, UnitFilter filter, int maxCount) returns int
+public function findUnitsInRectMatching(group gp, rect area, UnitFilter filter, int maxCount) returns int
     gp.clear()
     gp.enumUnitsInRect(area)
 
@@ -47,10 +47,33 @@ public function findUnitsMatching(group gp, rect area, UnitFilter filter, int ma
 
     return count
 
+/** Fill a group with at most <maxCount> units in <area> matching the criterion <filter>.
+Returns the number of units matched. */
+public function findUnitsInGroupMatching(group gp, UnitFilter filter, int maxCount) returns group
+    group results = CreateGroup()
+
+    int count = 0
+    let iter = gp.iterator()
+    while iter.hasNext()
+        unit u = iter.next()
+        if filter.isValid(u) and (maxCount == 0 or count < maxCount)
+            results.addUnit(u)
+            count++
+
+    return results
+
+/** Returns the first unit found on the map that matches a criterion */
+public function findFirstUnitInGroupMatching(group gp, UnitFilter filter) returns unit
+    group matchGroup = CreateGroup()
+    findUnitsInGroupMatching(gp, filter, 1)
+    unit result = matchGroup.next()
+    DestroyGroup(matchGroup)
+    return result
+
 /** Returns the first unit found on the map that matches a criterion */
 public function findFirstUnitMatching(UnitFilter filter) returns unit
     group gp = CreateGroup()
-    findUnitsMatching(gp, GetPlayableMapRect(), filter, 1)
+    findUnitsInRectMatching(gp, GetPlayableMapRect(), filter, 1)
     unit result = gp.next()
     DestroyGroup(gp)
     return result

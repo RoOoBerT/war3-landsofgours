@@ -1,26 +1,39 @@
-package AdventureCreaturePack
+package AdventureCreatureGroup
 
 // Standard imports
 
 // Custom imports
-import CreaturePack
+import CreatureGroupType
 
-/** A marker (unit) used to place elements on the map for an adventure */
-public class AdventureCreaturePack
+/** Information regarding a group of creatures in a specific adventure */
+public class AdventureCreatureGroup
     private constant vec2 position
     private constant angle orientation
-    private constant CreaturePack creaturePack
+    private constant CreatureGroupType creatureGroupType
 
     private constant int array[6] inventory
 
-    construct (vec2 position, angle orientation, CreaturePack creaturePack)
+    construct (vec2 position, angle orientation, CreatureGroupType creatureGroupType)
         this.position = position
         this.orientation = orientation
-        this.creaturePack = creaturePack
+        this.creatureGroupType = creatureGroupType
 
         /*for int i = 0 to 5
             this.inventory[i] = 0*/
+
+    // Accessors
+    function getPosition() returns vec2
+        return this.position
     
+    function getOrientation() returns angle
+        return this.orientation
+    
+    function getCreatureGroupType() returns CreatureGroupType
+        return this.creatureGroupType
+    
+    function getInventory(int index) returns int
+        return this.inventory[index]
+
     // Marker types directory
     static constant int MARKER_FEW_CREATURES_SMALL = 'n001'
     static constant int MARKER_FEW_CREATURES_MEDIUM = 'n005'
@@ -34,16 +47,3 @@ public class AdventureCreaturePack
 
     static constant int MARKER_MINI_BOSS = 'n009'
     static constant int MARKER_BOSS = 'n00A'
-
-    // Accessors
-    function getPosition() returns vec2
-        return this.position
-    
-    function getOrientation() returns angle
-        return this.orientation
-    
-    function getCreaturePack() returns CreaturePack
-        return this.creaturePack
-    
-    function getInventory(int index) returns int
-        return this.inventory[index]

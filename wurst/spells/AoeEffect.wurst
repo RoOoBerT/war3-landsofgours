@@ -6,7 +6,7 @@ import ClosureForGroups
 import LinkedList
 
 // Custom imports
-import ModifiedGameTimer
+import DilatableTime
 
 @configurable public constant real AOE_SPELLS_FREQUENCY = 0.1 //ANIMATION_PERIOD
 
@@ -85,13 +85,13 @@ public class AoeEffect
 
     /** Start handling the effects of this AoE */
     function start()
-        this.lastEffectTime = getModifiedTime()
+        this.lastEffectTime = TimeDilatation.getModifiedTime(this.center)
         LIST.add(this)
 
     /** Handles AoE effect propagation. Returns true if it is finished and should be deleted */
     function propagate() returns boolean
-        // Is it currently effective ?
-        real time = getModifiedTime()
+        // Is it still effective ?
+        real time = TimeDilatation.getModifiedTime(this.center)
         if time >= this.endTime
             // Finished
             return true

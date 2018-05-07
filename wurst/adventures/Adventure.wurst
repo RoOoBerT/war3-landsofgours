@@ -6,29 +6,42 @@ import HashMap
 
 // Custom imports
 import AdventureMarker
-import AdventureCreaturePack
-import CreaturePack
+import AdventureStartLocation
+import AdventureExitLocation
+import AdventureCreatureGroup
+import CreatureGroupType
 import Initialization
 import PlayerData
+
+public constant int ADVENTURE_ENTRY_UNIT_TYPE_ID = 'n00B'
+public constant int ADVENTURE_EXIT_UNIT_TYPE_ID = 'n00H'
 
 /** Represents an adventure */
 public abstract class Adventure
     private static int indexCounter = 0
 
+    // Constants
     private constant int index
     private constant string name
     private constant string description
     private constant rect area
 
+    // Lists
     /** List of available start locations */
-    private constant LinkedList<AdventureStartLocation> startLocations = new LinkedList<AdventureStartLocation>
+    protected constant LinkedList<AdventureStartLocation> startLocations = new LinkedList<AdventureStartLocation>
+
+    /** List of available exit locations */
+    protected constant LinkedList<AdventureExitLocation> exitLocations = new LinkedList<AdventureExitLocation>
 
     /** List of creature packs */
-    protected constant LinkedList<AdventureCreaturePack> creaturePacks = new LinkedList<AdventureCreaturePack>()
-    protected constant HashMap<int, CreaturePack> creaturePacksMap = new HashMap<int, CreaturePack>()
+    protected constant LinkedList<AdventureCreatureGroup> creatureGroups = new LinkedList<AdventureCreatureGroup>()
+    protected constant HashMap<int, CreatureGroupType> creatureGroupsMap = new HashMap<int, CreatureGroupType>()
 
     /** List of markers found on the area of the adventure */
     protected constant LinkedList<AdventureMarker> markers = new LinkedList<AdventureMarker>()
+
+    // 
+    protected constant group allUnits = CreateGroup()
 
     construct(string name, string description, rect area)
         this.index = indexCounter
@@ -38,12 +51,18 @@ public abstract class Adventure
         this.description = description
         this.area = area
 
+    ondestroy
+        DestroyGroup(this.allUnits)
+
     // Accessors
     function getIndex() returns int
         return this.index
     
     function getName() returns string
         return this.name
+
+    function toString() returns string
+        return "#{0} - {1}".format(this.index.toString(), this.name)
 
     function getDescription() returns string
         return this.description
@@ -55,33 +74,69 @@ public abstract class Adventure
     function addStartLocation(AdventureStartLocation startLoc)
         this.startLocations.add(startLoc)
     
+    function addExitLocation(AdventureExitLocation exitLoc)
+        this.exitLocations.add(exitLoc)
+        
+    function addCreatureGroup(AdventureCreatureGroup creatureGroup)
+        this.creatureGroups.add(creatureGroup)
+
     function addMarker(AdventureMarker marker)
         this.markers.add(marker)
     
-    function addCreaturePack(AdventureCreaturePack pack)
-        this.creaturePacks.add(pack)
-
     // Functions
+    /** Returns a randomly chosen start location */
     function pickRandomStartLocation() returns AdventureStartLocation
         if this.startLocations.isEmpty()
-            Log.error("Adventure #" + this.index.toString() + " has no start location !")
+            Log.error("Adventure " + this.toString() + " has no start location !")
             return null
 
         int index = GetRandomInt(0, this.startLocations.size() - 1)
         return this.startLocations.get(index)
 
-    // Abstract functions
-    abstract function onStart() returns boolean
+    /** Initialize an adventure's data for later use */
+    function initialize()
+        Log.info("Adventure " + this.toString() + " : " + this.name)
 
-    abstract function onEnd() returns boolean
+        // Filter
+        UnitFilter filter = (unit u) -> u.getOwner() == PLAYER_GOURS_HOSTILE
+
+        // Search for markers in the area
+        group gp = CreateGroup()
+        findUnitsInRectMatching(gp, this.area, filter, 0)
+        for unit u in gp
+            switch u.getTypeId()
+                case ADVENTURE_ENTRY_UNIT_TYPE_ID
+                    this.startLocations.add(new AdventureStartLocation(u.getPos(), u.getFacingAngle()))
+                case ADVENTURE_EXIT_UNIT_TYPE_ID
+                    this.exitLocations.add(new AdventureExitLocation(u.getPos(), u.getFacingAngle(), 64))
+
+                default
+                    // Check if this is a marker of a known creatures pack
+                    CreatureGroupType creatureGroupType = this.creatureGroupsMap.get(u.getTypeId())
+                    if creatureGroupType != null
+                        this.creatureGroups.add(new AdventureCreatureGroup(u.getPos(), u.getFacingAngle(), creatureGroupType))
+                    else
+                        // Store the unit's data into a generic marker
+                        this.markers.add(new AdventureMarker(u))
+
+            // Delete the unit
+            u.remove()
+
+        // Nettoyage memoire
+        Log.debug("Adventure " + this.toString() + " - Nombre de marqueurs repertories : " + gp.size().toString())
+        DestroyGroup(gp)
 
     /** Position every player's character */
     function setup() returns AdventureStartLocation
         // Position creatures
-        for AdventureMarker marker in this.markers
-            CreaturePack pack = this.creaturePacksMap.get(marker.getUnitTypeId())
-            if pack != null
-                pack.spawn(marker.getPosition(), marker.getOrientation())
+        for AdventureCreatureGroup creatureGroup in this.creatureGroups
+            creatureGroup.getCreatureGroupType().spawn(this.allUnits, creatureGroup.getPosition(), creatureGroup.getOrientation())
+        
+        // Hide exit locations
+        for AdventureExitLocation exitLoc in this.exitLocations
+            unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], ADVENTURE_EXIT_UNIT_TYPE_ID, exitLoc.getPos(), exitLoc.getOrientation())
+            u.hide()
+            this.allUnits.addUnit(exitLoc)
 
         // Position players
         AdventureStartLocation startLocation = this.pickRandomStartLocation()
@@ -98,20 +153,20 @@ public abstract class Adventure
 
         return startLocation
 
-/** Represents a start location for players of an adventure */
-public class AdventureStartLocation
-    private constant vec2 pos
-    private constant angle orientation
+    /** Cleanup the adventure */
+    function cleanup()
+        for unit u from this.allUnits
+            u.remove()
+        
+    // Overridable functions
+    function onStarted() returns boolean
+        return true
 
-    construct (vec2 pos, angle orientation)
-        this.pos = pos
-        this.orientation = orientation
-    
-    function getPos() returns vec2
-        return this.pos
-    
-    function getOrientation() returns angle
-        return this.orientation
+    function onUnitDying(unit dying) returns boolean
+        return true
+
+    function onEnd() returns boolean
+        return true
 
 /** Manages the list of available adventures */
 public class AdventureManager
@@ -129,12 +184,16 @@ public class AdventureManager
         // Eventually stop/cleanup previous adventure
         Adventure previous = AdventureManager.getCurrent()
         if previous != null
+            displayMessage(MessageType.QUEST, null, 10, "Fin de l'aventure : " + previous.getName())
             previous.onEnd()
 
         // Start the new adventure
         AdventureManager.currentAdventure = adventure
         if adventure != null
-            adventure.onStart()
+            if not adventure.onStarted()
+                Log.error("Failure starting adventure : " + adventure.getName())
+                return false
+            displayMessage(MessageType.QUEST, null, 10, "Demarrage de l'aventure : " + adventure.getName())
 
         return true
 
@@ -143,47 +202,12 @@ public class AdventureManager
         if AdventureManager.LIST.isEmpty()
             Log.error("No adventure registered !")
             return false
-        
+
         int index = GetRandomInt(0, AdventureManager.LIST.size())
         Adventure adventure = AdventureManager.LIST.get(index)
         return run(adventure)
-
-    /** Initialize an adventure's data for later use */
-    static function initialize(Adventure adventure)
-        Log.info("Adventure #" + adventure.getIndex().toString() + " : " + adventure.getName())
-
-        // Filter
-        UnitFilter filter = (unit u) -> u.getOwner() == PLAYER_GOURS_HOSTILE
-
-        // Search for markers in the area
-        group gp = CreateGroup()
-        findUnitsMatching(gp, adventure.getArea(), filter, 0)
-        for unit u in gp
-            switch u.getTypeId()
-                case 'n00B'
-                    adventure.addStartLocation(new AdventureStartLocation(u.getPos(), u.getFacingAngle()))
-
-                default
-                    /*// Check if this is a marker of a known creatures pack
-                    CreaturePack pack = adventure.creaturePacksMap.get(u.getTypeId())
-                    if pack != null
-                        adventure.addCreaturePack(new AdventureCreaturePack(u.getPos(), u.getFacingAngle(), pack))
-                    else*/
-                        // Store the unit's data into a generic marker
-                        adventure.addMarker(new AdventureMarker(u))
-
-            // Delete the unit
-            u.remove()
-
-        // Nettoyage memoire
-        Log.debug("Adventure #" + adventure.getIndex().toString() + " - Nombre de marqueurs repertories : " + gp.size().toString())
-        DestroyGroup(gp)
 
     /** Register the adventure */
     static function register(Adventure adventure)
         Log.info("Adventure #" + adventure.getIndex().toString() + " registered")
         LIST.addAt(adventure, adventure.getIndex())
-
-// 
-init
-    //TODO register Players Ready

@@ -3,13 +3,13 @@ package SpellsImplementation
 // Standard imports
 import ClosureTimers
 import EventHelper
-import Fx
+//import Fx
 import RegisterEvents
 
 // Custom imports
 import AoeEffect
 import ConeEffect
-import ModifiedGameTimer
+import DilatableTime
 import Spells
 import WizardSpell
 
@@ -33,22 +33,23 @@ init
 
     // Toiles d'araignee
     registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
-        real endTime = getModifiedTime() + 25.0
-        unit emitter = GetTriggerUnit()
         vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 25.0
+        unit emitter = GetTriggerUnit()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real frequency = 1 / (1 + 0.25 * level)
         real radius = 400.0 + 20.0 * level
 
+        // FIXME PATH CHANGED
         AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
         new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
             ..start()
 
     // Nuée de météores
     registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
-        real endTime = getModifiedTime() + 30.0
-        unit emitter = GetTriggerUnit()
         vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 30.0
+        unit emitter = GetTriggerUnit()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real frequency = 2.25 - level * 0.1
         
@@ -148,3 +149,14 @@ init
                 ..setUnitEnteringHandler(enterConeHandler)
                 ..setUnitLeavingHandler(leaveConeHandler)
                 ..start()
+    
+    // Dilatation temporelle
+    registerSpellEffectEvent(WizardSpell.DILATATION_TEMPORELLE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 30
+        real radius = 400.0 + level * 25.0
+
+        TimeDilatation td = new TimeDilatation(target.toVec3(), radius, 0.1)
+            ..start(duration)

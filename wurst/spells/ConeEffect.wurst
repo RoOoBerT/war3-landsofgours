@@ -3,10 +3,11 @@ package ConeEffect
 // Standard imports
 import ClosureForGroups
 import ClosureTimers
+import GameTimer
 import LinkedList
 
 // Custom imports
-import ModifiedGameTimer
+import DilatableTime
 
 @configurable public constant real CONE_EFFECTS_UPDATE_FREQUENCY = ANIMATION_PERIOD
 
@@ -26,7 +27,7 @@ public class ConicWaveGraphics
     constant real effectRadius
 
     /** Time of last head special effect */
-    real effectLastTime = getModifiedTime()
+    real effectLastTime = getElapsedGameTime()
 
     construct(string effectPath, real effectInterval, real effectRadius)
         this.effectPath = effectPath
@@ -37,7 +38,7 @@ public class ConicWaveGraphics
 public class ConeEffect
     // Generic properties
     /** The currentTime at which the effect started */
-    real beginTime = getModifiedTime()
+    real beginTime
 
     /** The currentTime at which the effect will stop */
     real endTime
@@ -83,13 +84,14 @@ public class ConeEffect
     static constant LinkedList<ConeEffect> LIST = new LinkedList<ConeEffect>
 
     construct(real duration, vec3 origin, unit emitter, unit followUnit)
-        this.endTime = this.beginTime + duration
         this.origin = origin
+        this.beginTime = TimeDilatation.getModifiedTime()
+        this.endTime = this.beginTime + duration
         this.emitter = emitter
         this.followUnit = followUnit
 
     function start()
-        this.beginTime = getModifiedTime()
+        this.beginTime = TimeDilatation.getModifiedTime(this.origin)
 
         // Register this cone effect
         LIST.add(this)
@@ -138,7 +140,7 @@ public class ConeEffect
         this.unitLeavingHandler = unitLeavingHandler
 
     function handleGraphics(ConicWaveGraphics gfx, real queuePosition, real headPosition)
-        let currentTime = getModifiedTime()
+        let currentTime = getElapsedGameTime()
         if currentTime - gfx.effectLastTime >= gfx.effectInterval
             gfx.effectLastTime += gfx.effectInterval
 
@@ -194,7 +196,7 @@ public class ConeEffect
     /** Handles cone effect propagation. Returns true if the cone disappered and should be deleted */
     function propagate() returns boolean
         // Is it finished ?
-        let currentTime = getModifiedTime()
+        let currentTime = TimeDilatation.getModifiedTime(this.origin)
         if currentTime >= this.endTime
             // Notify units leaving the area
             if this.unitLeavingHandler != null

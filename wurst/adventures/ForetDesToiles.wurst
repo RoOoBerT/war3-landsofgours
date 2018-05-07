@@ -1,44 +1,81 @@
 package ForetDesToiles
 
 // Standard imports
+import RegisterEvents
 
 // Custom imports
 import Adventure
-import CreaturePack
+import AdventureCreatureGroup
+import CreatureGroupType
 import CreatureType
-import AdventureCreaturePack
+import Initialization
 import PlayerData
 
-/** Represents an adventure */
+/** Represents a simple adventure */
 public class ForetDesToiles extends Adventure
     construct(string name, string description, rect area)
         super(name, description, area)
 
         // 
-        CreaturePack packFewSmall = new CreaturePack(1.0, 1.0)
-            ..addSpawn(new CreatureSpawn(CreatureType.ARAIGNEE_PROGENITURE))
+        let groupFewSmall  = new CreatureGroupType()..addSpawn(CreatureType.ARAIGNEE_PROGENITURE, 1, 2)
+        let groupSevSmall  = new CreatureGroupType()..addSpawn(CreatureType.PETITE_ARAIGNEE, 1, 3)
+        let groupManSmall  = new CreatureGroupType()
+            ..addSpawn(CreatureType.ARAIGNEE_PROGENITURE, 1, 4)
+            ..addSpawn(CreatureType.PETITE_ARAIGNEE, 1, 2)
+
+        let groupFewMediu  = new CreatureGroupType()
+            ..addSpawn(CreatureType.ARAIGNEE_PROGENITURE, 2, 3)
+            ..addSpawn(CreatureType.PETITE_ARAIGNEE, 1, 2)
+        let groupSevMediu  = new CreatureGroupType()
+            ..addSpawn(CreatureType.ARAIGNEE_PROGENITURE, 1, 3)
+            ..addSpawn(CreatureType.PETITE_ARAIGNEE, 1, 3)
+            ..addSpawn(CreatureType.ARAIGNEE_NOIRE, 1, 1)
+        let groupManMediu  = new CreatureGroupType()
+            ..addSpawn(CreatureType.PETITE_ARAIGNEE, 3, 5)
+            ..addSpawn(CreatureType.ARAIGNEE_NOIRE, 2, 3)
+            ..addSpawn(CreatureType.ARAIGNEE_VENIMEUSE, 1, 2)
+
+        /*let groupFewLarge  = new CreatureGroupType()
+            ..addSpawn(CreatureType.ARAIGNEE_NOIRE, 0, 2)
+            ..addSpawn(CreatureType.ARAIGNEE_VENIMEUSE, 1, 1)
+        let groupSevLarge  = new CreatureGroupType()
+            ..addSpawn(CreatureType.ARAIGNEE_NOIRE, 0, 2)
+            ..addSpawn(CreatureType.ARAIGNEE_VENIMEUSE, 1, 1)
+        let groupManLarge  = new CreatureGroupType()
+            ..addSpawn(CreatureType.ARAIGNEE_NOIRE, 0, 2)*/
+
+        let groupBos       = new CreatureGroupType()..addSpawn(CreatureType.BROODMOTHER, 1)
         
-        this.creaturePacksMap.put(AdventureCreaturePack.MARKER_FEW_CREATURES_SMALL, packFewSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_SMALL     , groupFewSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_SMALL , groupSevSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_SMALL    , groupManSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_MEDIUM    , groupFewMediu)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_MEDIUM, groupSevMediu)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_MEDIUM   , groupManMediu)
+        /*this.creaturePacksMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_LARGE     , groupFewLarge)
+        this.creaturePacksMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_LARGE , groupSevLarge)
+        this.creaturePacksMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_LARGE    , groupManLarge)*/
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_BOSS                    , groupBos)
 
+    override function onStarted() returns boolean
+        /*UnitFilter filter = (unit u) ->
+            return u.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
+        unit boss = findFirstUnitInGroupMatching(this.allUnits, filter)*/
 
-    static constant Adventure ADVENTURE = new ForetDesToiles("Forêt des Toiles", "Une forêt avec des toiles... J'ai peur !", gg_rct_Adv1)
+        //unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, (u) -> u.getTypeId() == ADVENTURE_EXIT_UNIT_TYPE_ID)
 
-    override function onStart() returns boolean
-        displayMessage(MessageType.QUEST, null, 10, "Demarrage de l'aventure : " + this.getDescription())
-        super.setup()
+        PlayThematicMusic(gg_snd_MUSIC_DARKAGENTS)
+        return true
+
+    override function onUnitDying(unit dying) returns boolean
+        if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
+            unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, (u) -> u.getTypeId() == ADVENTURE_EXIT_UNIT_TYPE_ID)
+            exitLoc.show()
         return true
 
     override function onEnd() returns boolean
-        displayMessage(MessageType.QUEST, null, 10, "Fin de l'aventure : " + this.getDescription())
         return true
 
 init
-    // Initialize monsters packs
-
-    // 
-    AdventureManager.initialize(ForetDesToiles.ADVENTURE)
-    AdventureManager.register(ForetDesToiles.ADVENTURE)
-
-    
-    //TODOForetDesToiles.ADVENTURE.map('', )
-
+    ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Une forêt avec des toiles... J'ai peur !", gg_rct_Adv1)
+    AdventureManager.register(adventure)

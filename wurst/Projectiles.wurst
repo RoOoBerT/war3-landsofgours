@@ -2,18 +2,11 @@ package Projectiles
 
 // Standard imports
 import ClosureTimers
-//import DamageDetection
-//import Effect
 import Fx
-import GameTimer
-//import HashMap
 import LinkedList
-//import Player
-//import RegisterEvents
-//import EventHelper
 
 // Custom imports
-
+import DilatableTime
 
 /* 
 A projectile is fired from a gun that is mounted on a cliff above the sea. What is the range of the gun? At what angle should the gun be fired to hit a ship within its range?
@@ -115,12 +108,16 @@ public class StandardProjectile extends Projectile
         this.groundAngle = this.origin.toVec2().angleTo(dest.toVec2())
         this.totalDistance = this.origin.toVec2().distanceTo(dest.toVec2())
         this.arrivalTime = this.totalDistance / this.speed
-        this.launchTime = getElapsedGameTime()
+        this.launchTime = TimeDilatation.getModifiedTime(this.origin)
 
         this.fx.setXYAngleInstant(this.groundAngle)
 
         this.b = this.arc
         this.a = (((this.origin.z - this.dest.z) / arrivalTime) - this.b) / arrivalTime
+
+        //
+        this.previousDistance = 0
+        this.previousHeight = this.origin.z
         
         /*this.a = this.arc
         this.b = ((this.origin.z - this.dest.z) / arrivalTime) - (this.a * arrivalTime)*/
@@ -131,7 +128,7 @@ public class StandardProjectile extends Projectile
     
     /** Update the projectile position and returns true if it exploded */
     override function move() returns boolean
-        let timeElapsed = getElapsedGameTime() - this.launchTime
+        let timeElapsed = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real()) - this.launchTime
         
         // Check impact
         //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
@@ -189,12 +186,12 @@ public class FollowingProjectile extends Projectile
     // Functions
     /** Starts the trajectory and effects of the projectile */
     override function launch()
-        this.previousMoveTime = getElapsedGameTime()
+        this.previousMoveTime = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real())
         super.launch()
     
     /** Update the projectile position and returns true if it exploded */
     override function move() returns boolean
-        let currentTime = getElapsedGameTime()
+        let currentTime = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real())
         let intervalTime = currentTime - this.previousMoveTime
 
         // Distance at this step

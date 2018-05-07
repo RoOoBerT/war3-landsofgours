@@ -1,14 +1,9 @@
 package Bows
 
 // Standard imports
-//import ClosureTimers
-//import DamageDetection
-//import Effect
-//import HashMap
+import DamageDetection
 import ItemType
-//import Player
-import RegisterEvents
-//import EventHelper
+import DamageType
 
 // Custom imports
 import CharacterClass
@@ -28,67 +23,78 @@ function findArrows(unit whichUnit) returns ItemInstance
     ItemFilter arrowsFilter = (ItemType itemType, item itm) -> itemType instanceof ItemTypeArrows
     return ItemType.findFirstItem(whichUnit, arrowsFilter)
 
+/** Called when a unit damages another unit */
+function onUnitDamaged(unit attacker, unit target)
+    player owner = GetOwningPlayer(attacker)
+    if attacker.getAbilityLevel(CharacterClass.ARCHER.abil) > 0
+        //Log.trace("Unit is attacked by an archer : " + archer.getName())
+        attacker.abortOrder()
+
+        // Check if the attacker has a bow
+        ItemInstance bow = findBow(attacker)
+        if bow != null
+            // Check if the attacker has ammo
+            ItemInstance arrowsObj = findArrows(attacker)
+            if arrowsObj != null
+                int charges = arrowsObj.itm.getCharges() - 1
+                if (charges > 0)
+                    // Consume one arrow
+                    arrowsObj.itm.setCharges(charges)
+                else
+                    // Empty arrows stack
+                    arrowsObj.itm.remove()
+                
+                // Generate arrow effect
+                ItemTypeArrows arrows = arrowsObj.itemType castTo ItemTypeArrows
+                let sourcePoint = attacker.getPos3Real().op_plus(vec3(0, 0, 64))
+                let targetPoint = target.getPos3Real().op_plus(vec3(0, 0, 64))
+                
+                //Log.trace("Archer " + archer.getName() + " uses " + bow.itm.getName() + " with " + arrowsObj.itm.getName())
+                
+                // Impact handler
+                ImpactHandler impactHandler = (Projectile projectile, vec3 impactPoint) ->
+                    addEffect(EFFECT_PATH, impactPoint)
+                    return true
+                
+                if not arrows.isFollowUnit()
+                    new StandardProjectile(attacker, arrows.getEffectPath(), sourcePoint)
+                        ..setDestination(targetPoint)
+                        ..setSpeed(600)
+                        ..setArc(arrows.getArc())
+                        ..setImpactHandler(impactHandler)
+                        ..launch()
+                else
+                    new FollowingProjectile(attacker, arrows.getEffectPath(), sourcePoint, target)
+                        ..setImpactHandler(impactHandler)
+                        ..setSpeed(600)
+                        ..launch()
+                
+                // Cancel attack
+                attacker.interruptAttack()
+            else
+                displayMessage(MessageType.ERROR, owner, 3.0, "Vous avec besoin de flèches pour utiliser " + bow.itm.getName() + " !")
+                attacker.issueImmediateOrder("stop")
+                //attacker.interruptAttack()
+        else
+            displayMessage(MessageType.ERROR, owner, 3, "Vous devez équiper un arc pour attaquer !")
+            attacker.issueImmediateOrder("stop")
+            //attacker.interruptAttack()
+
 init
     // Bow handling
     Log.debug("Bows initialization...")
 
-    /* TODO
-<FrottyZ> see DamageDetection package
-<FrottyZ> addOnDamageFunc */
-    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
-        unit archer = GetAttacker()
-        player owner = GetOwningPlayer(archer)
-        unit targetUnit = GetTriggerUnit()
-        if archer.getAbilityLevel(CharacterClass.ARCHER.abil) > 0
-            //Log.trace("Unit is attacked by an archer : " + archer.getName())
+// https://raw.githubusercontent.com/Cokemonkey11/microrunnertd/28a9cf465718e46a4a8ab338de1287ed55ef9e82/wurst/triggers/abilities/metal/EvilArmourCurse.wurst
+/*  addOnDamageFunc(Condition(() ->
+        if GetEventDamageSource().getOwner().isAllyOf(GetTriggerUnit().getOwner())
+            modifyDamage(0)) */
 
-            // Check if the attacker has a bow
-            ItemInstance bow = findBow(archer)
-            if bow != null
-                // Check if the attacker has ammo
-                ItemInstance arrowsObj = findArrows(archer)
-                if arrowsObj != null
-                    int charges = arrowsObj.itm.getCharges() - 1
-                    if (charges > 0)
-                        // Consume one arrow
-                        arrowsObj.itm.setCharges(charges)
-                    else
-                        // Empty arrows stack
-                        arrowsObj.itm.remove()
-                    
-                    // Generate arrow effect
-                    ItemTypeArrows arrows = arrowsObj.itemType castTo ItemTypeArrows
-                    let sourcePoint = archer.getPos3Real()
-                    let targetPoint = targetUnit.getPos3Real()
-                    
-                    //Log.trace("Archer " + archer.getName() + " uses " + bow.itm.getName() + " with " + arrowsObj.itm.getName())
-                    
-                    // Impact handler
-                    ImpactHandler impactHandler = (Projectile projectile, vec3 impactPoint) ->
-                        addEffect(EFFECT_PATH, impactPoint)
-                        return true
-                    
-                    if not arrows.isFollowUnit()
-                        new StandardProjectile(archer, arrows.getEffectPath(), sourcePoint)
-                            ..setDestination(targetPoint)
-                            ..setSpeed(600)
-                            ..setArc(arrows.getArc())
-                            ..setImpactHandler(impactHandler)
-                            ..launch()
-                    else
-                        new FollowingProjectile(archer, arrows.getEffectPath(), sourcePoint, targetUnit)
-                            ..setImpactHandler(impactHandler)
-                            ..setSpeed(600)
-                            ..launch()
-                    
-                    // Cancel attack
-                    archer.interruptAttack()
-                else
-                    displayMessage(MessageType.ERROR, owner, 3.0, "Vous avec besoin de flèches pour utiliser " + bow.itm.getName() + " !")
-                    //archer.issueImmediateOrder(ORDER_STOP)
-                    archer.interruptAttack()
-            else
-                displayMessage(MessageType.ERROR, owner, 3, "Vous devez équiper un arc pour attaquer !")
-                //archer.issueImmediateOrder(ORDER_STOP)
-                archer.interruptAttack()
+    //registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
+    //filterfunc filter = Filter(() -> skip)
+    boolexpr action = Condition() ->
+        if getDamageType() == DamageType.ATTACK
+            unit attacker = GetEventDamageSource()
+            unit target = GetTriggerUnit()
+            onUnitDamaged(attacker, target)
 
+    addOnDamageFunc(action)

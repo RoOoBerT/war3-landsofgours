@@ -1,0 +1,20 @@
+package AdventureStartLocation
+
+// Standard imports
+
+// Custom imports
+
+/** Represents a start location for players of an adventure */
+public class AdventureStartLocation
+    private constant vec2 pos
+    private constant angle orientation
+
+    construct (vec2 pos, angle orientation)
+        this.pos = pos
+        this.orientation = orientation
+    
+    function getPos() returns vec2
+        return this.pos
+    
+    function getOrientation() returns angle
+        return this.orientation

@@ -29,7 +29,7 @@ public class ItemTypeBag extends ItemType
     static constant ItemTypeBag SAC_MERCENAIRE = new ItemTypeBag('I00D', false, 6)
 
 /** Called when a unit equips a bag */
-function onEquipBag(unit who, item bag, ItemTypeBag typ)
+function onEquipBag(unit who, item _bag, ItemTypeBag typ)
     int previousInventoryLevel = who.getAbilityLevel(ABILITY_INVENTORY)
     who.setAbilityLevel(ABILITY_INVENTORY, typ.getNumberOfSlots())
     

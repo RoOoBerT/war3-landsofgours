@@ -1,0 +1,94 @@
+package CreatureGroupType
+
+// Standard imports
+import LinkedList
+
+// Custom imports
+import CreatureType
+
+/** */
+public class CreatureTypeSpawnProperties
+    private constant CreatureType creatureType    
+    private real spawnProbability = 1.0
+    private int min = 0
+    private int max = 20
+
+    construct (CreatureType creatureType)
+        this.creatureType = creatureType
+    
+    // Accessors
+    function getSpawnProbability() returns real
+        return this.spawnProbability
+    
+    function getMin() returns int
+        return this.min
+    
+    function getMax() returns int
+        return this.max
+    
+    function getCreatureType() returns CreatureType
+        return this.creatureType
+    
+    // Modifiers
+    function setSpawnProbability(real spawnProbability)
+        this.spawnProbability = spawnProbability
+    
+    function setMin(int min)
+        this.min = min
+    
+    function setMax(int max)
+        this.max = max
+
+/** Describes a group of creatures that populate an adventure */
+public class CreatureGroupType
+    /***/
+    private constant real spawnProbability = 1
+
+    /** TODO */
+    private constant real powerIndication = 1
+
+    private constant LinkedList<CreatureTypeSpawnProperties> spawns = new LinkedList<CreatureTypeSpawnProperties>()
+
+    construct ()
+
+    construct (real spawnProbability)
+        this.spawnProbability = spawnProbability
+
+    construct (real spawnProbability, real powerIndication)
+        this.spawnProbability = spawnProbability
+        this.powerIndication = powerIndication
+
+    function addSpawn(CreatureType ctype)
+        this.addSpawn(ctype, 1, 1, 1.0)
+
+    function addSpawn(CreatureType ctype, int count)
+        this.addSpawn(ctype, count, count, 1.0)
+
+    function addSpawn(CreatureType ctype, int min, int max)
+        this.addSpawn(ctype, min, max, 1.0)
+
+    function addSpawn(CreatureType ctype, int min, int max, real spawnProbability)
+        this.spawns.add(new CreatureTypeSpawnProperties(ctype)
+            ..setMin(min)
+            ..setMax(max)
+            ..setSpawnProbability(spawnProbability)
+        )
+    
+    function spawn(group allUnits, vec2 where, angle orientation) returns int
+        int count = 0
+
+        // Spawn this pack of creatures ?
+        if this.spawnProbability == 1.0 or GetRandomReal(0.0, 1.0) <= this.spawnProbability
+            //Log.trace("A creature group should spawn : " + this.spawns.size().toString())
+            real power = 0
+            for CreatureTypeSpawnProperties spawn in this.spawns
+                if spawn.getSpawnProbability() == 1.0 or GetRandomReal(0.0, 1.0) <= spawn.getSpawnProbability()
+                    int numUnits = GetRandomInt(spawn.getMin(), spawn.getMax())
+                    for int i = 1 to numUnits
+                        CreatureType ctype = spawn.getCreatureType()
+                        unit u = ctype.spawn(where, orientation)
+                        allUnits.addUnit(u)
+                        power += ctype.getPowerIndication()
+                        count++
+
+        return count
