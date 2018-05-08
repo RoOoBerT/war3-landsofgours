@@ -1,0 +1,96 @@
+package CastAnimations
+
+// Standard imports
+import HashMap
+import StringUtils
+
+// Custom imports
+import Spells
+
+/** A texttag container */
+class MyTextTag
+    texttag ttag = null
+
+    static constant HashMap<unit, MyTextTag> UNITS_TAGS = new HashMap<unit, MyTextTag>()
+
+    construct ()
+
+    ondestroy
+        if this.ttag != null
+            this.ttag.destr()
+
+    /** Returns a text tag container (maybe empty) */
+    static function getUnitTextTag(unit u) returns MyTextTag
+        MyTextTag tt = UNITS_TAGS.get(u)
+        if tt == null
+            tt = new MyTextTag()
+            UNITS_TAGS.put(u, tt)
+        return tt
+
+function isNotDummyCaster() returns boolean
+    return GetTriggerUnit().getTypeId() != DUMMY_TYPE_ID
+
+init
+    // When a unit starts channeling
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_CHANNEL)
+        ..addCondition(Condition(function isNotDummyCaster))
+        ..addAction() ->
+            // Animate unit
+            unit u = GetTriggerUnit()
+            u.setAnimation("channel")
+
+            // Show ability name
+            string abilityName = GetAbilityName(GetSpellAbilityId())
+
+            MyTextTag tt = MyTextTag.getUnitTextTag(u)
+            if tt.ttag != null
+                tt.ttag.destr()
+
+            // TODO The text tag is not centered ...
+            tt.ttag = createCenteredTexttag(u.getPos3Fly(), abilityName, 10.0)
+                ..setColor(colorA(0, 0, 255, 255))
+
+    // When a unit cancels a spell casting
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_ENDCAST)
+        ..addCondition(Condition(function isNotDummyCaster))
+        ..addAction() ->
+            unit u = GetTriggerUnit()
+            MyTextTag tt = MyTextTag.getUnitTextTag(u)
+            if tt.ttag != null
+                tt.ttag
+                    ..setText("*interrompu*", 10.0)
+                    ..setColor(colorA(255, 0, 0, 0))
+                    ..setPermanent(false)
+                    ..setLifespan(1.5)
+                    ..setFadepoint(0.1)
+                    ..setAge(0.0)
+
+    // When a unit finishes a spell casting
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_EFFECT)
+        ..addCondition(Condition(function isNotDummyCaster))
+        ..addAction() ->
+            unit u = GetTriggerUnit()
+            MyTextTag tt = MyTextTag.getUnitTextTag(u)
+            if tt.ttag != null
+                tt.ttag
+                    ..setPermanent(false)
+                    ..setVelocity(0.0, TextTagSpeed2Velocity(64))
+                    ..setLifespan(1.5)
+                    ..setAge(0.0)
+
+                // Forget the reference so EVENT_PLAYER_UNIT_SPELL_ENDCAST event will not mark it as "*interrupted*"
+                tt.ttag = null
+
+    // When a unit dies -> Cleanup hashtable data
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_DEATH)
+        ..addCondition(Condition(function isNotDummyCaster))
+        ..addAction() ->
+            unit u = GetTriggerUnit()
+            let uatt = MyTextTag.UNITS_TAGS.get(u)
+            if uatt != null
+                MyTextTag.UNITS_TAGS.remove(u)
+                destroy uatt

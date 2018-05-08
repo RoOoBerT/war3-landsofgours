@@ -3,6 +3,7 @@ package Adventure
 // Standard imports
 import LinkedList
 import HashMap
+import RegisterEvents
 
 // Custom imports
 import AdventureMarker
@@ -16,7 +17,7 @@ import PlayerData
 public constant int ADVENTURE_ENTRY_UNIT_TYPE_ID = 'n00B'
 public constant int ADVENTURE_EXIT_UNIT_TYPE_ID = 'n00H'
 
-/** Represents an adventure */
+/** Represents the basic information for each adventure */
 public abstract class Adventure
     private static int indexCounter = 0
 
@@ -27,20 +28,22 @@ public abstract class Adventure
     private constant rect area
 
     // Lists
-    /** List of available start locations */
-    protected constant LinkedList<AdventureStartLocation> startLocations = new LinkedList<AdventureStartLocation>
-
-    /** List of available exit locations */
-    protected constant LinkedList<AdventureExitLocation> exitLocations = new LinkedList<AdventureExitLocation>
-
-    /** List of creature packs */
-    protected constant LinkedList<AdventureCreatureGroup> creatureGroups = new LinkedList<AdventureCreatureGroup>()
+    /** Mapping : marker type -> creature group type */
     protected constant HashMap<int, CreatureGroupType> creatureGroupsMap = new HashMap<int, CreatureGroupType>()
 
-    /** List of markers found on the area of the adventure */
+    /** List of available start location(s) */
+    protected constant LinkedList<AdventureStartLocation> startLocations = new LinkedList<AdventureStartLocation>
+
+    /** List of available exit location(s) */
+    protected constant LinkedList<AdventureExitLocation> exitLocations = new LinkedList<AdventureExitLocation>
+
+    /** List of creature groups */
+    protected constant LinkedList<AdventureCreatureGroup> creatureGroups = new LinkedList<AdventureCreatureGroup>()
+
+    /** List of generic markers found on the area of the adventure */
     protected constant LinkedList<AdventureMarker> markers = new LinkedList<AdventureMarker>()
 
-    // 
+    /** List of all units handled in this adventure */
     protected constant group allUnits = CreateGroup()
 
     construct(string name, string description, rect area)
@@ -91,7 +94,9 @@ public abstract class Adventure
             return null
 
         int index = GetRandomInt(0, this.startLocations.size() - 1)
-        return this.startLocations.get(index)
+        let sl = this.startLocations.get(index)
+        PingMinimap(sl.getPos().x, sl.getPos().y, 5.0)
+        return sl
 
     /** Initialize an adventure's data for later use */
     function initialize()
@@ -128,6 +133,7 @@ public abstract class Adventure
 
     /** Position every player's character */
     function setup() returns AdventureStartLocation
+        Log.debug("Setup " + this.toString())
         // Position creatures
         for AdventureCreatureGroup creatureGroup in this.creatureGroups
             creatureGroup.getCreatureGroupType().spawn(this.allUnits, creatureGroup.getPosition(), creatureGroup.getOrientation())
@@ -136,9 +142,10 @@ public abstract class Adventure
         for AdventureExitLocation exitLoc in this.exitLocations
             unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], ADVENTURE_EXIT_UNIT_TYPE_ID, exitLoc.getPos(), exitLoc.getOrientation())
             u.hide()
-            this.allUnits.addUnit(exitLoc)
+            this.allUnits.addUnit(u)
 
         // Position players
+        Log.debug("Position players " + this.toString())
         AdventureStartLocation startLocation = this.pickRandomStartLocation()
         vec2 position = startLocation.getPos()
         for player p in PlayerData.ACTIVE_PLAYERS
@@ -152,6 +159,7 @@ public abstract class Adventure
             position = position.polarOffset(startLocation.getOrientation(), 32.0)
 
         return startLocation
+        //return null
 
     /** Cleanup the adventure */
     function cleanup()
@@ -159,14 +167,17 @@ public abstract class Adventure
             u.remove()
         
     // Overridable functions
-    function onStarted() returns boolean
-        return true
+    /** Called when the adventure has been cleanup */
+    function onEnd()
 
-    function onUnitDying(unit dying) returns boolean
-        return true
+    /** Called when the adventure has started */
+    function onStarted()
 
-    function onEnd() returns boolean
-        return true
+    /** Called when a unit is attacked during this adventure */
+    function onUnitAttacked(unit _attacker, unit _target)
+
+    /** Called when a unit dies */
+    function onUnitDying(unit _dying)
 
 /** Manages the list of available adventures */
 public class AdventureManager
@@ -190,9 +201,9 @@ public class AdventureManager
         // Start the new adventure
         AdventureManager.currentAdventure = adventure
         if adventure != null
-            if not adventure.onStarted()
-                Log.error("Failure starting adventure : " + adventure.getName())
-                return false
+            Log.debug("Setup : " + adventure.toString())
+            adventure.setup()
+            adventure.onStarted()
             displayMessage(MessageType.QUEST, null, 10, "Demarrage de l'aventure : " + adventure.getName())
 
         return true
@@ -203,11 +214,25 @@ public class AdventureManager
             Log.error("No adventure registered !")
             return false
 
-        int index = GetRandomInt(0, AdventureManager.LIST.size())
+        int index = GetRandomInt(0, AdventureManager.LIST.size() - 1)
         Adventure adventure = AdventureManager.LIST.get(index)
+        Log.debug("Run : " + adventure.toString())
         return run(adventure)
 
     /** Register the adventure */
     static function register(Adventure adventure)
         Log.info("Adventure #" + adventure.getIndex().toString() + " registered")
+        adventure.initialize()
         LIST.addAt(adventure, adventure.getIndex())
+
+init
+    // Register events
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_DEATH) ->
+        let adventure = AdventureManager.getCurrent()
+        if adventure != null
+            adventure.onUnitDying(GetTriggerUnit())
+
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ATTACKED) ->
+        let adventure = AdventureManager.getCurrent()
+        if adventure != null
+            adventure.onUnitAttacked(GetAttacker(), GetTriggerUnit())

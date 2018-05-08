@@ -113,7 +113,7 @@ function onCharacterSelected(unit _seller, unit character)
     // Check which character class it is
     CharacterClass characterClass = CharacterClass.MAP.get(character.getTypeId())
     displayMessage(MessageType.SUCCESS, owner, 10, "Félicitations ! " + owner.getName() + " est maintenant : " + characterClass.getColoredName())
-    owner.setName("[{1}] {0}".format(owner.getName(), characterClass.getColoredName()))
+    owner.setName("|r[{1}] {0}".format(owner.getNameColored(), characterClass.getColoredName()))
 
     // Specifics : ARCHER
     if characterClass == CharacterClass.ARCHER

@@ -7,6 +7,7 @@ import StringUtils
 
 // Custom imports
 import Adventure
+import Musics
 import PlayerData
 import Spells
 import WizardSpell
@@ -44,7 +45,9 @@ abstract class Command
 
     static constant HELP = new CommandHelp()
     static constant ADVENTURES = new CommandAdventures()
+    static constant ADVENTURE_START = new CommandAdventureStart()
     static constant CHEATS = new CommandCheats()
+    static constant MUSIC = new CommandMusic()
     static constant SPELLBOOK = new CommandSpellBook()
     static constant SPELL_LEARN = new CommandSpellLearn()
 
@@ -94,6 +97,29 @@ class CommandAdventures extends Command
             adventure.getIndex().toString(), adventure.getName(), adventure.getDescription())
         displayMessage(MessageType.INFO, who, 15, message)
 
+class CommandAdventureStart extends Command
+    construct()
+        super(false, "start", "-start [<index>]", "Démarre une aventure donnée (ou choisie aléatoirement)")
+    
+    override function onCall(player who, LinkedList<string> params)
+        // Show a specific spell ?
+        string index = params.removeAt(0)
+        if index.isNotBlank()
+            // Start one specific adventure
+            Adventure adventure = AdventureManager.LIST.get(index.toInt())
+            if adventure != null
+                AdventureManager.run(adventure)
+            else
+                displayMessage(MessageType.ERROR, who, 5, "Aventure inconnue <" + index + ")>")
+        else
+            // List all available adventures
+            AdventureManager.runRandom()
+    
+    static function showAdventure(player who, Adventure adventure)
+        string message = "#{0} - |c00ff4040{1}|r - {2}}".format(
+            adventure.getIndex().toString(), adventure.getName(), adventure.getDescription())
+        displayMessage(MessageType.INFO, who, 15, message)
+
 class CommandCheats extends Command
     construct()
         super(false, "cheats", "-cheats [true|false]", "Afficher/modifier les autorisations de triche")
@@ -132,6 +158,19 @@ class CommandDebug extends Command
         // Show current debug level
         displayMessage(MessageType.INFO, who, 15, "Niveau de traces actuel : " + DEBUG_LEVEL.getTag())
 
+class CommandMusic extends Command
+    construct()
+        super(false, "music", "-music [startpool]", "Modifier la musique en cours")
+
+    override function onCall(player who, LinkedList<string> params)
+        if not params.isEmpty()
+            string param = params.removeAt(0).toLowerCase()
+            switch param
+                case "dragon"
+                    Music.MUSIC_GII_Dragon.loopMusic(true)
+                default
+                    displayMessage(MessageType.ERROR, who, 15.0, "Musique inconnue : " + param)
+        
 class CommandSpellBook extends Command
     construct()
         super(false, "spellbook", "-spellbook [<index>]", "Affiche la liste des sorts de mage")

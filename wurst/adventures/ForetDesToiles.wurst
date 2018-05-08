@@ -1,7 +1,6 @@
 package ForetDesToiles
 
 // Standard imports
-import RegisterEvents
 
 // Custom imports
 import Adventure
@@ -9,7 +8,7 @@ import AdventureCreatureGroup
 import CreatureGroupType
 import CreatureType
 import Initialization
-import PlayerData
+import Musics
 
 /** Represents a simple adventure */
 public class ForetDesToiles extends Adventure
@@ -57,24 +56,23 @@ public class ForetDesToiles extends Adventure
         this.creaturePacksMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_LARGE    , groupManLarge)*/
         this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_BOSS                    , groupBos)
 
-    override function onStarted() returns boolean
-        /*UnitFilter filter = (unit u) ->
-            return u.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
-        unit boss = findFirstUnitInGroupMatching(this.allUnits, filter)*/
+    override function onStarted()
+        Music.MUSIC_NVN_Charwood.loopMusic(true)
 
-        //unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, (u) -> u.getTypeId() == ADVENTURE_EXIT_UNIT_TYPE_ID)
+    override function onUnitAttacked(unit attacker, unit target)
+        if target.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
+            or attacker.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
+                Music.MUSIC_BGII_IrenicusBattle.loopMusic(false)
 
-        PlayThematicMusic(gg_snd_MUSIC_DARKAGENTS)
-        return true
-
-    override function onUnitDying(unit dying) returns boolean
+    override function onUnitDying(unit dying)
+        // Did the boss die ?
         if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
-            unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, (u) -> u.getTypeId() == ADVENTURE_EXIT_UNIT_TYPE_ID)
+            unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, new GenericUnitFilter(ADVENTURE_EXIT_UNIT_TYPE_ID))
             exitLoc.show()
-        return true
+            PingMinimap(exitLoc.getX(), exitLoc.getY(), 20.0)
+            Music.MUSIC_TOWN.loopMusic(true)
 
-    override function onEnd() returns boolean
-        return true
+    override function onEnd()
 
 init
     ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Une forêt avec des toiles... J'ai peur !", gg_rct_Adv1)

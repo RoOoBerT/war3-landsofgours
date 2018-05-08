@@ -3,7 +3,7 @@ package Initialization
 // Standard imports
 
 // Custom imports
-//import ClosureForGroups
+import Musics
 
 public interface UnitFilter
     function isValid(unit u) returns boolean
@@ -91,4 +91,4 @@ init
     SuspendTimeOfDay(false)
 
     // Music
-    PlayMusic(gg_snd_MUSIC_HUMANVICTORY)
+    Music.MUSIC_TOWN.loopMusic(false)

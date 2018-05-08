@@ -8,7 +8,7 @@ import LinkedList
 
 // Constants
 /** Unit-type ID of generic invisible Dummy */
-constant int DUMMY_TYPE_ID = 'h001'
+public constant int DUMMY_TYPE_ID = 'h001'
 
 /** Unit-type ID of visible Dummy (for debugging) */
 constant int DUMMY_TYPE_ID_VISIBLE = 'h009'

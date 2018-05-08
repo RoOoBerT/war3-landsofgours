@@ -25,11 +25,11 @@ public class SpellSchool
     
     // Values
     static constant ABJURATION = new SpellSchool("Abjuration", color(0, 0, 255))
-    static constant ENTROPIE = new SpellSchool("Entropie", color(255, 128, 0))
+    static constant ENTROPIE = new SpellSchool("Entropie", color(255, 255, 0))
     static constant EVOCATION = new SpellSchool("Evocation", color(255, 0, 0))
-    static constant INVOCATION = new SpellSchool("Invocation", color(255, 255, 0))
+    static constant INVOCATION = new SpellSchool("Invocation", color(0, 255, 0))
     static constant NECROMANCIE = new SpellSchool("Nécromancie", color (32, 32, 32))
-    static constant TRANSMUTATION = new SpellSchool("Transmutation", color(0, 255, 0))
+    static constant TRANSMUTATION = new SpellSchool("Transmutation", color(255, 128, 0))
 
 /** Describes a wizard spell, associated to a specific school and learnable with a scroll */
 public class WizardSpell extends Spell

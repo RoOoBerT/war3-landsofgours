@@ -1,0 +1,31 @@
+package Musics
+
+// Standard imports
+
+/** Lists all available musics */
+public class Music
+    private static Music CURRENT = null
+    private constant string path
+
+    construct(string path)
+        this.path = path
+
+    function loopMusic()
+        this.loopMusic(true, false)
+
+    function loopMusic(boolean fadeOut)
+        this.loopMusic(fadeOut, false)
+
+    function loopMusic(boolean fadeOut, boolean restart)
+        if CURRENT != this or restart
+            CURRENT = this
+            Log.info("Starting music : " + this.path)
+            StopMusic(fadeOut)
+            PlayMusic(this.path)
+
+    static constant Music MUSIC_NVN_Charwood        = new Music(gg_snd_MUSIC_NVN_Charwood       )
+    static constant Music MUSIC_BGII_BridgeDistrict = new Music(gg_snd_MUSIC_BGII_BridgeDistrict)
+    static constant Music MUSIC_GII_Dragon          = new Music(gg_snd_MUSIC_BGII_Dragon        )
+    static constant Music MUSIC_BGII_IrenicusBattle = new Music(gg_snd_MUSIC_BGII_IrenicusBattle)
+
+    static constant Music MUSIC_TOWN        = MUSIC_BGII_BridgeDistrict
