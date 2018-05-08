@@ -1,0 +1,37 @@
+package Combat
+
+// Standard imports
+import DamageDetection
+import DamageType
+
+// Custom imports
+import Bows
+import CharacterClass
+import CreatureType
+
+/** Dummy invisible ability used to detect units with ranged attack */
+constant int ABILITY_RANGED = 'A00Z'
+
+function computePhysicalAttackDamage(unit _attacker, unit _target) returns real
+    return 0
+
+/** Called when a unit physically attacks another unit */
+function onUnitPhysicalAttack(unit attacker, unit target)
+    // Check what kind of attack this is
+    if attacker.getAbilityLevel(CharacterClass.ARCHER.abil) > 0
+        // This is a ranged attack with defined ammo and weapon
+        onUnitAttackWithBow(attacker, target)
+    else
+        // This is a standard attack : melee or ranged (but no "custom" projectile and ammo management)
+        let damage = GetEventDamage()
+        BlzSetEventDamage(damage)
+
+init
+    // Register an event when a unit is physically attacked
+    boolexpr action = Condition() ->
+        if getDamageType() == DamageType.ATTACK
+            unit attacker = GetEventDamageSource()
+            unit target = GetTriggerUnit()
+            onUnitPhysicalAttack(attacker, target)
+
+    addOnDamageFunc(action)

@@ -23,9 +23,9 @@ public class Music
             StopMusic(fadeOut)
             PlayMusic(this.path)
 
-    static constant Music MUSIC_NVN_Charwood        = new Music(gg_snd_MUSIC_NVN_Charwood       )
-    static constant Music MUSIC_BGII_BridgeDistrict = new Music(gg_snd_MUSIC_BGII_BridgeDistrict)
-    static constant Music MUSIC_GII_Dragon          = new Music(gg_snd_MUSIC_BGII_Dragon        )
-    static constant Music MUSIC_BGII_IrenicusBattle = new Music(gg_snd_MUSIC_BGII_IrenicusBattle)
+    static constant Music MUSIC_NVN_CHARWOOD        = new Music(gg_snd_MUSIC_NVN_Charwood       )
+    static constant Music MUSIC_BGII_BRIDGEDISTRICT = new Music(gg_snd_MUSIC_BGII_BridgeDistrict)
+    static constant Music MUSIC_BGII_DRAGON          = new Music(gg_snd_MUSIC_BGII_Dragon        )
+    static constant Music MUSIC_BGII_IRENICUSBATTLE = new Music(gg_snd_MUSIC_BGII_IrenicusBattle)
 
-    static constant Music MUSIC_TOWN        = MUSIC_BGII_BridgeDistrict
+    static constant Music MUSIC_TOWN        = MUSIC_BGII_BRIDGEDISTRICT

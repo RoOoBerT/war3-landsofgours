@@ -57,12 +57,12 @@ public class ForetDesToiles extends Adventure
         this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_BOSS                    , groupBos)
 
     override function onStarted()
-        Music.MUSIC_NVN_Charwood.loopMusic(true)
+        Music.MUSIC_NVN_CHARWOOD.loopMusic(true)
 
     override function onUnitAttacked(unit attacker, unit target)
         if target.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
             or attacker.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
-                Music.MUSIC_BGII_IrenicusBattle.loopMusic(false)
+                Music.MUSIC_BGII_IRENICUSBATTLE.loopMusic(false)
 
     override function onUnitDying(unit dying)
         // Did the boss die ?
@@ -75,5 +75,5 @@ public class ForetDesToiles extends Adventure
     override function onEnd()
 
 init
-    ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Une forêt avec des toiles... J'ai peur !", gg_rct_Adv1)
+    ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Parmi les espèces sauvages qui vivent dans la forêt, une d'entre elles a pris le dessus.", gg_rct_Adv1)
     AdventureManager.register(adventure)

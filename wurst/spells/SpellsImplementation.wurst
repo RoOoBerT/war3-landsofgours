@@ -10,13 +10,15 @@ import RegisterEvents
 
 // Custom imports
 import AoeEffect
+import Bows
 import ConeEffect
 import DilatableTime
 import Spells
 import WizardSpell
 
 init
-    // Baies nourricières
+
+    // BAIES_NOURRICIERES     
     registerSpellEffectEvent(WizardSpell.BAIES_NOURRICIERES.abilityId) ->
         unit emitter = GetTriggerUnit()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
@@ -24,72 +26,7 @@ init
             ..setCharges(level)
         emitter.addItemHandle(berries)
 
-    // Rain of arrows
-    registerSpellEffectEvent('A00V') ->
-        Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
-        
-        int abilityLevel = 1
-        vec2 fromPoint = GetTriggerUnit().getPos()
-        vec2 targetPoint = getSpellTargetPos()
-        DummySpell.FLECHES_DE_BRONZE.castPoint(GetOwningPlayer(GetTriggerUnit()), fromPoint, targetPoint, abilityLevel)
-
-    // Toiles d'araignee
-    registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
-        vec2 target = getSpellTargetPos()
-        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 25.0
-        unit emitter = GetTriggerUnit()
-        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real frequency = 1 / (1 + 0.25 * level)
-        real radius = 400.0 + 20.0 * level
-
-        // FIXME PATH CHANGED ?!
-        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
-        new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
-            ..start()
-
-    // Nuée de météores
-    registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
-        vec2 target = getSpellTargetPos()
-        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 30.0
-        unit emitter = GetTriggerUnit()
-        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real frequency = 2.25 - level * 0.1
-        
-        AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
-            flashEffect(Units.infernalBirth, where)
-
-            // Meteor burning ground
-            ConeEffect burningGroundEffect = new ConeEffect(5.0, where.withZ(0), emitter, null)
-                ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setMaxRange(150.0)
-                ..setHeadPropagationSpeed(vec2(75, 75.0))
-                ..setQueue(new ConicWaveGraphics(Abilities.flameStrikeEmbers, 0.65, 32.0))
-            doAfter(1.0) ->
-                burningGroundEffect.start()
-                
-        new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
-            ..start()
-    
-    // Feu solaire
-    registerSpellEffectEvent(WizardSpell.FEU_SOLAIRE.abilityId) ->
-        unit emitter = GetTriggerUnit()
-        //vec2 target = getSpellTargetPos()
-        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real speed = 512
-        real range = 256.0 + level * 32
-        real duration = range / speed
-        
-        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.aIfbSpecialArt, 0.1, 64)
-        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
-                ..setMaxRange(range)
-                ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setQueuePropagationSpeed(vec2(32, speed))
-                ..setHeadPropagationSpeed(vec2(32, speed))
-                ..setQueue(null)
-                ..setHead(head)
-                ..start()
-    
-    // Bouclier de glace
+    // BOUCLIER_GLACE
     registerSpellEffectEvent(WizardSpell.BOUCLIER_GLACE.abilityId) ->
         unit emitter = GetTriggerUnit()
         unit target = GetSpellTargetUnit()
@@ -113,7 +50,58 @@ init
                 ..setUnitLeavingHandler(leaveConeHandler)
                 ..start()
 
-    // Abominable flétrissure d'Abi-Dalzim
+    // CONE_FROID
+    registerSpellEffectEvent(WizardSpell.CONE_FROID.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real speed = 512
+        real range = 256.0 + level * 32
+        real duration = 5.0
+        
+        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.1, 64)
+        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.frostWyrmMissile, 0.25, 64)
+        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+                ..setAngle(emitter.getPos().angleTo(target))
+                ..setMaxRange(range)
+                ..setSpreadAngle(45.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(32, 0))
+                ..setHeadPropagationSpeed(vec2(32, speed))
+                ..setQueue(queue)
+                ..setHead(head)
+                ..start()
+
+    // DILATATION_TEMPORELLE
+    registerSpellEffectEvent(WizardSpell.DILATATION_TEMPORELLE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 30
+        real radius = 400.0 + level * 25.0
+
+        new TimeDilatation(target.toVec3(), radius, 0.1)
+            ..start(duration)
+
+    // FEU_SOLAIRE
+    registerSpellEffectEvent(WizardSpell.FEU_SOLAIRE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        //vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real speed = 512
+        real range = 256.0 + level * 32
+        real duration = range / speed
+        
+        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.aIfbSpecialArt, 0.1, 64)
+        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+                ..setMaxRange(range)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(32, speed))
+                ..setHeadPropagationSpeed(vec2(32, speed))
+                ..setQueue(null)
+                ..setHead(head)
+                ..start()
+
+    // FLETRISSURE_ABOMINABLE_ABI_DALZIM
     registerSpellEffectEvent(WizardSpell.FLETRISSURE_ABOMINABLE_ABI_DALZIM.abilityId) ->
         unit emitter = GetTriggerUnit()
         vec2 target = getSpellTargetPos()
@@ -156,14 +144,140 @@ init
                 ..setUnitEnteringHandler(enterConeHandler)
                 ..setUnitLeavingHandler(leaveConeHandler)
                 ..start()
-    
-    // Dilatation temporelle
-    registerSpellEffectEvent(WizardSpell.DILATATION_TEMPORELLE.abilityId) ->
+
+    // HATE
+    registerSpellEffectEvent(WizardSpell.HATE.abilityId) ->
+        unit emitter = GetTriggerUnit()
+        //vec2 target = getSpellTargetPos()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real speed = 512
+        real range = 384.0 + level * 32
+        real duration = 1.0
+        
+        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.devourEffectArt, 0.1, 64)
+        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+                ..setMaxRange(range)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(32, speed))
+                ..setHeadPropagationSpeed(vec2(32, speed))
+                ..setQueue(null)
+                ..setHead(head)
+                ..start()
+
+    // INCINERATEUR_AGANAZZAR
+    registerSpellEffectEvent(WizardSpell.INCINERATEUR_AGANAZZAR.abilityId) ->
         unit emitter = GetTriggerUnit()
         vec2 target = getSpellTargetPos()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real duration = 30
-        real radius = 400.0 + level * 25.0
+        real speed = 256
+        real range = 384.0 + level * 32
+        real duration = 6.0 + level * 0.25
+        
+        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIfbSpecialArt, 0.1, 32)
+        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+                ..setAngle(emitter.getPos().angleTo(target))
+                ..setMaxRange(range)
+                ..setSpreadAngle(0.0.asAngleDegrees())
+                ..setQueuePropagationSpeed(vec2(64, 0))
+                ..setHeadPropagationSpeed(vec2(64, speed))
+                ..setQueue(queue)
+                ..setHead(null)
+                ..start()
 
-        TimeDilatation td = new TimeDilatation(target.toVec3(), radius, 0.1)
-            ..start(duration)
+    // NUAGE_INCENDIAIRE
+    registerSpellEffectEvent(WizardSpell.NUAGE_INCENDIAIRE.abilityId) ->
+        vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 30.0
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 1 / (2.0 + level * 0.1)
+        
+        AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
+            addEffect(Abilities.flameStrike11, where)
+        
+        new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 64.0, frequency, handler)
+            ..start()
+
+    // NUAGE_MORTEL
+    registerSpellEffectEvent(WizardSpell.NUAGE_MORTEL.abilityId) ->
+        vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 30.0
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 1 / (2.0 + level * 0.1)
+        
+        AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
+            addEffect(Abilities.plagueCloudCaster, where)
+                
+        new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 64.0, frequency, handler)
+            ..start()
+
+    // NUAGE_PUANT
+    registerSpellEffectEvent(WizardSpell.NUAGE_PUANT.abilityId) ->
+        vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 30.0
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 1 / (2.0 + level * 0.1)
+        
+        AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
+            addEffect(Abilities.cloudOfFog, where)
+        
+        new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
+            ..start()
+
+    // NUEE_METEORES
+    registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
+        vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 30.0
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 2.25 - level * 0.1
+        
+        AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
+            flashEffect(Units.infernalBirth, where)
+
+            // Meteor burning ground
+            ConeEffect burningGroundEffect = new ConeEffect(5.0, where.withZ(0), emitter, null)
+                ..setSpreadAngle(360.0.asAngleDegrees())
+                ..setMaxRange(150.0)
+                ..setHeadPropagationSpeed(vec2(75, 75.0))
+                ..setQueue(new ConicWaveGraphics(Abilities.flameStrikeEmbers, 0.65, 32.0))
+            doAfter(1.0) ->
+                burningGroundEffect.start()
+                
+        new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
+            ..start()
+
+    // PEAU_PIERRE
+    // PROJECTILE_MAGIQUE
+    // RENVOI_SORTS
+    // TOILES_ARAIGNEE
+    // TRANSMUTATION_CHAIR_PIERRE
+
+    // Rain of arrows
+    registerSpellEffectEvent('A00V') ->
+        Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
+        
+        unit caster = GetTriggerUnit()
+        int abilityLevel = 1
+        vec2 fromPoint = GetTriggerUnit().getPos()
+        vec2 targetPoint = getSpellTargetPos()
+        for int i = 1 to abilityLevel
+            // FIXME generateArrowFromUnit(caster, targetPoint, )
+        
+
+    // Toiles d'araignee
+    registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
+        vec2 target = getSpellTargetPos()
+        real endTime = TimeDilatation.getModifiedTime(target.withZ(0)) + 25.0
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real frequency = 1 / (1 + 0.25 * level)
+        real radius = 400.0 + 20.0 * level
+
+        // FIXME PATH CHANGED ?!
+        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
+        new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
+            ..start()
+    

@@ -1,6 +1,7 @@
 package CreatureType
 
 // Standard imports
+import HashMap
 
 // Custom imports
 import PlayerData
@@ -17,11 +18,22 @@ public class CreatureType
     /** TODO */
     private constant real powerIndication = 1.0
 
+    /** Mapping of all creature types */
+    private static constant HashMap<int, CreatureType> MAP = new HashMap<int, CreatureType>()
+
     construct(int unitTypeId, CreatureRace creatureRace)
         this.unitTypeId = unitTypeId
         this.creatureRace = creatureRace
 
+        if MAP.has(this.unitTypeId)
+            Log.error("Duplicated creature type found : " + this.unitTypeId.toString())
+        MAP.put(this.unitTypeId, this)
+
     // Accessors
+    /** Returns the creature type corresponding to a unit type id */
+    static function get(int unitTypeId) returns CreatureType
+        return MAP.get(unitTypeId)
+
     function getUnitTypeId() returns int
         return this.unitTypeId
 

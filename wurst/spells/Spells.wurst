@@ -36,13 +36,18 @@ public class Spell
         this.order = order
 
         LIST.add(this)
+
+        if MAP.has(this.abilityId)
+            Log.error("Duplicated spell detected : " + this.abilityId.toString())
         MAP.put(this.abilityId, this)
     
     static constant LinkedList<Spell> LIST = new LinkedList<Spell>
     static constant HashMap<int, Spell> MAP = new HashMap<int, Spell>
-
+    
     // Spells
     static constant Spell INVENTORY_1_6_SLOTS = new Spell('A00J', 6, TargetType.PASSIVE, "")
+    
+    constant static DummySpell TOILE_ARAIGNEE = new DummySpell('A015', 20, TargetType.LOCATION, "dreadlordinferno")
 
     /** Create a dummy unit and order it to launch this spell */
     function cast(player owner, vec2 fromPoint, int level) returns boolean
@@ -84,11 +89,7 @@ public class DummySpell extends Spell
     // Methods
 
     // Dummy spells
-    constant static DummySpell FLECHES_PRIMITIVES = new DummySpell('A00Z', 20, TargetType.LOCATION, "clusterrockets")
-    constant static DummySpell FLECHES_DE_BRONZE = new DummySpell('A010', 20, TargetType.LOCATION, "clusterrockets")
-    constant static DummySpell FLECHES_DE_GIVRE = new DummySpell('A011', 20, TargetType.LOCATION, "clusterrockets")
     
-    constant static DummySpell TOILE_ARAIGNEE = new DummySpell('A015', 20, TargetType.LOCATION, "dreadlordinferno")
 
 // Functions
 init

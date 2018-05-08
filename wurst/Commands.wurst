@@ -47,6 +47,7 @@ abstract class Command
     static constant ADVENTURES = new CommandAdventures()
     static constant ADVENTURE_START = new CommandAdventureStart()
     static constant CHEATS = new CommandCheats()
+    static constant DEBUG = new CommandDebug()
     static constant MUSIC = new CommandMusic()
     static constant SPELLBOOK = new CommandSpellBook()
     static constant SPELL_LEARN = new CommandSpellLearn()
@@ -167,7 +168,7 @@ class CommandMusic extends Command
             string param = params.removeAt(0).toLowerCase()
             switch param
                 case "dragon"
-                    Music.MUSIC_GII_Dragon.loopMusic(true)
+                    Music.MUSIC_BGII_DRAGON.loopMusic(true)
                 default
                     displayMessage(MessageType.ERROR, who, 15.0, "Musique inconnue : " + param)
         

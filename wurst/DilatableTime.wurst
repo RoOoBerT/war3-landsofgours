@@ -6,7 +6,6 @@ import ClosureTimers
 import Fx
 import GameTimer
 import LinkedList
-import RegisterEvents
 
 // Custom imports
 
@@ -104,7 +103,7 @@ public class TimeDilatation
         
         // The current time at this location
         let modifiedTime = realTime + timeOffsetRealToModified
-        Log.trace("Real | modified times : " + realTime.toString(1) + " | " + modifiedTime.toString(1))
+        //Log.trace("Real | modified times : " + realTime.toString(1) + " | " + modifiedTime.toString(1))
         return modifiedTime
 
 init

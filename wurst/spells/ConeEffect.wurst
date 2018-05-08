@@ -47,7 +47,7 @@ public class ConeEffect
     constant unit emitter
 
     /** Orientation of the cone */
-    angle ang = 0.0.asAngleDegrees()
+    angle ang = 0.0.asAngleRadians()
 
     /** Origin of the cone */
     vec3 origin
@@ -153,7 +153,7 @@ public class ConeEffect
                 //let circonference = currentPosition * PI2 * this.spreadAngle.degrees() / 360.0
                 let circonference = currentPosition * this.spreadAngle.radians()
                 let iterationsCount = max(1, (circonference / gfx.effectRadius).round())
-                let angleStep = this.spreadAngle.op_divReal(iterationsCount.toReal())
+                let angleStep = this.spreadAngle / iterationsCount.toReal()
                 
                 angle currentAngle = this.ang - (this.spreadAngle / 2)
                 for int i = 1 to iterationsCount
@@ -212,6 +212,10 @@ public class ConeEffect
         // Follow a unit ?
         if this.followUnit != null
             this.origin = this.followUnit.getPos3Real()
+            
+            // Adopt the unit's rotation ?
+            if this.spreadAngle.degrees() < 360.0
+                this.ang = this.followUnit.getFacingAngle()
         
         // Compute cone progression
         //let timeElapsed = currentTime - this.beginTime
