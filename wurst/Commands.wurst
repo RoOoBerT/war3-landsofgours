@@ -1,15 +1,18 @@
 package Commands
 
 // Standard imports
+import GameTimer
 import HashMap
 import LinkedList
 import StringUtils
 
 // Custom imports
 import Adventure
+import Assets
 import Musics
 import PlayerData
 import Spells
+import UnitsBuffs
 import WizardSpell
 
 // Parameters
@@ -46,11 +49,15 @@ abstract class Command
     static constant HELP = new CommandHelp()
     static constant ADVENTURES = new CommandAdventures()
     static constant ADVENTURE_START = new CommandAdventureStart()
+    static constant CLEAR = new CommandClear()
+    static constant BUFF = new CommandBuff()
     static constant CHEATS = new CommandCheats()
     static constant DEBUG = new CommandDebug()
     static constant MUSIC = new CommandMusic()
     static constant SPELLBOOK = new CommandSpellBook()
     static constant SPELL_LEARN = new CommandSpellLearn()
+    static constant STATS = new CommandStats()
+    static constant TIME = new CommandTime()
 
 class CommandHelp extends Command
     construct()
@@ -121,6 +128,44 @@ class CommandAdventureStart extends Command
             adventure.getIndex().toString(), adventure.getName(), adventure.getDescription())
         displayMessage(MessageType.INFO, who, 15, message)
 
+class CommandBuff extends Command
+    construct()
+        super(false, "buff", "-buff [add|test|remove]", "Détaille la liste des buffs des unités sélectionnées")
+    
+    override function onCall(player who, LinkedList<string> params)
+        group selectedUnits = CreateGroup()
+        GroupEnumUnitsSelected(selectedUnits, who, null)
+
+        // What action ?
+        string subcommand = params.removeAt(0)
+        if subcommand != null and subcommand.isNotBlank()
+            switch subcommand.toLowerCase()
+                case "add"
+                    real duration = 20
+                    displayMessage(MessageType.INFO, who, 10, "Adding buff '" + BUFF_TYPE_TEST.name + "' for " + duration.toString() + "s to selected units...")
+                    for unit u in selectedUnits
+                        AllUnitsBuffs.addBuffTimed(u, BUFF_TYPE_TEST, duration)
+
+                case "test"
+                    displayMessage(MessageType.INFO, who, 10, "Showing selected units with buff '" + BUFF_TYPE_TEST.name + "'...")
+                    for unit u in selectedUnits
+                        if AllUnitsBuffs.hasBuffByType(u, BUFF_TYPE_TEST)
+                            PingMinimapForPlayer(who, u.getX(), u.getY(), 5.0)
+                            flashEffect(Units.infernalBirth, u.getPos())
+
+                case "remove"
+                    displayMessage(MessageType.INFO, who, 10, "Removing buff '" + BUFF_TYPE_TEST.name + "' from selected units...")
+                    for unit u in selectedUnits
+                        AllUnitsBuffs.removeBuffsByType(u, BUFF_TYPE_TEST)
+
+                default
+                    displayMessage(MessageType.ERROR, who, 5, "Sous-commande inconnue <" + subcommand + ")>")
+        else
+            // TODO List unit buffs
+
+        // Cleanup
+        DestroyGroup(selectedUnits)
+
 class CommandCheats extends Command
     construct()
         super(false, "cheats", "-cheats [true|false]", "Afficher/modifier les autorisations de triche")
@@ -132,6 +177,14 @@ class CommandCheats extends Command
         
         // Show current cheats status
         displayMessage(MessageType.INFO, who, 30, "Activation des codes de triche : " + COMMANDS_CHEATS.toString())
+
+class CommandClear extends Command
+    construct()
+        super(false, "clear", "-clear", "Vide l'écran des messages textes")
+
+    override function onCall(player who, LinkedList<string> params)
+        if who == localPlayer
+            ClearTextMessages()
 
 class CommandDebug extends Command
     construct()
@@ -236,6 +289,47 @@ class CommandSpellLearn extends Command
                 displayMessage(MessageType.ERROR, who, 5, "Sort inconnu " + strIndex)
         else
             displayMessage(MessageType.ERROR, who, 5, "Specifiez un index de sort")
+
+class CommandStats extends Command
+    construct()
+        super(false, "stats", "-stats [all]", "Affiche la liste des statistiques des unités sélectionnées")
+    
+    override function onCall(player who, LinkedList<string> params)
+        group selectedUnits = CreateGroup()
+        GroupEnumUnitsSelected(selectedUnits, who, null)
+
+        displayMessage(MessageType.INFO, who, 10, "Showing selected units stats...")
+        for unit u in selectedUnits
+            let detailedStats = AllUnitsBuffs.getTotalBuffs(u).toDetailedString(true)
+            displayMessage(MessageType.INFO, who, 10, "Stats of " + u.getName() + " : " + detailedStats)
+
+        // Cleanup
+        DestroyGroup(selectedUnits)
+
+class CommandTime extends Command
+    construct()
+        super(false, "time", "-time", "Afficher le temps écoulé depuis le début de la partie")
+
+    override function onCall(player who, LinkedList<string> params)
+        real realTime = getElapsedGameTime()
+
+        // Hours
+        string humanReadable = ""
+        real remaining = realTime
+        if remaining > 3600.0
+            int hours = R2I(remaining / 3600)
+            remaining -= hours * 3600.0
+            humanReadable += I2S(hours) + "h"
+        
+        // Minutes
+        if remaining > 60.0
+            int minutes = R2I(remaining / 60)
+            remaining -= minutes * 60
+            humanReadable += I2S(minutes) + "min"
+        
+        humanReadable += remaining.toString() + "s"
+        
+        displayMessage(MessageType.SUCCESS, who, 10, "Temps écoulé : " + realTime.toInt().toString() + "s = " + humanReadable)
 
 // Initialization
 init

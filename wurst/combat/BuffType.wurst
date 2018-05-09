@@ -1,0 +1,133 @@
+package BuffType
+
+// Standard imports
+import Assets
+import HashMap
+
+// Custom imports
+import BuffObjEditing
+//import BuffType_CompileTime
+import DamageClass
+import Spells
+import WizardSpell
+
+/** Represents a type of buff */
+public class BuffType
+    /** Compile time generated ability/buff */
+    constant int buffId = 0
+    constant int abilityId = 0
+
+    /** Unique ID (ability ID or item type ID) for non-stackable buffs, otherwise 0 */
+    constant int id = 0
+
+    /** Name of the buff (informational) */
+    constant string name
+
+    construct(int id, string name)
+        this.id = id
+        this.name = name
+
+    construct(buffTuple buffTuple, int id, string name)
+        this.buffId = buffTuple.buffId
+        this.abilityId = buffTuple.abilId
+        this.id = id
+        this.name = name
+    
+    // General
+    real moveSpeed = 0.0
+    real life = 0.0
+    real mana = 0.0
+    real lifeRegen = 0.0
+    real manaRegen = 0.0
+
+    // Attacking
+    constant HashMap<DamageClass, real> damageMaps = new HashMap<DamageClass, real>()
+    real attackSpeed = 0.0
+    real range = 0.0
+    real accuracy = 0.0
+
+    // Defending
+    constant HashMap<DamageClass, real> resistanceMaps = new HashMap<DamageClass, real>()
+    real evasion = 0.0
+
+    // Graphics
+    real size = 0.0
+
+    // Operators
+    static function add(BuffType toWhat, BuffType addWhat)
+        //toWhat.abilityId = 0
+        //toWhat.buffId = 0
+        
+        toWhat.moveSpeed    += addWhat.moveSpeed  
+        toWhat.life         += addWhat.life       
+        toWhat.mana         += addWhat.mana       
+        toWhat.lifeRegen    += addWhat.lifeRegen  
+        toWhat.manaRegen    += addWhat.manaRegen  
+        toWhat.attackSpeed  += addWhat.attackSpeed
+        toWhat.range        += addWhat.range      
+        toWhat.accuracy     += addWhat.accuracy   
+        toWhat.evasion      += addWhat.evasion    
+        toWhat.size         += addWhat.size       
+
+        for DamageClass damageClass in DamageClass.LIST
+            // Damage maps
+            if addWhat.damageMaps.has(damageClass)
+                real newValue = addWhat.damageMaps.get(damageClass)
+                if toWhat.damageMaps.has(damageClass)
+                    newValue += toWhat.damageMaps.get(damageClass)
+                    toWhat.damageMaps.put(damageClass, newValue)
+
+            // Resistance maps
+            if addWhat.resistanceMaps.has(damageClass)
+                real newValue = addWhat.resistanceMaps.get(damageClass)
+                if toWhat.resistanceMaps.has(damageClass)
+                    newValue += toWhat.resistanceMaps.get(damageClass)
+                    toWhat.resistanceMaps.put(damageClass, newValue)
+
+    function toDetailedString(boolean showEmpty) returns string
+        string humanReadableOutput = ""
+
+        if showEmpty or 0.0 != this.moveSpeed
+            humanReadableOutput += " | Vitesse de déplacement : {0}".format(this.moveSpeed.toString())
+        if showEmpty or 0.0 != this.life       
+            humanReadableOutput += " | Vie : {0}".format(this.life.toString())
+        if showEmpty or 0.0 != this.mana       
+            humanReadableOutput += " | Mana : {0}".format(this.mana.toString())
+        if showEmpty or 0.0 != this.lifeRegen  
+            humanReadableOutput += " | Régénération vie : {0}".format(this.lifeRegen.toString())
+        if showEmpty or 0.0 != this.manaRegen  
+            humanReadableOutput += " | Régénération mana : {0}".format(this.manaRegen.toString())
+        if showEmpty or 0.0 != this.attackSpeed
+            humanReadableOutput += " | Vitesse d'attaque : {0}".format(this.attackSpeed.toString())
+        if showEmpty or 0.0 != this.range      
+            humanReadableOutput += " | Portee : {0}".format(this.range.toString())
+        if showEmpty or 0.0 != this.accuracy   
+            humanReadableOutput += " | Precision : {0}".format(this.accuracy.toString())
+        if showEmpty or 0.0 != this.evasion    
+            humanReadableOutput += " | Esquive : {0}".format(this.evasion.toString())
+        if showEmpty or 0.0 != this.size       
+            humanReadableOutput += " | Taille : {0}".format(this.size.toString())
+
+        for DamageClass damageClass in DamageClass.LIST
+            real damage = 0.0
+            if this.damageMaps.has(damageClass)
+                damage = this.damageMaps.get(damageClass)
+            if showEmpty or damage != 0.0
+                humanReadableOutput += " | Dommages {1} : {0}".format(damage.toString(), damageClass.getColoredName())
+            
+            real resistance = 0.0
+            if this.resistanceMaps.has(damageClass)
+                resistance = this.resistanceMaps.get(damageClass)
+            if showEmpty or resistance != 0.0
+                humanReadableOutput += " | Résistance {1} : {0}".format(resistance.toString(), damageClass.getColoredName())
+        
+        return humanReadableOutput
+
+    // TODO Accessors/Modifiers ?
+
+public constant buffTuple BUFF_TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff dynamique de test !", Textures.doodad_Cinematic, Abilities.invisibilityTarget, "origin"))
+public constant BuffType BUFF_TYPE_TEST = new BuffType(BUFF_TEST, 0, "TEST")
+
+public constant BuffType BUFF_TYPE_PEAU_ECORCE = new BuffType(0, "Peau d'écorce")
+public constant BuffType BUFF_TYPE_PEAU_PIERRE = new BuffType(WizardSpell.PEAU_PIERRE.abilityId, "Peau de pierre")
+

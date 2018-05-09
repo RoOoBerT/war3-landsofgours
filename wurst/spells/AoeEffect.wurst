@@ -8,7 +8,7 @@ import LinkedList
 // Custom imports
 import DilatableTime
 
-@configurable public constant real AOE_SPELLS_FREQUENCY = 0.1 //ANIMATION_PERIOD
+@configurable public constant real AOE_EFFECTS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
 
 /** AoE Impact Handler */
 public interface AoeImpactHandler
@@ -142,7 +142,7 @@ init
     Log.trace("Init AoE spells")
     
     // Periodically check current AoE
-    doPeriodically(AOE_SPELLS_FREQUENCY) cb -> 
+    doPeriodically(AOE_EFFECTS_UPDATE_PERIOD) cb -> 
         let iter = AoeEffect.LIST.iterator()
         while iter.hasNext()
             AoeEffect aoe = iter.next()

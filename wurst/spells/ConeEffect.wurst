@@ -9,7 +9,7 @@ import LinkedList
 // Custom imports
 import DilatableTime
 
-@configurable public constant real CONE_EFFECTS_UPDATE_FREQUENCY = ANIMATION_PERIOD
+@configurable public constant real CONE_EFFECTS_UPDATE_PERIOD = ANIMATION_PERIOD
 
 /** Interface used to dispatch events related to units interacting with cone effects */
 public interface ConeUnitHandler
@@ -284,7 +284,7 @@ init
     Log.trace("Init cone effects")
     
     // Periodically propagate current cone effects
-    doPeriodically(CONE_EFFECTS_UPDATE_FREQUENCY) cb -> 
+    doPeriodically(CONE_EFFECTS_UPDATE_PERIOD) cb -> 
         let iter = ConeEffect.LIST.iterator()
         while iter.hasNext()
             ConeEffect cone = iter.next()

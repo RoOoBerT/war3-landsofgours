@@ -1,0 +1,111 @@
+package DotEffect
+
+// Standard imports
+import ClosureTimers
+import ClosureForGroups
+import LinkedList
+
+// Custom imports
+import DamageClass
+import DilatableTime
+
+@configurable public constant real DOT_EFFECTS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
+
+/** FIXME DoT effect handler */
+public interface DotEffectHandler
+    function onEffect(DotEffect which, unit who)
+
+public class GenericDotEffectHandler implements DotEffectHandler
+    constant string effectPath
+    constant DamageClass damageClass
+    constant real damage
+
+    construct(string effectPath, DamageClass damageClass, real damage)
+        this.effectPath = effectPath
+        this.damageClass = damageClass
+        this.damage = damage
+
+    // FIXME add caster + target
+    function onEffect(DotEffect which, unit who)
+
+
+/** Data related to a damage over time (DoT) effect */
+public class DotEffect
+    // DoT properties
+    /** The target affected by the DoT */
+    private constant unit target
+
+    /** The time at which the effect will stop */
+    private constant real endTime
+
+    /** The initial unit that casted the spell */
+    private constant unit emitter
+
+    /** Period at which DoT emits actions */
+    private constant real period
+
+    // Action
+    /** DoT effect handler */
+    private constant DotEffectHandler effectHandler
+
+    /** Time at which the last effect occured */
+    private real lastEffectTime
+
+    // Dynamic data
+    /** To put to true to stop the effect */
+    private boolean stop = false
+
+    /** Directory of all active AoEs */
+    static constant LinkedList<DotEffect> LIST = new LinkedList<DotEffect>
+
+    construct(unit target, real endTime, unit emitter, real period, DotEffectHandler effectHandler)
+        this.target = target
+        this.endTime = endTime
+        this.emitter = emitter
+        this.period = max(period, DOT_EFFECTS_UPDATE_PERIOD)
+        this.effectHandler = effectHandler
+
+    // Accessors
+    function getEndTime() returns real
+        return this.endTime
+
+    /** The initial unit that generated the DoT effect */
+    function getEmitter() returns unit
+        return this.emitter
+
+    /** Terminates the effect */
+    function stop()
+        this.stop = true
+
+    // Functions
+    /** Start handling the effects of this DoT */
+    function start()
+        this.lastEffectTime = TimeDilatation.getModifiedTime(this.target.getPos3Real())
+        LIST.add(this)
+
+    /** Handles DoT effect. Returns true if it is finished and should be deleted */
+    function update() returns boolean
+        // Is it still effective ?
+        if this.stop
+            return true
+        real time = TimeDilatation.getModifiedTime(this.target.getPos3Real())
+        if time >= this.endTime
+            // Finished
+            return true
+
+        // TODO DoTEffect
+
+        return false
+
+init
+    Log.trace("Init DoT effects")
+    
+    // Periodically update current DoTs
+    doPeriodically(DOT_EFFECTS_UPDATE_PERIOD) cb -> 
+        let iter = DotEffect.LIST.iterator()
+        while iter.hasNext()
+            DotEffect dot = iter.next()
+            if dot.update()
+                // Finished !
+                destroy dot
+                iter.remove()

@@ -106,7 +106,6 @@ init
     // When a unit dies -> Cleanup hashtable data
     CreateTrigger()
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_DEATH)
-        ..addCondition(Condition(function isNotDummyCaster))
         ..addAction() ->
             unit u = GetTriggerUnit()
             let uatt = MyTextTag.UNITS_TAGS.get(u)

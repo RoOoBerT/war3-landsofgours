@@ -1,0 +1,10 @@
+package BuffType_CompileTime
+
+import public BuffObjEditing // buffTuple
+import Abilities
+import Icons
+import Units
+
+public constant buffTuple BUFF_TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff de test !", Icons.bTNFanOfKnives, Abilities.invisibilityTarget, "origin"))
+
+init

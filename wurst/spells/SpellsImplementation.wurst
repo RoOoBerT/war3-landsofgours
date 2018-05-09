@@ -10,11 +10,12 @@ import RegisterEvents
 
 // Custom imports
 import AoeEffect
-import Bows
-import SpellCasting
+import BuffType
 import ConeEffect
 import DilatableTime
+import SpellCasting
 import Spells
+import UnitsBuffs
 import WizardSpell
 
 init
@@ -253,6 +254,14 @@ init
             ..start()
 
     // PEAU_PIERRE
+    registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
+        unit target = GetSpellTargetUnit()
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 30 + level * 2.5
+        
+        // FIXME AllUnitsBuffs.addBuff(target, BUFF_PEAU_PIERRE, duration)
+
     // PROJECTILE_MAGIQUE
     // RENVOI_SORTS
     // TOILES_ARAIGNEE
@@ -260,14 +269,14 @@ init
 
     // Rain of arrows
     registerSpellEffectEvent('A00V') ->
-        Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
+        /*Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
         
         unit caster = GetTriggerUnit()
         int abilityLevel = 1
         vec2 fromPoint = GetTriggerUnit().getPos()
         vec2 targetPoint = getSpellTargetPos()
         for int i = 1 to abilityLevel
-            // FIXME generateArrowFromUnit(caster, targetPoint, )
+            // FIXME generateArrowFromUnit(caster, targetPoint, )*/
         
 
     // Toiles d'araignee
@@ -283,4 +292,3 @@ init
         AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
         new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
             ..start()
-    
