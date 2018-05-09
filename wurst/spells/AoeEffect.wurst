@@ -44,33 +44,37 @@ public class GenericImpactHandler implements AoeImpactHandler
         doAfter(this.delay) ->
             // Impact happened
             if this.damage != 0.
-                forUnitsInRange(where, aoe.radius) u ->
-                    aoe.emitter.damageTarget(u, this.damage, this.attackType)
+                forUnitsInRange(where, aoe.getRadius()) u ->
+                    aoe.getEmitter().damageTarget(u, this.damage, this.attackType)
 
 /** Data related to a spell with an Area of Effect (AoE) */
 public class AoeEffect
     // AoE properties
     /** The time at which the effect will stop */
-    constant real endTime
+    private constant real endTime
 
     /** The initial unit that casted the spell */
-    constant unit emitter
+    private constant unit emitter
 
     /** Center of the AoE */
-    constant vec3 center
+    private constant vec3 center
 
     /** Radius of the AoE */
-    constant real radius
+    private constant real radius
 
     // Impact(s) properties
     /** Frequency at which effects appear inside the AoE */
-    constant real frequency
+    private constant real frequency
 
     /** Impact handler */
-    constant AoeImpactHandler impactHandler
+    private constant AoeImpactHandler impactHandler
 
     /** Time at which the last effect occured */
-    real lastEffectTime
+    private real lastEffectTime
+
+    // Dynamic data
+    /** To put to true to stop the effect */
+    private boolean stop = false
 
     /** Directory of all active AoEs */
     static constant LinkedList<AoeEffect> LIST = new LinkedList<AoeEffect>
@@ -83,6 +87,27 @@ public class AoeEffect
         this.frequency = max(frequency, 0.01)
         this.impactHandler = impactHandler
 
+    // Accessors
+    function getEndTime() returns real
+        return this.endTime
+
+    /** The initial unit that casted the spell */
+    function getEmitter() returns unit
+        return this.emitter
+
+    /** Center of the AoE */
+    function getCenter() returns vec3
+        return this.center
+
+    /** Radius of the AoE */
+    function getRadius() returns real
+        return this.radius
+
+    /** Terminates the effect */
+    function stop()
+        this.stop = true
+
+    // Functions
     /** Start handling the effects of this AoE */
     function start()
         this.lastEffectTime = TimeDilatation.getModifiedTime(this.center)
@@ -91,6 +116,8 @@ public class AoeEffect
     /** Handles AoE effect propagation. Returns true if it is finished and should be deleted */
     function propagate() returns boolean
         // Is it still effective ?
+        if this.stop
+            return true
         real time = TimeDilatation.getModifiedTime(this.center)
         if time >= this.endTime
             // Finished

@@ -21,7 +21,10 @@ public constant player PLAYER_GOURS_HOSTILE = players[23]
 /** Stores important metadata about one player */
 public class PlayerData
     /** The corresponding player */
-    constant player play
+    private constant player play
+
+    /** The initial player's name */
+    private constant string name
 
     /** The player's main character */
     private unit character
@@ -34,10 +37,14 @@ public class PlayerData
 
     construct(player play)
         this.play = play
+        this.name = play.getName()
 
     // Accessors
     function getPlayer() returns player
         return this.play
+    
+    function getName() returns string
+        return this.name
 
     function getIndex() returns int
         return this.play.getId()

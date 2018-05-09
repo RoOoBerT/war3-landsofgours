@@ -24,7 +24,8 @@ class Hint
     
     private function replaceDynamicMarkers(string source) returns string
         int index = GetRandomInt(0, PlayerData.ACTIVE_PLAYERS.size() - 1)
-        string replaced = source.replace("{random player}", PlayerData.ACTIVE_PLAYERS.get(index).getName())
+        player p = PlayerData.ACTIVE_PLAYERS.get(index)
+        string replaced = source.replace("{random player}", PlayerData.get(p).getName())
         return replaced
 
     function display()

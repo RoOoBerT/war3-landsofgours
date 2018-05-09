@@ -38,46 +38,49 @@ public class ConicWaveGraphics
 public class ConeEffect
     // Generic properties
     /** The currentTime at which the effect started */
-    real beginTime
+    private real beginTime
 
     /** The currentTime at which the effect will stop */
-    real endTime
+    private real endTime
 
     /** The initial unit that casted the spell */
-    constant unit emitter
+    private constant unit emitter
 
     /** Orientation of the cone */
-    angle ang = 0.0.asAngleRadians()
+    private angle ang = 0.0.asAngleRadians()
 
     /** Origin of the cone */
-    vec3 origin
+    private vec3 origin
 
     // Propagation properties
     /** An optional unit that the effect should follow, or null */
-    unit followUnit = null
+    private unit followUnit = null
 
     /** Speed of propagation : Head = <x> + <y> * currentTime */
-    vec2 headPropagationSpeed = vec2(0, 0)
+    private vec2 headPropagationSpeed = vec2(0, 0)
 
     /** Speed of propagation : Queue = <x> + <y> * currentTime */
-    vec2 queuePropagationSpeed = vec2(0, 0)
+    private vec2 queuePropagationSpeed = vec2(0, 0)
 
     /** Angle of spread of the effect */
-    angle spreadAngle = 0.0.asAngleRadians()
+    private angle spreadAngle = 0.0.asAngleRadians()
 
     /** Maximum range of the effect, or 0 if none */
-    real maxRange = 0
+    private real maxRange = 0
+
+    /** To put to true to stop the effect */
+    private boolean stop = false
 
     // Graphics
-    ConicWaveGraphics queue
-    ConicWaveGraphics head
+    private ConicWaveGraphics queue
+    private ConicWaveGraphics head
 
     // Handlers
-    ConeUnitHandler unitEnteringHandler
-    ConeUnitHandler unitLeavingHandler
-    real unitsChecksFrequency = 0
-    real unitsLastCheckTime = this.beginTime
-    group unitsInCone = CreateGroup()
+    private ConeUnitHandler unitEnteringHandler
+    private ConeUnitHandler unitLeavingHandler
+    private real unitsChecksFrequency = 0
+    private real unitsLastCheckTime = this.beginTime
+    private group unitsInCone = CreateGroup()
     
     // Cone effects directory
     /** Directory of all active cone effects */
@@ -193,9 +196,15 @@ public class ConeEffect
                 return true
         return false
 
+    /** Terminates the effect */
+    function stop()
+        this.stop = true
+
     /** Handles cone effect propagation. Returns true if the cone disappered and should be deleted */
     function propagate() returns boolean
-        // Is it finished ?
+        // Is it still effective ?
+        if this.stop
+            return true
         let currentTime = TimeDilatation.getModifiedTime(this.origin)
         if currentTime >= this.endTime
             // Notify units leaving the area

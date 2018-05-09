@@ -11,6 +11,7 @@ import RegisterEvents
 // Custom imports
 import AoeEffect
 import Bows
+import CastAnimations
 import ConeEffect
 import DilatableTime
 import Spells
@@ -61,7 +62,7 @@ init
         
         ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.1, 64)
         ConicWaveGraphics head = new ConicWaveGraphics(Abilities.frostWyrmMissile, 0.25, 64)
-        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+        let cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
                 ..setSpreadAngle(45.0.asAngleDegrees())
@@ -70,6 +71,8 @@ init
                 ..setQueue(queue)
                 ..setHead(head)
                 ..start()
+        
+        CHANELING_CONES.put(emitter, cone)
 
     // DILATATION_TEMPORELLE
     registerSpellEffectEvent(WizardSpell.DILATATION_TEMPORELLE.abilityId) ->

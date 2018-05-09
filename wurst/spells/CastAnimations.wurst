@@ -5,7 +5,15 @@ import HashMap
 import StringUtils
 
 // Custom imports
+import AoeEffect
+import ConeEffect
 import Spells
+
+/** List of AoE that should stop if the caster stops channeling */
+public constant HashMap<unit, AoeEffect> CHANELING_AOES = new HashMap<unit, AoeEffect>()
+
+/** List of Cone effects that should stop if the caster stops channeling */
+public constant HashMap<unit, ConeEffect> CHANELING_CONES = new HashMap<unit, ConeEffect>()
 
 /** A texttag container */
 class MyTextTag
@@ -27,6 +35,7 @@ class MyTextTag
             UNITS_TAGS.put(u, tt)
         return tt
 
+/** Returns true if the triggering unit is not a dummy caster */
 function isNotDummyCaster() returns boolean
     return GetTriggerUnit().getTypeId() != DUMMY_TYPE_ID
 
@@ -51,7 +60,7 @@ init
             tt.ttag = createCenteredTexttag(u.getPos3Fly(), abilityName, 10.0)
                 ..setColor(colorA(0, 0, 255, 255))
 
-    // When a unit cancels a spell casting
+    // When a unit finishes or cancels a spell casting
     CreateTrigger()
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_ENDCAST)
         ..addCondition(Condition(function isNotDummyCaster))
@@ -66,6 +75,16 @@ init
                     ..setLifespan(1.5)
                     ..setFadepoint(0.1)
                     ..setAge(0.0)
+            
+            // Are there effect(s) to stop ?
+            AoeEffect aoe = CHANELING_AOES.get(u)
+            if aoe != null
+                aoe.stop()
+                CHANELING_AOES.remove(u)
+            ConeEffect cone = CHANELING_CONES.get(u)
+            if cone != null
+                cone.stop()
+                CHANELING_CONES.remove(u)
 
     // When a unit finishes a spell casting
     CreateTrigger()
