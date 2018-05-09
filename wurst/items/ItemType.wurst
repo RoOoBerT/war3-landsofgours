@@ -32,7 +32,7 @@ public class ItemType
     static constant HashMap<int, ItemType> MAP = new HashMap<int, ItemType>
 
     // Functions
-    construct (int itemType, boolean unique)
+    private construct (int itemType, boolean unique)
         this.itemType = itemType
         this.unique = unique
 

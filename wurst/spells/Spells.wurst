@@ -28,7 +28,7 @@ public class Spell
     constant TargetType target
     constant string order
 
-    construct(int abilityId, int maxLevel, TargetType target, string order)
+    private construct(int abilityId, int maxLevel, TargetType target, string order)
         this.abilityId = abilityId
         this.maxLevel = maxLevel
         this.target = target

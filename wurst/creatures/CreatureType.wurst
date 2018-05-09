@@ -21,7 +21,7 @@ public class CreatureType
     /** Mapping of all creature types */
     private static constant HashMap<int, CreatureType> MAP = new HashMap<int, CreatureType>()
 
-    construct(int unitTypeId, CreatureRace creatureRace)
+    private construct(int unitTypeId, CreatureRace creatureRace)
         this.unitTypeId = unitTypeId
         this.creatureRace = creatureRace
 

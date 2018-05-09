@@ -12,12 +12,12 @@ public class ItemTypeFragment extends ItemType
     constant int howManyRequired
     
     // Functions
-    construct(int itemType, boolean unique, ItemType fragmentOfWhat)
+    private construct(int itemType, boolean unique, ItemType fragmentOfWhat)
         super(itemType, unique)
         this.fragmentOfWhat = fragmentOfWhat
         this.howManyRequired = 1
     
-    construct(int itemType, boolean unique, ItemType fragmentOfWhat, int howManyRequired)
+    private construct(int itemType, boolean unique, ItemType fragmentOfWhat, int howManyRequired)
         super(itemType, unique)
         this.fragmentOfWhat = fragmentOfWhat
         this.howManyRequired = howManyRequired

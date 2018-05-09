@@ -29,7 +29,7 @@ public class ItemTypeArrows extends ItemType
     //constant real explosionRate
 
     // Functions
-    construct(int itemType, string effectPath, real arc, boolean followUnit, real timeLimit)
+    private construct(int itemType, string effectPath, real arc, boolean followUnit, real timeLimit)
         super(itemType, false)
         this.effectPath = effectPath
         this.arc = arc

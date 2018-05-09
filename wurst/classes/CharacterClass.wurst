@@ -18,7 +18,7 @@ public class CharacterClass
     static constant LinkedList<CharacterClass> LIST = new LinkedList<CharacterClass>
     static constant HashMap<int, CharacterClass> MAP = new HashMap<int, CharacterClass>
 
-    construct(int unitTypeId, string name, colorA col, int abil)
+    private construct(int unitTypeId, string name, colorA col, int abil)
         this.unitTypeId = unitTypeId
         this.name = name
         this.col = col

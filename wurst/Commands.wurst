@@ -26,7 +26,7 @@ abstract class Command
     string syntax
     string description
 
-    construct(boolean cheat, string keyword, string syntax, string description)
+    private construct(boolean cheat, string keyword, string syntax, string description)
         this.cheat = cheat
         this.keyword = keyword.toLowerCase()
         this.syntax = syntax

@@ -14,7 +14,7 @@ public class ItemTypeBag extends ItemType
     private constant int numberOfSlots
 
     // Functions
-    construct(int itemType, boolean unique, int numberOfSlots)
+    private construct(int itemType, boolean unique, int numberOfSlots)
         super(itemType, unique)
         this.numberOfSlots = numberOfSlots
     

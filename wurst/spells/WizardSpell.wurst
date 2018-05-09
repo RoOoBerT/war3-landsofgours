@@ -35,7 +35,7 @@ public class SpellSchool
 public class WizardSpell extends Spell
     constant SpellSchool school
 
-    construct(int abilityId, int maxLevel, TargetType target, string order, SpellSchool school)
+    private construct(int abilityId, int maxLevel, TargetType target, string order, SpellSchool school)
         super(abilityId, maxLevel, target, order)
         this.school = school
     

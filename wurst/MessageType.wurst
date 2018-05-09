@@ -9,7 +9,7 @@ public class MessageType
     constant string name
     constant colorA col
 
-    construct(string name, colorA col)
+    private construct(string name, colorA col)
         this.name = name
         this.col = col
 

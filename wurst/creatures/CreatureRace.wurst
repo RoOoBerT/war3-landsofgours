@@ -20,7 +20,7 @@ public class CreatureRace
     /** List of all existing races */
     static constant LinkedList<CreatureRace> LIST = new LinkedList<CreatureRace>
 
-    construct(boolean playerAvailable)
+    private construct(boolean playerAvailable)
         this.index = LIST.size()
         LIST.addAt(this, index)
         this.playerAvailable = playerAvailable

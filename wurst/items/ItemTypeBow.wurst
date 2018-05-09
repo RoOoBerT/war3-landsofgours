@@ -13,7 +13,7 @@ public class ItemTypeBow extends ItemType
 
 
     // Functions
-    construct(int itemType, boolean unique, boolean requiresArrows)
+    private construct(int itemType, boolean unique, boolean requiresArrows)
         super(itemType, unique)
         this.requiresArrows = requiresArrows
     

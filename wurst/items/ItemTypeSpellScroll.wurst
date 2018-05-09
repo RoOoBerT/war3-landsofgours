@@ -14,7 +14,7 @@ import WizardSpell
 class ItemTypeSpellScroll extends ItemType
     constant Spell learnableSpell
 
-    construct(int itemId, Spell learnableSpell)
+    private construct(int itemId, Spell learnableSpell)
         super(itemId, false)
         this.learnableSpell = learnableSpell
 

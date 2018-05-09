@@ -7,7 +7,7 @@ public class Music
     private static Music CURRENT = null
     private constant string path
 
-    construct(string path)
+    private construct(string path)
         this.path = path
 
     function loopMusic()
