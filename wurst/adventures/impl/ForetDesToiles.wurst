@@ -57,7 +57,7 @@ public class ForetDesToiles extends Adventure
         this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_BOSS                    , groupBos)
 
     override function onStarted()
-        Music.MUSIC_NVN_CHARWOOD.loopMusic(true)
+        Music.MUSIC_NVNDE_CHARWOOD.loopMusic(true)
 
     override function onUnitAttacked(unit attacker, unit target)
         if target.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
