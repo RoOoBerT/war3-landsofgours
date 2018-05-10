@@ -1,5 +1,7 @@
 # Warcraft III map : Lands of Gours
 
+- Supported language(s) : French
+
 # Credits
 
 ## Special thanks to
