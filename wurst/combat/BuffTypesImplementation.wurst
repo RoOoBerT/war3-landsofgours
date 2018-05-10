@@ -29,6 +29,8 @@ import WizardSpell
 constant BD_TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff dynamique de test !", Textures.doodad_Cinematic, Abilities.invisibilityTarget, "origin"))
 public constant BuffType BUFF_TEST = new BuffType(BD_TEST, 0, "TEST")
 
+public constant BuffType BUFF_EMPTY = new BuffType(0, "Buff : Aucune propriété")
+
 constant BD_ARME_ENFLAMMEE = compiletime(createDummyBuffObject("Arme enflammée", "Les attaques physiques de cette créatures sont enchantées par du feu magique.", Icons.bTNArcaniteMelee, Abilities.bloodLustTarget, "hand,left"))
 public constant BuffType BUFF_ARME_ENFLAMMEE = new BuffType(BD_ARME_ENFLAMMEE, 0, "Arme enflammée")
         ..setDamage(DamageClass.DAMAGE_FEU, 5.0)

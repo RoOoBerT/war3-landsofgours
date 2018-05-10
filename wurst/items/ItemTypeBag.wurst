@@ -4,7 +4,7 @@ package ItemTypeBag
 import RegisterEvents
 
 // Custom imports
-import ItemType
+import public ItemType
 
 constant int ABILITY_INVENTORY = 'A00J'
 

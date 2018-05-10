@@ -5,9 +5,8 @@ import RegisterEvents
 
 // Custom imports
 import CharacterClass
-import ItemType
+import public ItemType
 import PlayerData
-import Spells
 import WizardSpell
 
 /** Maps a spell scroll item to a castable spell */

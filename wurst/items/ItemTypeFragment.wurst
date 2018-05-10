@@ -3,7 +3,7 @@ package ItemTypeFragment
 // Standard imports
 
 // Custom imports
-import ItemType
+import public ItemType
 
 /** Describes metadata of a fragment of ItemInstance */
 public class ItemTypeFragment extends ItemType

@@ -1,0 +1,230 @@
+package Projectiles
+
+// Standard imports
+import ClosureTimers
+import Fx
+import LinkedList
+
+// Custom imports
+import DilatableTime
+import public ImpactHandler
+
+/* 
+A projectile is fired from a gun that is mounted on a cliff above the sea. What is the range of the gun? At what angle should the gun be fired to hit a ship within its range?
+    z0 = posZ of the gun above the x-y plane.
+    v0 = muzzle velocity = initial velocity of the projectile.
+    alpha = the angle between the horizontal (the x-y plane) and the muzzle of the gun.
+    z(t) = the posZ of the projectile t seconds after being fired.
+    r(t) = the distance of the projectile from the gun after t seconds.
+    g = pull of gravity.
+
+    Then the parametric equations of motion of (r(t), z(t)) are:
+    r(t) = v0 * cos(alpha) * t
+    z(t) = -1/2 * g * t^2 + v0 * sin(alpha) * t + z0
+
+Source : http://www.egwald.ca/geometry/projectile3d.php
+*/
+
+/** Projectiles impact check frequency */
+@configurable public constant real PROJECTILES_UPDATE_PERIOD = ANIMATION_PERIOD
+
+@configurable public constant string EFFECT_PATH = "Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl"
+
+/** A projectile object which can be followed over time and emits a notification upon impact */
+public abstract class Projectile
+    protected constant Fx fx
+    protected constant unit emitter
+    
+    // Handlers
+    protected ImpactHandler impactHandler
+
+    // Projectiles directory
+    protected static constant LinkedList<Projectile> LIST = new LinkedList<Projectile>
+    
+    construct(unit emitter, string effectPath, vec3 origin)
+        this.fx = new Fx(origin.toVec2(), effectPath)
+        this.fx.setXYZ(origin, false)
+        this.emitter = emitter
+    
+    ondestroy
+        destroy this.fx
+    
+    // Modifiers
+    function setImpactHandler(ImpactHandler impactHandler)
+        this.impactHandler = impactHandler
+    
+    // Functions
+    /** Starts the trajectory and effects of the projectile */
+    function launch()
+        LIST.add(this)
+    
+    /** Update the projectile position and returns true if it exploded */
+    abstract function move() returns boolean
+
+/** A projectile with a "standard" (hyperbolic) trajectory */
+public class StandardProjectile extends Projectile
+    // Physics
+    protected constant vec3 origin
+    protected vec3 dest
+    protected real speed = 200
+    protected real arc = 0.5
+
+    // Internal physics data
+    private real launchTime
+    private angle groundAngle
+    private real totalDistance
+    private real arrivalTime
+    
+    // Height function (hyperbolic) coefficients
+    private real a
+    private real b
+
+    // Temporary
+    private real previousDistance
+    private real previousHeight
+
+    construct(unit emitter, string effectPath, vec3 origin)
+        super(emitter, effectPath, origin)
+        this.origin = origin
+    
+    ondestroy
+    
+    // Modifiers
+    function setDestination(vec3 dest)
+        this.dest = dest
+
+    function setSpeed(real speed)
+        this.speed = speed
+
+    function setArc(real arc)
+        this.arc = 1024 * max(0, min(1, arc))
+
+    // Functions
+    /** Starts the trajectory and effects of the projectile */
+    override function launch()
+        this.groundAngle = this.origin.toVec2().angleTo(dest.toVec2())
+        this.totalDistance = this.origin.toVec2().distanceTo(dest.toVec2())
+        this.arrivalTime = this.totalDistance / this.speed
+        this.launchTime = TimeDilatation.getModifiedTime(this.origin)
+
+        this.fx.setXYAngleInstant(this.groundAngle)
+
+        this.b = this.arc
+        this.a = (((this.origin.z - this.dest.z) / arrivalTime) - this.b) / arrivalTime
+
+        //
+        this.previousDistance = 0
+        this.previousHeight = this.origin.z
+        
+        /*this.a = this.arc
+        this.b = ((this.origin.z - this.dest.z) / arrivalTime) - (this.a * arrivalTime)*/
+
+        //Log.debug("Projectile : a=" + this.a.toString(1) + " b=" + this.b.toString(1))
+
+        super.launch()
+    
+    /** Update the projectile position and returns true if it exploded */
+    override function move() returns boolean
+        let timeElapsed = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real()) - this.launchTime
+        
+        // Check impact
+        //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
+        if timeElapsed >= this.arrivalTime
+            // BOOM !
+            if this.impactHandler != null
+                this.impactHandler.onImpact(this.dest)
+            return true
+
+        // Compute XY
+        let distance = this.speed * timeElapsed
+        vec2 posXY = this.origin.toVec2().polarOffset(this.groundAngle, distance)
+
+        // Compute Z
+        let posZ = this.a * timeElapsed * timeElapsed + this.b * timeElapsed + this.origin.z
+
+        // Compute Z angle
+        let zAngle = vec2(distance - this.previousDistance, posZ - this.previousHeight)
+
+        // Update location (DO NOT USE fx.setZ !)
+        vec3 posXYZ = posXY.withZ(posZ)
+        this.fx.setXYZ(posXYZ, false)
+        this.fx.setZAngle(zAngle.getAngle())
+
+        this.previousDistance = distance
+        this.previousHeight = posZ
+
+        // Not destroyed
+        return false
+
+/** A projectile following a specific unit */
+public class FollowingProjectile extends Projectile
+    // Physics
+    protected unit target = null
+    protected real speed = 200
+
+    // Temporary
+    private real previousMoveTime
+    private real previousHeight
+
+    construct(unit emitter, string effectPath, vec3 origin, unit target)
+        super(emitter, effectPath, origin)
+        this.target = target
+        this.previousHeight = origin.z
+    
+    ondestroy
+    
+    // Modifiers
+    function setTarget(unit target)
+        this.target = target
+
+    function setSpeed(real speed)
+        this.speed = speed
+
+    // Functions
+    /** Starts the trajectory and effects of the projectile */
+    override function launch()
+        this.previousMoveTime = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real())
+        super.launch()
+    
+    /** Update the projectile position and returns true if it exploded */
+    override function move() returns boolean
+        let currentTime = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real())
+        let intervalTime = currentTime - this.previousMoveTime
+
+        // Distance at this step
+        let targetPoint = this.target.getPos3Real()
+        let moveDistance = this.speed * intervalTime
+
+        // Check impact
+        let distance = this.fx.getPos3().distanceTo(targetPoint)
+        if distance <= 128
+            // BOOM !
+            if this.impactHandler != null
+                this.impactHandler.onImpact(this.target.getPos3Real())
+            return true
+        
+        let angleGround = this.fx.getPos2().angleTo(targetPoint.toVec2())
+        let angleAir = vec2(distance, targetPoint.z - this.previousHeight).getAngle()
+        let posXYZ = this.fx.getPos3().polarProject(moveDistance, angleGround, angleAir)
+        
+        // Update location (DO NOT USE fx.setZ !)
+        this.fx.setXYZ(posXYZ, false)
+        this.fx.setXYAngle(angleGround)
+        this.fx.setZAngle(angleAir)
+
+        this.previousHeight = posXYZ.z
+        this.previousMoveTime = currentTime
+
+        // Not destroyed
+        return false
+
+init
+    // Periodically handle projectiles movement and impacts
+    doPeriodically(PROJECTILES_UPDATE_PERIOD) cb ->
+        let iter = Projectile.LIST.iterator()
+        while iter.hasNext()
+            Projectile projectile = iter.next()
+            
+            if projectile.move()
+                destroy projectile
+                iter.remove()

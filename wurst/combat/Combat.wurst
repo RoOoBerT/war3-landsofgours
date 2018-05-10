@@ -2,16 +2,19 @@ package Combat
 
 // Standard imports
 import Assets
+import ClosureForGroups
 import DamageDetection
 import DamageType
 import RegisterEvents
 
 // Custom imports
-import Bows
 import CharacterClass
-import UnitsBuffs
-import PlayerData
+import ItemTypeArrows
+import ItemTypeBow
 import Musics
+import PlayerData
+import Projectiles
+import UnitsBuffs
 
 /** Dummy invisible ability used to detect units with ranged attack */
 constant int ABILITY_RANGED = 'A00Z'
@@ -20,7 +23,7 @@ constant int ABILITY_RANGED = 'A00Z'
 constant vec3 DAMAGE_TEXTTAG_OFFSET = vec3(-64, 64, 0)
 
 /** Inflicts real damage from a source unit to a target */
-function inflictRealDamage(unit damageSource, unit target, real amount, DamageClass damageClass)
+function inflictRealDamageUnfiltered(unit damageSource, unit target, real amount, DamageClass damageClass)
     if amount != 0
         dealCodeDamage(damageSource, target, amount)
 
@@ -33,32 +36,135 @@ function inflictRealDamage(unit damageSource, unit target, real amount, DamageCl
 
             createTTEx(target.getPos3Zero() + DAMAGE_TEXTTAG_OFFSET, vec2(0, TextTagSpeed2Velocity(64)), tTagText, 9.0, 1.5, damageClass.getColor().withAlpha(0))
 
-function computePhysicalAttackDamage(unit _attacker, unit _target) returns real
-    return 0
+/** Find the first usable bow of the unit (if any) */
+function findBow(unit whichUnit) returns itemTuple
+    ItemFilter bowFilter = (ItemType itemType, item itm) -> itemType instanceof ItemTypeBow
+    return ItemType.findFirstItem(whichUnit, bowFilter)
 
-/** Called when a unit physically attacks another unit */
-function onUnitPhysicalAttack(unit attacker, unit target)
+/** Find the first usable arrows of the unit (if any) */
+function findArrows(unit whichUnit, ItemTypeBow bowType, item _bow) returns itemTuple
+    // Does this bow automatically supply arrows ?
+    if bowType.getSelfSupplyArrows() != null
+        return itemTuple(null, bowType.getSelfSupplyArrows())
+
+    ItemFilter arrowsFilter = (ItemType itemType, item itm) -> itemType instanceof ItemTypeArrows
+    return ItemType.findFirstItem(whichUnit, arrowsFilter)
+
+/** Creates an attack from attacker to target unit using the specified arrows properties */
+public function generateArrowFromUnit(unit attacker, unit target, ItemTypeArrows arrows)
+    // Generate arrow effect
+    let sourcePoint = attacker.getPos3Real() + vec3(0, 0, 64)
+    let targetPoint = target.getPos3Real() + vec3(0, 0, 64)
+
+    // Impact handler
+    ImpactHandler arrowImpactHandler = (vec3 impactPoint) ->
+        // Impact effect
+        string impactEffectPath = arrows.getImpactEffectPath()
+        if impactEffectPath != null
+            flashEffect(impactEffectPath, impactPoint)
+
+        // Is there a custom impact handler to use ?
+        let customImpactHandler = arrows.getCustomImpactHandler()
+        if customImpactHandler == null
+            // Do the standard impact handling for arrows
+
+            // Is there a radius of effect ?
+            real impactRadius = arrows.getImpactRadius()
+            if impactRadius > 0
+                forUnitsInRange(impactPoint.toVec2(), impactRadius) u ->
+                    onUnitPhysicalAttack(attacker, AllUnitsBuffs.getTotalBuffs(attacker), target)
+        else
+            // Call the custom impact handler
+            customImpactHandler.onImpact(impactPoint)
+
+    if not arrows.isFollowUnit()
+        new StandardProjectile(attacker, arrows.getEffectPath(), sourcePoint)
+            ..setDestination(targetPoint)
+            ..setSpeed(600)
+            ..setArc(arrows.getArc())
+            ..setImpactHandler(arrowImpactHandler)
+            ..launch()
+    else
+        new FollowingProjectile(attacker, arrows.getEffectPath(), sourcePoint, target)
+            ..setImpactHandler(arrowImpactHandler)
+            ..setSpeed(600)
+            ..launch()
+
+/** Called when a unit attacks another unit with a bow */
+public function onUnitAttackWithBow(unit attacker, unit target)
+    //Log.trace("Unit is attacked by an archer : " + archer.getName())
+    player owner = GetOwningPlayer(attacker)
+
+    // Cancel this event's damage because real damage will be dealt later by the projectile(s)
+    //BlzSetEventDamage(0)
+
+    // Check if the attacker has a bow
+    itemTuple bow = findBow(attacker)
+    if bow.itemType != null
+        // Check if the attacker has ammo
+        itemTuple arrowsObj = findArrows(attacker, bow.itemType castTo ItemTypeBow, bow.itm)
+        if arrowsObj.itemType != null
+            // Does the arrow physically exist ?
+            if arrowsObj.itm != null
+                int charges = arrowsObj.itm.getCharges() - 1
+                if charges > 0
+                    // Consume one arrow
+                    arrowsObj.itm.setCharges(charges)
+                else
+                    // Empty arrows stack
+                    arrowsObj.itm.remove()
+            
+            // Create one attack
+            //Log.trace("Archer " + archer.getName() + " uses " + bow.itm.getName() + " with " + arrowsObj.itm.getName())
+            generateArrowFromUnit(attacker, target, arrowsObj.itemType castTo ItemTypeArrows)
+            
+            // Cancel attack
+            //attacker.interruptAttack()
+        else
+            attacker.issueImmediateOrder("stop")
+            if owner == localPlayer
+                displayMessage(MessageType.ERROR, owner, 3.0, "Vous avec besoin de flèches pour utiliser " + bow.itm.getName() + " !")
+                PlaySound(Sounds.error)
+    else
+        attacker.issueImmediateOrder("stop")
+        if owner == localPlayer
+            displayMessage(MessageType.ERROR, owner, 3, "Vous devez équiper un arc pour attaquer !")
+            PlaySound(Sounds.error)
+
+/** When a unit emits a "game" instant attack (delayed).
+The specified modifiers of the attacker should be used. */
+public function onUnitInstantPhysicalAttack(unit attacker, unit target)
+    BuffType attackerModifiers = AllUnitsBuffs.getTotalBuffs(attacker)
+    onUnitPhysicalAttack(attacker, attackerModifiers, target)
+
+/** When a unit emits a "game" instant attack (melee).
+The instant modifiers (buffs) of the attacker should be used. */
+public function onUnitPhysicalAttack(unit attacker, BuffType attackerModifiers, unit target)
+    // Check the stats of the attacker and the defender
+    BuffType targetModifiers = AllUnitsBuffs.getTotalBuffs(target)
+
+    for DamageClass damageClass in DamageClass.LIST
+        real damageOfType = attackerModifiers.getDamage(damageClass)
+        if damageOfType != 0
+            real resistanceOfType = targetModifiers.getResistance(damageClass)
+            damageOfType *= (1 - resistanceOfType)
+
+        if damageOfType != 0
+            inflictRealDamageUnfiltered(attacker, target, damageOfType, damageClass)
+
+/** Called when a unit physically attacks another unit (in Warcraft's sense).
+This is equivalent to a "game attack" for melee units. For ranged units it 
+is just the moment when a projectile is thrown. */
+function onUnitRealWarcraftAttackEvent(unit attacker, unit target)
+    BlzSetEventDamage(0)
+
     // Check what kind of attack this is
     if attacker.getAbilityLevel(CharacterClass.ARCHER.abil) > 0
         // This is a ranged attack with defined ammo and weapon
         onUnitAttackWithBow(attacker, target)
     else
         // This is a standard attack : melee or ranged (but no "custom" projectile and ammo management)
-        //let damage = GetEventDamage()
-        BlzSetEventDamage(0)
-
-        // Check the modifiers of the attacker
-        BuffType attackerModifiers = AllUnitsBuffs.getTotalBuffs(attacker)
-        BuffType targetModifiers = AllUnitsBuffs.getTotalBuffs(target)
-
-        for DamageClass damageClass in DamageClass.LIST
-            real damageOfType = attackerModifiers.getDamage(damageClass)
-            if damageOfType != 0
-                real resistanceOfType = targetModifiers.getResistance(damageClass)
-                damageOfType *= (1 - resistanceOfType)
-
-            if damageOfType != 0
-                inflictRealDamage(attacker, target, damageOfType, damageClass)
+        onUnitInstantPhysicalAttack(attacker, target)
 
 /** Called when a player's main character has died */
 function onPlayerCharacterDies(PlayerData pd, unit characterDead)
@@ -81,7 +187,7 @@ init
         if getDamageType() == DamageType.ATTACK
             unit attacker = GetEventDamageSource()
             unit target = GetTriggerUnit()
-            onUnitPhysicalAttack(attacker, target)
+            onUnitRealWarcraftAttackEvent(attacker, target)
 
     addOnDamageFunc(action)
 

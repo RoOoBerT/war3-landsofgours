@@ -1,0 +1,5 @@
+package ImpactHandler
+
+/** Interface for receiving impact events (from projectiles or spells) */
+public interface ImpactHandler
+    function onImpact(vec3 impactPoint)

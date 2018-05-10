@@ -1,19 +1,30 @@
 package ItemTypeArrows
 
 // Standard imports
+import Assets
 
 // Custom imports
-import ItemType
+import ImpactHandlers
+import public ItemType
+import Projectiles
+
 
 /** Describes metadata of an arrow ItemInstance (ammo) */
 public class ItemTypeArrows extends ItemType
     // Graphical information
-    private constant string effectPath
+    private constant string projectileEffectPath
     private constant real arc = 0.5
 
+    private string impactEffectPath = null
+
     // Arrows properties
-    private constant boolean followUnit = false
-    private constant real timeLimit = 0.0
+    private boolean followUnit = false
+    private real timeLimit = 0.0
+
+    /** Radius in which units are hit, or <= 0.0 if no units are affected */
+    private real impactRadius = 32.0
+
+    private ImpactHandler customImpactHandler = null
 
     ///** Does the arrow pierce the ennemies */
     // TODO constant int pierceAmount = 0
@@ -29,30 +40,65 @@ public class ItemTypeArrows extends ItemType
     //constant real explosionRate
 
     // Functions
-    private construct(int itemType, string effectPath, real arc, boolean followUnit, real timeLimit)
+    private construct(int itemType, string effectPath, real arc)
         super(itemType, false)
-        this.effectPath = effectPath
+        this.projectileEffectPath = effectPath
         this.arc = arc
-        this.followUnit = followUnit
-        this.timeLimit = timeLimit
-    
+
     construct(int itemType, string effectPath)
         super(itemType, false)
-        this.effectPath = effectPath
+        this.projectileEffectPath = effectPath
     
+    // Accessors
     function getEffectPath() returns string
-        return this.effectPath
+        return this.projectileEffectPath
 
     function getArc() returns real
         return this.arc
-
+    
     function isFollowUnit() returns boolean
         return this.followUnit
 
     function getTimeLimit() returns real
         return this.timeLimit
-    
-    static constant ItemTypeArrows FLECHES_PRIMITIVES = new ItemTypeArrows('I00N', "Abilities\\Weapons\\Arrow\\ArrowMissile.mdl")
-    static constant ItemTypeArrows FLECHES_DE_BRONZE = new ItemTypeArrows('I00R', "Abilities\\Weapons\\GuardTowerMissile\\GuardTowerMissile.mdl")
-    static constant ItemTypeArrows FLECHES_DE_GIVRE = new ItemTypeArrows('I00S', "Abilities\\Weapons\\ColdArrow\\ColdArrowMissile.mdl")
-    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', "Abilities\\Spells\\Other\\TinkerRocket\\TinkerRocketMissile.mdl", 0.5, true, 15.0)
+
+    function getImpactEffectPath() returns string
+        return this.impactEffectPath
+
+    function getImpactRadius() returns real
+        return this.impactRadius
+
+    function getCustomImpactHandler() returns ImpactHandler
+        return this.customImpactHandler
+
+    // Modifiers
+    function setFollowUnit(boolean followUnit)
+        this.followUnit = followUnit
+
+    function setTimeLimit(real timeLimit)
+        this.timeLimit = timeLimit
+
+    function setImpactEffectPath(string impactEffectPath)
+        this.impactEffectPath = impactEffectPath
+
+    function setImpactRadius(real impactRadius)
+        this.impactRadius = impactRadius
+
+    function setCustomImpactHandler(ImpactHandler customImpactHandler) 
+        this.customImpactHandler = customImpactHandler
+
+    // Arrow types directory
+    static constant ItemTypeArrows FLECHES_BRONZE = new ItemTypeArrows('I00R', Abilities.guardTowerMissile)
+    static constant ItemTypeArrows FLECHES_GIVRE = new ItemTypeArrows('I00S', Abilities.coldArrowMissile)
+    static constant ItemTypeArrows FLECHES_PRIMITIVES = new ItemTypeArrows('I00N', Abilities.arrowMissile1)
+
+    static constant ItemTypeArrows FLECHES_SOLAIRES = new ItemTypeArrows('I011', Abilities.lordofFlameMissile)
+        ..setImpactEffectPath(Abilities.steamTankImpact)
+        ..setCustomImpactHandler(SPELL_IMPACT_HANDLER_FEU_SOLAIRE)
+
+    static constant ItemTypeArrows FLECHES_SPIRITUELLES = new ItemTypeArrows('I00Z', Abilities.shadowStrikeMissile)
+        ..setImpactEffectPath(Abilities.dispelMagicTarget)
+
+    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', Abilities.tinkerRocketMissile, 0.5)
+        ..setFollowUnit(true)
+        ..setTimeLimit(15.0)

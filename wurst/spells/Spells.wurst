@@ -56,6 +56,7 @@ public class Spell
     
     constant static DummySpell TOILE_ARAIGNEE = new DummySpell('A015', 20, TargetType.LOCATION, "dreadlordinferno")
 
+    //FIXME Param1 should be unit (caster), not owner ?!
     /** Create a dummy unit and order it to launch this spell */
     function cast(player owner, vec2 fromPoint, int level) returns boolean
         unit dummyUnitCaster = CreateUnit(owner, DUMMY_TYPE_ID, fromPoint.x, fromPoint.y, 0)

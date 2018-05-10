@@ -16,8 +16,8 @@ function onPickupStackableItem(unit who, item which)
     // Find an item of the same type
     ItemFilter filter = (_, itm) ->
         return itm != which and itm.getTypeId() == which.getTypeId()
-    ItemInstance found = ItemType.findFirstItem(who, filter)
-    if found != null and found.itm != null
+    itemTuple found = ItemType.findFirstItem(who, filter)
+    if found.itm != null and found.itm != null
         // Found ! Cumulate the two item stacks
         found.itm.setCharges(found.itm.getCharges() + charges)
         which.remove()

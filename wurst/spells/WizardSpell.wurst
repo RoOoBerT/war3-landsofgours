@@ -4,7 +4,7 @@ package WizardSpell
 
 // Custom imports
 import Dummys
-import Spells
+import public Spells
 
 /** Describes a school of magic */
 public class SpellSchool
@@ -52,7 +52,7 @@ public class WizardSpell extends Spell
     constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.EVOCATION)
     constant static WizardSpell CONE_FROID                          = new WizardSpell('A00W', 20, TargetType.LOCATION, "carrionswarm", SpellSchool.EVOCATION)
     constant static WizardSpell DILATATION_TEMPORELLE               = new WizardSpell('A01F', 20, TargetType.LOCATION, "", SpellSchool.TRANSMUTATION)
-    constant static WizardSpell FEU_SOLAIRE                         = new WizardSpell('A00Y', 20, TargetType.NONE    , "", SpellSchool.EVOCATION)
+    constant static WizardSpell FEU_SOLAIRE                         = new WizardSpell('A00Y', 20, TargetType.NONE    , "corporealform", SpellSchool.EVOCATION)
     constant static WizardSpell FLETRISSURE_ABOMINABLE_ABI_DALZIM   = new WizardSpell('A00D', 20, TargetType.LOCATION, "", SpellSchool.NECROMANCIE)
     constant static WizardSpell HATE                                = new WizardSpell('A00O', 20, TargetType.NONE    , "bearform", SpellSchool.TRANSMUTATION)
     constant static WizardSpell INCINERATEUR_AGANAZZAR              = new WizardSpell('A00T', 20, TargetType.LOCATION, "", SpellSchool.EVOCATION)

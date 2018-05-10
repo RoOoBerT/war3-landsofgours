@@ -6,14 +6,8 @@ import LinkedList
 
 // Custom imports
 
-/** An instance of an ItemType with metadata */
-public class ItemInstance
-    constant item itm
-    constant ItemType itemType
-
-    construct (item itm, ItemType itemType)
-        this.itm = itm
-        this.itemType = itemType
+/** An instance of item with associated ItemType metadata */
+public tuple itemTuple(item itm, ItemType itemType)
 
 public interface ItemFilter
     function test(ItemType itemType, item itm) returns boolean
@@ -63,15 +57,15 @@ public class ItemType
         return obj
     
     /** Find the first item matching a criterion in the inventory of a unit */
-    static function findFirstItem(unit whichUnit, ItemFilter filter) returns ItemInstance
+    static function findFirstItem(unit whichUnit, ItemFilter filter) returns itemTuple
         for itemSlot = 0 to 5
             item itemInSlot = UnitItemInSlot(whichUnit, itemSlot)
             if itemInSlot != null
                 ItemType itemType = ItemType.getObject(itemInSlot)
                 if itemType != null and (filter == null or filter.test(itemType, itemInSlot))
-                    return new ItemInstance(itemInSlot, itemType)
+                    return itemTuple(itemInSlot, itemType)
         
-        return null
+        return itemTuple(null, null)
         
     static constant ItemType ANNEAU_ELFIQUE_EN_OR = new ItemType('I000', true)
 

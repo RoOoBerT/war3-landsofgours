@@ -1,0 +1,57 @@
+package ImpactHandlers
+
+// Standard imports
+import ClosureForGroups
+
+// Custom imports
+import ImpactHandler
+import WizardSpell
+
+/** An impact handler that will launch a spell on impact */
+public class LaunchSpellImpactHandler implements ImpactHandler
+    private constant Spell spell
+    private constant int level
+    private constant unit caster
+    private constant real radius = 0.0
+
+    construct (Spell spell, int level, unit caster)
+        this.spell = spell
+        this.level = level
+        this.caster = caster
+    
+    construct (Spell spell, int level, unit caster, real radius)
+        this.spell = spell
+        this.level = level
+        this.caster = caster
+        this.radius = radius
+
+    function onImpact(vec3 impactPoint)
+        player owner = players[PLAYER_NEUTRAL_PASSIVE]
+        if this.caster != null
+            owner = this.caster.getOwner()
+
+        // Is there a radius of effect ?
+        if this.radius == 0.0
+            // No radius of effect, just throw the spell at this point
+            switch spell.target
+                case TargetType.NONE
+                    spell.cast(owner, impactPoint.toVec2(), this.level)
+                case TargetType.UNIT
+                    // Invalid, should not happen
+                    Log.error("Spell {0} cannot be launched on impact with radius of {1} because it requires a unit as target !"
+                        .format(spell.getName(), this.radius.toString(0)))
+                default
+                    spell.castPoint(owner, impactPoint.toVec2(), impactPoint.toVec2(), this.level)
+        else
+            // Launch the spell on all units in the target area of radius
+            forUnitsInRange(impactPoint.toVec2(), this.radius) u ->
+                switch spell.target
+                    case TargetType.NONE
+                        spell.cast(owner, u.getPos(), this.level)
+                    case TargetType.UNIT
+                        spell.castUnit(owner, impactPoint.toVec2(), u, level)
+                    default
+                        spell.castPoint(owner, impactPoint.toVec2(),  u.getPos(), this.level)
+
+// Custom impact handlers directory
+public constant LaunchSpellImpactHandler SPELL_IMPACT_HANDLER_FEU_SOLAIRE = new LaunchSpellImpactHandler(WizardSpell.FEU_SOLAIRE, 1, null)
