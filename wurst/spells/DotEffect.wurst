@@ -98,8 +98,6 @@ public class DotEffect
         return false
 
 init
-    Log.trace("Init DoT effects")
-    
     // Periodically update current DoTs
     doPeriodically(DOT_EFFECTS_UPDATE_PERIOD) cb -> 
         let iter = DotEffect.LIST.iterator()

@@ -1,15 +1,11 @@
 package BuffType
 
 // Standard imports
-import Assets
 import HashMap
 
 // Custom imports
 import BuffObjEditing
-//import BuffType_CompileTime
-import DamageClass
-import Spells
-import WizardSpell
+import public DamageClass
 
 /** Represents a type of buff */
 public class BuffType
@@ -23,6 +19,11 @@ public class BuffType
     /** Name of the buff (informational) */
     constant string name
 
+    // Effect properties
+    constant string effectPath = ""
+    constant string effectAttachPoint = "origin"
+    constant real effectPeriod = 0.0
+
     construct(int id, string name)
         this.id = id
         this.name = name
@@ -33,6 +34,30 @@ public class BuffType
         this.id = id
         this.name = name
     
+    construct(buffTuple buffTuple, int id, string name, string effectPath)
+        this.buffId = buffTuple.buffId
+        this.abilityId = buffTuple.abilId
+        this.id = id
+        this.name = name
+        this.effectPath = effectPath
+
+    construct(buffTuple buffTuple, int id, string name, string effectPath, string effectAttachPoint)
+        this.buffId = buffTuple.buffId
+        this.abilityId = buffTuple.abilId
+        this.id = id
+        this.name = name
+        this.effectPath = effectPath
+        this.effectAttachPoint = effectAttachPoint
+
+    construct(buffTuple buffTuple, int id, string name, string effectPath, string effectAttachPoint, real effectPeriod)
+        this.buffId = buffTuple.buffId
+        this.abilityId = buffTuple.abilId
+        this.id = id
+        this.name = name
+        this.effectPath = effectPath
+        this.effectAttachPoint = effectAttachPoint
+        this.effectPeriod = effectPeriod
+        
     // General
     real moveSpeed = 0.0
     real life = 0.0
@@ -53,36 +78,91 @@ public class BuffType
     // Graphics
     real size = 0.0
 
+    // Accessors/Modifiers
+    function setMoveSpeed(real moveSpeed)
+        this.moveSpeed = moveSpeed
+    
+    function setLife(real life)
+        this.life = life
+    
+    function setMana(real mana)
+        this.mana = mana
+
+    function setLifeRegen(real lifeRegen)
+        this.lifeRegen = lifeRegen
+
+    function setManaRegen(real manaRegen)
+        this.manaRegen = manaRegen
+
+    // Attacking
+    function setDamage(DamageFamily damageFamily, real damage)
+        for DamageClass damageClass in damageFamily.list
+            this.damageMaps.put(damageClass, damage)
+
+    function setDamage(DamageClass damageClass, real damage)
+        this.damageMaps.put(damageClass, damage)
+    
+    function setAttackSpeed(real attackSpeed)
+        this.attackSpeed = attackSpeed
+    
+    function setRange(real range)
+        this.range = range
+
+    function setAccuracy(real accuracy)
+        this.accuracy = accuracy
+
+    // Defending
+    function setResistance(DamageClass damageClass, real resistance)
+        this.resistanceMaps.put(damageClass, resistance)
+
+    function setResistance(DamageFamily damageFamily, real resistance)
+        for DamageClass damageClass in damageFamily.list
+            this.resistanceMaps.put(damageClass, resistance)
+
+    function setEvasion(real evasion)
+        this.evasion = evasion
+
+    // Graphics
+    function setSize(real size)
+        this.size = size
+
     // Operators
-    static function add(BuffType toWhat, BuffType addWhat)
-        //toWhat.abilityId = 0
-        //toWhat.buffId = 0
-        
-        toWhat.moveSpeed    += addWhat.moveSpeed  
-        toWhat.life         += addWhat.life       
-        toWhat.mana         += addWhat.mana       
-        toWhat.lifeRegen    += addWhat.lifeRegen  
-        toWhat.manaRegen    += addWhat.manaRegen  
-        toWhat.attackSpeed  += addWhat.attackSpeed
-        toWhat.range        += addWhat.range      
-        toWhat.accuracy     += addWhat.accuracy   
-        toWhat.evasion      += addWhat.evasion    
-        toWhat.size         += addWhat.size       
+    /** Decrements the stats of this buff by the stats of the provided buff */
+    function subtract(BuffType subWhat)
+        add(subWhat, -1)
+
+    /** Increments the stats of this buff with the stats of the provided buff */
+    function add(BuffType addWhat)
+        add(addWhat, 1)
+
+    function add(BuffType addWhat, int multiplier)
+        this.moveSpeed    += (addWhat.moveSpeed   * multiplier)
+        this.life         += (addWhat.life        * multiplier)
+        this.mana         += (addWhat.mana        * multiplier)
+        this.lifeRegen    += (addWhat.lifeRegen   * multiplier)
+        this.manaRegen    += (addWhat.manaRegen   * multiplier)
+        this.attackSpeed  += (addWhat.attackSpeed * multiplier)
+        this.range        += (addWhat.range       * multiplier)
+        this.accuracy     += (addWhat.accuracy    * multiplier)
+        this.evasion      += (addWhat.evasion     * multiplier)
+        this.size         += (addWhat.size        * multiplier)
 
         for DamageClass damageClass in DamageClass.LIST
             // Damage maps
             if addWhat.damageMaps.has(damageClass)
-                real newValue = addWhat.damageMaps.get(damageClass)
-                if toWhat.damageMaps.has(damageClass)
-                    newValue += toWhat.damageMaps.get(damageClass)
-                    toWhat.damageMaps.put(damageClass, newValue)
+                real amount = multiplier * addWhat.damageMaps.get(damageClass)
+                mapAdd(this.damageMaps, damageClass, amount)
 
             // Resistance maps
             if addWhat.resistanceMaps.has(damageClass)
-                real newValue = addWhat.resistanceMaps.get(damageClass)
-                if toWhat.resistanceMaps.has(damageClass)
-                    newValue += toWhat.resistanceMaps.get(damageClass)
-                    toWhat.resistanceMaps.put(damageClass, newValue)
+                real amount = multiplier * addWhat.resistanceMaps.get(damageClass)
+                mapAdd(this.resistanceMaps, damageClass, amount)
+
+    private static function mapAdd(HashMap<DamageClass, real> map, DamageClass damageClass, real amount)
+        real newValue = amount
+        if map.has(damageClass)
+            newValue += map.get(damageClass)
+        map.put(damageClass, newValue)
 
     function toDetailedString(boolean showEmpty) returns string
         string humanReadableOutput = ""
@@ -123,11 +203,35 @@ public class BuffType
         
         return humanReadableOutput
 
-    // TODO Accessors/Modifiers ?
+@Test function testAddBuffs()
+    BuffType a = new BuffType(0, "A")
+    a.size = 1
+    a.life = 2
+    a.damageMaps.put(DamageClass.DAMAGE_CONTONDANT, 6)
+    a.damageMaps.put(DamageClass.DAMAGE_FEU, 3)
+    
+    BuffType b = new BuffType(0, "B")
+    b.size = -1
+    b.life = 2
+    b.damageMaps.put(DamageClass.DAMAGE_FEU, 1)
+    b.damageMaps.put(DamageClass.DAMAGE_PSYCHIQUE, -6)
 
-public constant buffTuple BUFF_TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff dynamique de test !", Textures.doodad_Cinematic, Abilities.invisibilityTarget, "origin"))
-public constant BuffType BUFF_TYPE_TEST = new BuffType(BUFF_TEST, 0, "TEST")
-
-public constant BuffType BUFF_TYPE_PEAU_ECORCE = new BuffType(0, "Peau d'écorce")
-public constant BuffType BUFF_TYPE_PEAU_PIERRE = new BuffType(WizardSpell.PEAU_PIERRE.abilityId, "Peau de pierre")
-
+    // Test addition
+    BuffType sum = new BuffType(0, "C = A + B")
+    sum..add(a)..add(b)
+    
+    sum.size.assertEquals(0)
+    sum.life.assertEquals(4)
+    sum.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(6)
+    sum.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(4)
+    sum.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(-6)
+    
+    // Test substraction
+    BuffType difference = new BuffType(0, "D = A - B")
+    difference..add(a)..subtract(b)
+    
+    difference.size.assertEquals(2)
+    difference.life.assertEquals(0)
+    difference.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(6)
+    difference.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(2)
+    difference.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(6)

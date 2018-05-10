@@ -159,7 +159,7 @@ public class ConeEffect
                 let angleStep = this.spreadAngle / iterationsCount.toReal()
                 
                 angle currentAngle = this.ang - (this.spreadAngle / 2)
-                for int i = 1 to iterationsCount
+                for int i = 0 to iterationsCount
                     let currentPoint = this.origin.toVec2().polarOffset(currentAngle, currentPosition)
 
                     // Show effect
@@ -281,8 +281,6 @@ public class ConeEffect
         return false
 
 init
-    Log.trace("Init cone effects")
-    
     // Periodically propagate current cone effects
     doPeriodically(CONE_EFFECTS_UPDATE_PERIOD) cb -> 
         let iter = ConeEffect.LIST.iterator()

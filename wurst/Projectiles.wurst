@@ -220,11 +220,8 @@ public class FollowingProjectile extends Projectile
 
         // Not destroyed
         return false
-        
 
 init
-    Log.trace("Init projectiles")
-    
     // Periodically handle projectiles movement and impacts
     doPeriodically(PROJECTILES_UPDATE_PERIOD) cb ->
         let iter = Projectile.LIST.iterator()

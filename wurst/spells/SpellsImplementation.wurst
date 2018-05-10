@@ -10,7 +10,7 @@ import RegisterEvents
 
 // Custom imports
 import AoeEffect
-import BuffType
+import BuffTypesImplementation
 import ConeEffect
 import DilatableTime
 import SpellCasting
@@ -57,12 +57,12 @@ init
         unit emitter = GetTriggerUnit()
         vec2 target = getSpellTargetPos()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real speed = 512
-        real range = 256.0 + level * 32
-        real duration = 5.0
+        real speed = 64
+        real range = 384.0 + level * 32
+        real duration = 10.0
         
-        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.1, 64)
-        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.frostWyrmMissile, 0.25, 64)
+        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.2, 45)
+        //ConicWaveGraphics head = new ConicWaveGraphics(Abilities.frostWyrmMissile, 0.25, 64)
         let cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
@@ -70,7 +70,7 @@ init
                 ..setQueuePropagationSpeed(vec2(32, 0))
                 ..setHeadPropagationSpeed(vec2(32, speed))
                 ..setQueue(queue)
-                ..setHead(head)
+                ..setHead(null)
                 ..start()
         
         CHANELING_CONES.put(emitter, cone)
@@ -254,13 +254,13 @@ init
             ..start()
 
     // PEAU_PIERRE
-    registerSpellEffectEvent(WizardSpell.NUEE_METEORES.abilityId) ->
+    registerSpellEffectEvent(WizardSpell.PEAU_PIERRE.abilityId) ->
         unit target = GetSpellTargetUnit()
         unit emitter = GetTriggerUnit()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real duration = 30 + level * 2.5
         
-        // FIXME AllUnitsBuffs.addBuff(target, BUFF_PEAU_PIERRE, duration)
+        AllUnitsBuffs.addBuffTimed(target, BUFF_TYPE_PEAU_PIERRE, duration)
 
     // PROJECTILE_MAGIQUE
     // RENVOI_SORTS

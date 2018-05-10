@@ -221,7 +221,6 @@ public class AdventureManager
 
     /** Register the adventure */
     static function register(Adventure adventure)
-        Log.info("Adventure #" + adventure.getIndex().toString() + " registered")
         adventure.initialize()
         LIST.addAt(adventure, adventure.getIndex())
 

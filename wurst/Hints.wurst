@@ -5,12 +5,16 @@ import ClosureTimers
 import LinkedList
 
 // Custom imports
+import DamageClass
 import PlayerData
 
 /** Details of a hint */
 class Hint
     constant int index
     constant string text
+
+    /** Color of the highlighted words of hints */
+    constant static color COLOR_HIGHLIGHT = color(255, 32, 32)
 
     construct(string text)
         this.index = LIST.size()
@@ -26,11 +30,12 @@ class Hint
         int index = GetRandomInt(0, PlayerData.ACTIVE_PLAYERS.size() - 1)
         player p = PlayerData.ACTIVE_PLAYERS.get(index)
         string replaced = source.replace("{random player}", PlayerData.get(p).getName())
+        replaced = replaced.replace("[[", COLOR_HIGHLIGHT.toColorString()).replace("]]", "|r")
         return replaced
 
     function display()
-        string message = "Astuce #{0} - {1}".format(this.index.toString(), this.replaceDynamicMarkers(this.text))
-        displayMessage(MessageType.HINT, null, 30.0, message)
+        string message = "|c00ffff40Astuce #{0}|r - {1}".format(this.index.toString(), this.replaceDynamicMarkers(this.text))
+        displayMessage(null, null, 30.0, message)
 
         // Play sound
         gg_snd_GLOBAL_HINT.play()
@@ -38,19 +43,25 @@ class Hint
 // Hints initialization
 init
     // Hints directory
-    new Hint("A leur récupération, les |c00ff4040pièces d'or|r sont réparties équitablement entre les joueurs. Pas besoin de se ruer dessus au péril de sa vie donc... Pigé {random player} ?")
-    new Hint("Cromwell peut assembler des |c00ff4040fragments d'objets|r pour reconstituer de légendaires artefacts.")
-    new Hint("{random player} a un petit zizi !")
-    new Hint("Pour signaler un bug ou suggérer une nouvelle fonctionnalité, n'hésitez pas à vous connecter à cette adresse : https://github.com/RoOoBerT/war3-landsofgours/issues/new")
-    new Hint("Il n'est pas encore possible de diviser un |c00ff4040stack d'objets|r.")
-    new Hint("Il est possible de retirer un |c00ff4040objet maudit|r grâce à un sort de délivrance de la malédiction (qui n'existe pas encore).")
-    new Hint("La |c00ff4040difficulté|r de la partie est adaptative, mais le jeu est plus intéressant avec une grande équipe.")
-    new Hint("La |c00ff4040liste des commandes|r peut être affichée avec la commande '-help'.")
-    new Hint("Certaines astuces ne servent à |c00ff4040rien|r.")
-    new Hint("Mon inspiration pour créer |c00ff4040Lands of Gours|r : Jehal, Baldur's Gate II / D & D, Dialo II.")
-    new Hint("Si vous utilisez un |c00ff4040arc|r, ses propriétés s'additionnent à celles des |c00ff4040flèches|r que vous utilisez.")
-    new Hint("Les sorts de zone et les armes à projectiles peuvent |c00ff4040blesser vos alliés|r, agissez avec prudence ! D'ailleurs {random player}...")
-    
+    new Hint("A leur récupération, les [[pièces d'or]] sont réparties équitablement entre les joueurs. Pas besoin de se ruer dessus au péril de sa vie donc... Pigé {random player} ?")
+    new Hint("Cromwell peut assembler des [[fragments d'objets]] pour reconstituer de légendaires artefacts.")
+    new Hint("{random player} a un [[petit zizi]] !")
+    new Hint("Pour signaler un bug ou suggérer une nouvelle fonctionnalité, n'hésitez pas à vous connecter à cette adresse : |c000000ff https://github.com/RoOoBerT/war3-landsofgours/issues/new |r")
+    new Hint("Il n'est pas encore possible de diviser un [[stack d'objets]].")
+    new Hint("Il est possible de retirer un objet maudit grâce à un sort de [[délivrance de la malédiction]] (qui n'existe pas encore).")
+    new Hint("La [[difficulté]] de la partie est adaptative, mais le jeu est plus intéressant avec une grande équipe.")
+    new Hint("La [[liste des commandes]] peut être affichée avec la commande '-help'.")
+    new Hint("Certaines astuces ne servent à [[rien]] (comme {random player}).")
+    new Hint("Mon inspiration pour créer [[Lands of Gours]] : Jehal, Baldur's Gate II / D & D, Dialo II.")
+    new Hint("Si vous utilisez un [[arc]], ses propriétés s'additionnent à celles des [[flèches]] que vous utilisez.")
+    new Hint("Les sorts de zone et les armes à projectiles peuvent [[blesser vos alliés]], agissez avec prudence ! D'ailleurs {random player}...")
+    new Hint("Pour tuer définitivement un troll, vous devez lui infliger des dommages de feu ou de poison...")
+    new Hint("Il y a trois [[familles de dommages]] : physiques, élémentaires et biologiques.")
+    new Hint("Il y a trois types de [[dommages physiques]] : " + "{0}, {1} et {2}".format(
+        DamageClass.DAMAGE_CONTONDANT.getColoredName(), DamageClass.DAMAGE_PERCANT.getColoredName(), DamageClass.DAMAGE_TRANCHANT.getColoredName()))
+    new Hint("Il y a quatre types de [[dommages élémentaires]] : " + "{0}, {1}, {2} et {3}".format(
+        DamageClass.DAMAGE_AIR.getColoredName(), DamageClass.DAMAGE_FEU.getColoredName(), DamageClass.DAMAGE_FOUDRE.getColoredName(), DamageClass.DAMAGE_FROID.getColoredName()))
+
     // Let's avoid showing twice the same hint, if possible
     LinkedList<Hint> nextHintsToShow = new LinkedList<Hint>()
     doPeriodically(60.0) cb ->

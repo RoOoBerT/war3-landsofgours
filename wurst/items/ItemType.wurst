@@ -75,6 +75,3 @@ public class ItemType
         
     static constant ItemType ANNEAU_ELFIQUE_EN_OR = new ItemType('I000', true)
 
-init
-    Log.info("Objects loaded.")
-

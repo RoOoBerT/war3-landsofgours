@@ -107,8 +107,6 @@ public class TimeDilatation
         return modifiedTime
 
 init
-    Log.trace("Init Time Dilatation")
-    
     // Periodically check current AoE
     doPeriodically(TIME_DILATATION_UPDATE_FREQUENCY) cb -> 
         let iter = TimeDilatation.LIST.iterator()

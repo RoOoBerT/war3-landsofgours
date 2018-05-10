@@ -8,20 +8,23 @@ import Spells
 /** Describes a school of magic */
 public class SpellSchool
     // Properties
-    constant string name
-    constant color col
+    private constant string name
+    private constant color col
 
     // Functions
     private construct(string name, color col)
         this.name = name
         this.col = col
-        Log.debug("Ecole de magie : " + this.getColoredName())
+        //Log.debug("Ecole de magie : " + this.getColoredName())
 
     function getColoredName() returns string
         return this.col.toColorString() + this.name + "|r"
     
     function getName() returns string
         return this.name
+
+    function getColor() returns color
+        return this.col
     
     // Values
     static constant ABJURATION = new SpellSchool("Abjuration", color(0, 0, 255))
@@ -39,20 +42,26 @@ public class WizardSpell extends Spell
         super(abilityId, maxLevel, target, order)
         this.school = school
     
+    function getName() returns string
+        return GetAbilityName(this.abilityId)
+
+    function getColoredName() returns string
+        return "{1}{0}|r".format(this.getName(), this.school.getColor().toColorString())
+
     // ======== WIZARD SPELL BOOK DIRECTORY ========
     constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "", SpellSchool.INVOCATION)
     constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.EVOCATION)
-    constant static WizardSpell CONE_FROID                          = new WizardSpell('A00W', 20, TargetType.LOCATION, "", SpellSchool.EVOCATION)
+    constant static WizardSpell CONE_FROID                          = new WizardSpell('A00W', 20, TargetType.LOCATION, "carrionswarm", SpellSchool.EVOCATION)
     constant static WizardSpell DILATATION_TEMPORELLE               = new WizardSpell('A01F', 20, TargetType.LOCATION, "", SpellSchool.TRANSMUTATION)
     constant static WizardSpell FEU_SOLAIRE                         = new WizardSpell('A00Y', 20, TargetType.NONE    , "", SpellSchool.EVOCATION)
     constant static WizardSpell FLETRISSURE_ABOMINABLE_ABI_DALZIM   = new WizardSpell('A00D', 20, TargetType.LOCATION, "", SpellSchool.NECROMANCIE)
-    constant static WizardSpell HATE                                = new WizardSpell('A00O', 20, TargetType.NONE    , "haste", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell HATE                                = new WizardSpell('A00O', 20, TargetType.NONE    , "bearform", SpellSchool.TRANSMUTATION)
     constant static WizardSpell INCINERATEUR_AGANAZZAR              = new WizardSpell('A00T', 20, TargetType.LOCATION, "", SpellSchool.EVOCATION)
     constant static WizardSpell NUAGE_INCENDIAIRE                   = new WizardSpell('A00A', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUAGE_MORTEL                        = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUAGE_PUANT                         = new WizardSpell('A005', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUEE_METEORES                       = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION)
-    constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A00K', 20, TargetType.UNIT    , "", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A006', 20, TargetType.UNIT    , "bidon", SpellSchool.TRANSMUTATION)
     constant static WizardSpell PROJECTILE_MAGIQUE                  = new WizardSpell('A004', 20, TargetType.UNIT    , "creepthunderbolt", SpellSchool.EVOCATION)
     constant static WizardSpell RENVOI_SORTS                        = new WizardSpell('A00I', 20, TargetType.UNIT    , "", SpellSchool.ABJURATION)
     constant static WizardSpell TOILES_ARAIGNEE                     = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION)

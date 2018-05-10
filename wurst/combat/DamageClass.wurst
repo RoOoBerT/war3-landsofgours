@@ -7,6 +7,9 @@ import LinkedList
 
 /** Represents a family of damage classes */
 public class DamageFamily
+    /** List of damage classes existing for this family */
+    constant LinkedList<DamageClass> list = new LinkedList<DamageClass>()
+
     private construct()
 
     // Damage family directory
@@ -34,6 +37,7 @@ public class DamageClass
 
         // Register this damage type
         LIST.addAt(this, this.index)
+        this.family.list.add(this)
 
     // Accessors
     //function getIndex() returns int
@@ -56,13 +60,13 @@ public class DamageClass
     static constant DamageClass DAMAGE_PERCANT    = new DamageClass("Perçant"   , color(64, 64, 64), DamageFamily.FAMILY_PHYSIQUE)
     static constant DamageClass DAMAGE_TRANCHANT  = new DamageClass("Tranchant" , color(64, 64, 64), DamageFamily.FAMILY_PHYSIQUE)
     
-    static constant DamageClass DAMAGE_AIR        = new DamageClass("Air"       , color(128, 128, 128), DamageFamily.FAMILY_ELEMENTAIRE)
-    static constant DamageClass DAMAGE_FEU        = new DamageClass("Feu"       , color(255, 0, 0), DamageFamily.FAMILY_ELEMENTAIRE)
-    static constant DamageClass DAMAGE_FOUDRE     = new DamageClass("Foudre"    , color(255, 255, 255), DamageFamily.FAMILY_ELEMENTAIRE)
-    static constant DamageClass DAMAGE_FROID      = new DamageClass("Froid"     , color(0, 0, 255), DamageFamily.FAMILY_ELEMENTAIRE)
+    static constant DamageClass DAMAGE_AIR        = new DamageClass("Air"       , color(32, 255, 255), DamageFamily.FAMILY_ELEMENTAIRE)
+    static constant DamageClass DAMAGE_FEU        = new DamageClass("Feu"       , color(255, 32, 32), DamageFamily.FAMILY_ELEMENTAIRE)
+    static constant DamageClass DAMAGE_FOUDRE     = new DamageClass("Foudre"    , color(255, 255, 32), DamageFamily.FAMILY_ELEMENTAIRE)
+    static constant DamageClass DAMAGE_FROID      = new DamageClass("Froid"     , color(32, 32, 255), DamageFamily.FAMILY_ELEMENTAIRE)
 
     static constant DamageClass DAMAGE_LUMIERE    = new DamageClass("Lumiere"   , color(255, 255, 255), DamageFamily.FAMILY_BIOLOGIQUE)
     static constant DamageClass DAMAGE_MORT       = new DamageClass("Mort"      , color(32, 32, 32), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_POISON     = new DamageClass("Poison"    , color(0, 255, 0), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_PSYCHIQUE  = new DamageClass("Psychique" , color(255, 0, 255), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_SON        = new DamageClass("Son"       , color(255, 255, 255), DamageFamily.FAMILY_BIOLOGIQUE)
+    static constant DamageClass DAMAGE_POISON     = new DamageClass("Poison"    , color(32, 255, 32), DamageFamily.FAMILY_BIOLOGIQUE)
+    static constant DamageClass DAMAGE_PSYCHIQUE  = new DamageClass("Psychique" , color(255, 32, 255), DamageFamily.FAMILY_BIOLOGIQUE)
+    static constant DamageClass DAMAGE_SON        = new DamageClass("Son"       , color(92, 32, 0), DamageFamily.FAMILY_BIOLOGIQUE)

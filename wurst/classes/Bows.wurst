@@ -8,6 +8,7 @@ import ItemTypeArrows
 import ItemTypeBow
 import PlayerData
 import Projectiles
+import Sounds
 
 // Bows API
 /** Find the first usable bow of the unit (if any) */
@@ -49,7 +50,7 @@ public function onUnitAttackWithBow(unit attacker, unit target)
     //Log.trace("Unit is attacked by an archer : " + archer.getName())
     player owner = GetOwningPlayer(attacker)
 
-    // Cancel this event's damage because real damage will be dealt later by the projectile
+    // Cancel this event's damage because real damage will be dealt later by the projectile(s)
     BlzSetEventDamage(0)
 
     // Check if the attacker has a bow
@@ -73,8 +74,13 @@ public function onUnitAttackWithBow(unit attacker, unit target)
             // Cancel attack
             //attacker.interruptAttack()
         else
-            displayMessage(MessageType.ERROR, owner, 3.0, "Vous avec besoin de flèches pour utiliser " + bow.itm.getName() + " !")
             attacker.issueImmediateOrder("stop")
+            if owner == localPlayer
+                displayMessage(MessageType.ERROR, owner, 3.0, "Vous avec besoin de flèches pour utiliser " + bow.itm.getName() + " !")
+                PlaySound(Sounds.error)
     else
-        displayMessage(MessageType.ERROR, owner, 3, "Vous devez équiper un arc pour attaquer !")
         attacker.issueImmediateOrder("stop")
+        if owner == localPlayer
+            displayMessage(MessageType.ERROR, owner, 3, "Vous devez équiper un arc pour attaquer !")
+            PlaySound(Sounds.error)
+        

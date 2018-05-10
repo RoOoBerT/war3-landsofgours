@@ -22,7 +22,7 @@ public class ItemTypeBow extends ItemType
     
     // Bows directory
     static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', false, true)
-    static constant ItemTypeBow ARC_PRIMITIF2 = new ItemTypeBow('I00O', false, true)
+    //static constant ItemTypeBow ARC_PRIMITIF2 = new ItemTypeBow('I00O', false, true)
     // Bow constrictor
     // Spirit string bow
     // Robin hood bow

@@ -93,12 +93,11 @@ public class DummySpell extends Spell
 
 // Functions
 init
-    Log.trace("Init spells")
-
     // Check dummy spells order strings
-    vec2 targetLoc = vec2(0, 0)
+    vec2 targetLoc = ZERO2
     for Spell spell in Spell.LIST
-        if spell instanceof DummySpell
+        //if spell instanceof DummySpell
+        if spell.order.isNotBlank()
             //DummySpell dummySpell = spell castTo DummySpell
             switch spell.target
                 case PASSIVE // Nothing to do

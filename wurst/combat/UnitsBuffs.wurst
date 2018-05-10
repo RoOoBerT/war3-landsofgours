@@ -2,20 +2,24 @@ package UnitsBuffs
 
 // Standard imports
 import ClosureTimers
+import GameTimer
 import HashMap
 import HashList
 import LinkedList
 
 // Custom imports
 import public BuffType
+import BuffTypesImplementation
 import DilatableTime
 
 constant real BUFFS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
 
 constant real BUFF_ENDTIME_NEVER = 0.0
 
+/** The duration of a buff which does not expire automatically */
 public constant real BUFF_DURATION_INFINITE = 0.0
 
+/** The ID of a buff that can be stacked multiple times */
 public constant int BUFF_ID_STACKABLE = 0
 
 /** Represents a currently active buff on a unit */
@@ -25,8 +29,11 @@ class UnitBuff
     private real beginTime = 0.0
     private real endTime = BUFF_ENDTIME_NEVER
 
-    /** To put to true to remove the buff */
-    private boolean stop = false
+    real lastEffectTime = 0.0
+    effect lastEffect = null
+
+    ///** To put to true to remove the buff */
+    //private boolean stop = false
 
     construct(BuffType buffType, unit target, real duration)
         this.buffType = buffType
@@ -48,13 +55,18 @@ class UnitBuff
             Log.debug("A test buff is finished : begun at " + this.beginTime.toString() + " and ended at " + this.endTime.toString())
         return finished
 
+    ondestroy
+        if lastEffect != null
+            lastEffect.destr()
+
 /** Represents the list of buffs currently linked to a unit */
 class UnitBuffs
     private constant unit who
     constant LinkedList<UnitBuff> buffs = new LinkedList<UnitBuff>()
     private constant HashList<int> buffsById = new HashList<int>()
 
-    private constant BuffType sumBuff = new BuffType(0, "Computed virtual sum buff")
+    /** Contains the total of all modifiers for this unit */
+    private constant BuffType totalBuff = new BuffType(0, "Computed virtual total buff")
 
     construct(unit who)
         this.who = who
@@ -71,13 +83,20 @@ class UnitBuffs
             if this.buffsById.has(id)
                 // Unit is already affected
                 // FIXME -> Update existing buff(s) ??
+                return false
             else
-                // Non stackable buff
-                this.buffs.add(new UnitBuff(buffType, this.who, duration))
+                // Non stackable buff to add
                 this.buffsById.add(id)
         else
             // The buff is stackable, just add it (do not list the ID which is 0)
-            this.buffs.add(new UnitBuff(buffType, this.who, duration))
+
+        UnitBuff newBuff = new UnitBuff(buffType, this.who, duration)
+        this.buffs.add(newBuff)
+        this.totalBuff.add(buffType)
+
+        // Is there an effect to show periodically ?
+        if buffType.effectPath.isNotBlank()
+            newBuff.lastEffect = this.who.addEffect(buffType.effectPath, buffType.effectAttachPoint)
 
         // Is there a buff icon to show on the unit ?
         if buffType.abilityId != 0
@@ -115,6 +134,7 @@ class UnitBuffs
                     if unitBuff.getBuffType().id == id
                         destroy unitBuff
                         iter.remove()
+                        this.totalBuff.subtract(unitBuff.getBuffType())
                         break
             else
                 // Buff not present : nothing to do
@@ -127,6 +147,7 @@ class UnitBuffs
                 if unitBuff.getBuffType().id == buffType.id
                     this.buffsById.remove(unitBuff.getBuffType().id)
                     iter.remove()
+                    this.totalBuff.subtract(unitBuff.getBuffType())
                     // FIXME maybe ajust return value ?
 
         // Is there a buff icon to hide ?
@@ -135,16 +156,14 @@ class UnitBuffs
         return true
 
     function update() returns boolean
-        // Cleanup
-        /*if this.sumBuff != null
-            destroy this.sumBuff
-        this.sumBuff = new BuffType(0, "Computed virtual sum buff")*/
-
         let iter = this.buffs.iterator()
         while iter.hasNext()
             let unitBuff = iter.next()
+
+            // Has this buff finished ?
             if unitBuff.isFinished()
                 iter.remove()
+                this.totalBuff.subtract(unitBuff.getBuffType())
 
                 Log.trace("Buff disappeared from " + this.who.getName() + " " + unitBuff.getBuffType().name)
                 int id = unitBuff.getBuffType().id
@@ -157,7 +176,17 @@ class UnitBuffs
                     this.who.removeAbility(abilityId)
                 
                 destroy unitBuff
-        
+            else
+                // Buff not finished : Is there an effect to show periodically ?
+                let buffType = unitBuff.getBuffType()
+                if buffType.effectPeriod != 0.0
+                    let currentTime = getElapsedGameTime()
+                    if currentTime - unitBuff.lastEffectTime >= buffType.effectPeriod
+                        unitBuff.lastEffectTime = currentTime
+
+                        // Show effect
+                        this.who.addEffect(buffType.effectPath, buffType.effectAttachPoint).destr()
+
         // Return true if this unit has no more buffs
         return this.buffs.size() == 0
 
@@ -167,7 +196,7 @@ class UnitBuffs
 
     // Accessors
     function getSumBuff() returns BuffType
-        return this.sumBuff
+        return this.totalBuff
 
     function getUnit() returns unit
         return this.who
@@ -207,8 +236,6 @@ public class AllUnitsBuffs
 
 // 
 init
-    Log.trace("Init units buffs")
-    
     // Periodically update buffs
     doPeriodically(BUFFS_UPDATE_PERIOD) cb -> 
         let iter = AllUnitsBuffs.LIST.iterator()

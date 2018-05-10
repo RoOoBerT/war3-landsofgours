@@ -139,8 +139,6 @@ public class AoeEffect
         return false
 
 init
-    Log.trace("Init AoE spells")
-    
     // Periodically check current AoE
     doPeriodically(AOE_EFFECTS_UPDATE_PERIOD) cb -> 
         let iter = AoeEffect.LIST.iterator()
