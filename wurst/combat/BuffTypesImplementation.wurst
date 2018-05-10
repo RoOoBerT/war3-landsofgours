@@ -3,16 +3,13 @@ package BuffTypesImplementation
 // Standard imports
 import Assets
 import BuffObjEditing
-import AbilityObjEditing
-import ObjectIds
-import ObjectIdGenerator
 
 // Custom imports
 import BuffType
 import WizardSpell
 
-/** Creates an ability based on Tornado aura that allows to display a buff on units without side effects */
-public function createDummyBuffAbility(int buffId) returns buffTuple
+///** Creates an ability based on Tornado aura that allows to display a buff on units without side effects */
+/*public function createDummyBuffAbility(int buffId) returns buffTuple
     let abilId = ABIL_ID_GEN.next()
 
     if compiletime
@@ -26,15 +23,24 @@ public function createDummyBuffAbility(int buffId) returns buffTuple
             //..setArtTarget("")
             //..setTargetAttachmentPoint("")
             ..setEditorSuffix("wurst")
-    return buffTuple(abilId, buffId)
+    return buffTuple(abilId, buffId)*/
 
 // Test buff for debugging
-constant BUFF_TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff dynamique de test !", Textures.doodad_Cinematic, Abilities.invisibilityTarget, "origin"))
-public constant BuffType BUFF_TYPE_TEST = new BuffType(BUFF_TEST, 0, "TEST")
+constant BD_TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff dynamique de test !", Textures.doodad_Cinematic, Abilities.invisibilityTarget, "origin"))
+public constant BuffType BUFF_TEST = new BuffType(BD_TEST, 0, "TEST")
 
-constant BUFF_PEAU_ECORCE = compiletime(createDummyBuffAbility('B006'))
-public constant BuffType BUFF_TYPE_PEAU_ECORCE = new BuffType(0, "Peau d'écorce")
+constant BD_ARME_ENFLAMMEE = compiletime(createDummyBuffObject("Arme enflammée", "Les attaques physiques de cette créatures sont enchantées par du feu magique.", Icons.bTNArcaniteMelee, Abilities.bloodLustTarget, "hand,left"))
+public constant BuffType BUFF_ARME_ENFLAMMEE = new BuffType(BD_ARME_ENFLAMMEE, 0, "Arme enflammée")
+        ..setDamage(DamageClass.DAMAGE_FEU, 5.0)
 
-constant BUFF_PEAU_PIERRE = compiletime(createDummyBuffAbility('B005'))
-public constant BuffType BUFF_TYPE_PEAU_PIERRE = new BuffType(BUFF_PEAU_PIERRE, WizardSpell.PEAU_PIERRE.abilityId, "Peau de pierre", Abilities.aIdaTarget, "overhead")
-        ..setResistance(DamageFamily.FAMILY_PHYSIQUE, 5.0)
+constant BD_HATE = compiletime(createDummyBuffObject("Hâte", "Cette unité est sous l'effet d'un sortilège de hâte. Elle se déplace et attaque plus rapidement.", Icons.bTNAnimalWarTraining, Abilities.speedTarget, "overhead"))
+public constant BuffType BUFF_HATE = new BuffType(BD_HATE, WizardSpell.HATE.abilityId, "Hâte")
+        ..setMoveSpeed(2)
+
+constant BD_PEAU_ECORCE = compiletime(createDummyBuffObject("Peau d'écorce", "La peau de cette créature a l'aspect de l'écorce d'un arbre. Elle est protégée contre les dommages physiques.", Icons.bTNUnholyStrength, Abilities.aIdaTarget, "overhead"))
+public constant BuffType BUFF_PEAU_ECORCE = new BuffType(BD_PEAU_ECORCE, 0, "Peau d'écorce")
+        ..setResistance(DamageFamily.FAMILY_PHYSIQUE, 10.0)
+
+constant BD_PEAU_PIERRE = compiletime(createDummyBuffObject("Peau de pierre", "La peau de cette créature a l'aspect de la pierre. Elle est protégée contre les dommages physiques.", Icons.bTNHardenedSkin, Abilities.aIdaTarget, "overhead"))
+public constant BuffType BUFF_PEAU_PIERRE = new BuffType(BD_PEAU_PIERRE, WizardSpell.PEAU_PIERRE.abilityId, "Peau de pierre", Abilities.aIdaTarget, "overhead")
+        ..setResistance(DamageFamily.FAMILY_PHYSIQUE, 20.0)

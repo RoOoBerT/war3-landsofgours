@@ -1,15 +1,17 @@
 package Combat
 
 // Standard imports
+import Assets
 import DamageDetection
 import DamageType
+import RegisterEvents
 
 // Custom imports
 import Bows
 import CharacterClass
-import CreatureType
-import DamageClass
-import StringUtils
+import UnitsBuffs
+import PlayerData
+import Musics
 
 /** Dummy invisible ability used to detect units with ranged attack */
 constant int ABILITY_RANGED = 'A00Z'
@@ -42,14 +44,36 @@ function onUnitPhysicalAttack(unit attacker, unit target)
         onUnitAttackWithBow(attacker, target)
     else
         // This is a standard attack : melee or ranged (but no "custom" projectile and ammo management)
-        let damage = GetEventDamage()
+        //let damage = GetEventDamage()
         BlzSetEventDamage(0)
 
         // Check the modifiers of the attacker
-        //BuffType attackerModifiers = 
+        BuffType attackerModifiers = AllUnitsBuffs.getTotalBuffs(attacker)
+        BuffType targetModifiers = AllUnitsBuffs.getTotalBuffs(target)
 
+        for DamageClass damageClass in DamageClass.LIST
+            real damageOfType = attackerModifiers.getDamage(damageClass)
+            if damageOfType != 0
+                real resistanceOfType = targetModifiers.getResistance(damageClass)
+                damageOfType *= (1 - resistanceOfType)
 
-        inflictRealDamage(attacker, target, damage, DamageClass.DAMAGE_POISON)
+            if damageOfType != 0
+                inflictRealDamage(attacker, target, damageOfType, damageClass)
+
+/** Called when a player's main character has died */
+function onPlayerCharacterDies(PlayerData pd, unit characterDead)
+    displayMessage(MessageType.PLAYER, null, 15.0, "R.I.P. {0} !".format(pd.getName()))
+
+    // Play death music for local player
+    if pd.getPlayer() == localPlayer
+        // Play sad music
+        Music.MUSIC_DEAD.loopMusic(true)
+
+        // Apply screen filter
+        CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT, 5.0, Textures.black_mask, 0, 0, 0, 128)
+
+        // Prevent cadavre from disappearing
+        characterDead.pause()
 
 init
     // Register an event when a unit is physically attacked
@@ -60,3 +84,10 @@ init
             onUnitPhysicalAttack(attacker, target)
 
     addOnDamageFunc(action)
+
+    // Register player's main character's death
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_DEATH) ->
+        unit characterDead = GetTriggerUnit()
+        PlayerData pd = PlayerData.get(characterDead)
+        if pd != null
+            onPlayerCharacterDies(pd, characterDead)

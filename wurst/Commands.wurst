@@ -145,21 +145,21 @@ class CommandBuff extends Command
             switch subcommand.toLowerCase()
                 case "add"
                     real duration = 20
-                    displayMessage(MessageType.INFO, who, 10, "Adding buff '" + BUFF_TYPE_TEST.name + "' for " + duration.toString() + "s to selected units...")
+                    displayMessage(MessageType.INFO, who, 10, "Adding buff '" + BUFF_TEST.name + "' for " + duration.toString() + "s to selected units...")
                     for unit u in selectedUnits
-                        AllUnitsBuffs.addBuffTimed(u, BUFF_TYPE_TEST, duration)
+                        AllUnitsBuffs.addBuffTimed(u, BUFF_TEST, duration)
 
                 case "test"
-                    displayMessage(MessageType.INFO, who, 10, "Showing selected units with buff '" + BUFF_TYPE_TEST.name + "'...")
+                    displayMessage(MessageType.INFO, who, 10, "Showing selected units with buff '" + BUFF_TEST.name + "'...")
                     for unit u in selectedUnits
-                        if AllUnitsBuffs.hasBuffByType(u, BUFF_TYPE_TEST)
+                        if AllUnitsBuffs.hasBuffByType(u, BUFF_TEST)
                             PingMinimapForPlayer(who, u.getX(), u.getY(), 5.0)
                             flashEffect(Units.infernalBirth, u.getPos())
 
                 case "remove"
-                    displayMessage(MessageType.INFO, who, 10, "Removing buff '" + BUFF_TYPE_TEST.name + "' from selected units...")
+                    displayMessage(MessageType.INFO, who, 10, "Removing buff '" + BUFF_TEST.name + "' from selected units...")
                     for unit u in selectedUnits
-                        AllUnitsBuffs.removeBuffsByType(u, BUFF_TYPE_TEST)
+                        AllUnitsBuffs.removeBuffsByType(u, BUFF_TEST)
 
                 default
                     displayMessage(MessageType.ERROR, who, 5, "Sous-commande inconnue <" + subcommand + ")>")

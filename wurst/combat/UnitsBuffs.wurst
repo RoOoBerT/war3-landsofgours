@@ -11,8 +11,9 @@ import LinkedList
 import public BuffType
 import BuffTypesImplementation
 import DilatableTime
+import Dummys
 
-constant real BUFFS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
+constant real BUFFS_UPDATE_PERIOD = 0.5 //ANIMATION_PERIOD
 
 constant real BUFF_ENDTIME_NEVER = 0.0
 
@@ -24,6 +25,8 @@ public constant int BUFF_ID_STACKABLE = 0
 
 /** Represents a currently active buff on a unit */
 class UnitBuff
+    static int REF_COUNTER = 0
+
     private constant BuffType buffType
     private constant unit target
     private real beginTime = 0.0
@@ -41,6 +44,7 @@ class UnitBuff
         this.beginTime = TimeDilatation.getModifiedTime(this.target.getPos3Real())
         if duration != BUFF_DURATION_INFINITE
             this.endTime = this.beginTime + duration
+        REF_COUNTER++
 
     // Accessors
     function getBuffType() returns BuffType
@@ -51,16 +55,19 @@ class UnitBuff
 
     function isFinished() returns boolean
         boolean finished = this.endTime != BUFF_ENDTIME_NEVER and TimeDilatation.getModifiedTime(target.getPos3Real()) >= this.endTime
-        if finished and this.buffType == BUFF_TYPE_TEST
+        if finished and this.buffType == BUFF_TEST
             Log.debug("A test buff is finished : begun at " + this.beginTime.toString() + " and ended at " + this.endTime.toString())
         return finished
 
     ondestroy
         if lastEffect != null
             lastEffect.destr()
+        REF_COUNTER--
 
 /** Represents the list of buffs currently linked to a unit */
 class UnitBuffs
+    static int REF_COUNTER = 0
+
     private constant unit who
     constant LinkedList<UnitBuff> buffs = new LinkedList<UnitBuff>()
     private constant HashList<int> buffsById = new HashList<int>()
@@ -69,7 +76,25 @@ class UnitBuffs
     private constant BuffType totalBuff = new BuffType(0, "Computed virtual total buff")
 
     construct(unit who)
+        if isDummyUnit(who)
+            Log.error("Buff(s) handled for dummy unit ! Pinging position !" )
+            PingMinimap(who.getX(), who.getY(), 5.0)
         this.who = who
+        REF_COUNTER++
+
+    ondestroy
+        REF_COUNTER--
+        for unitBuff in this.buffs
+            destroy unitBuff
+        destroy this.buffs
+        destroy this.buffsById
+
+    private function refreshUnitStatus()
+        this.who.setMoveSpeed(this.who.getDefaultMovespeed() * (1 + totalBuff.moveSpeed))
+
+        // FIXME this.who.setBaseDamage(totalBuff.getDamage(DamageClass.DAMAGE_CONTONDANT).round(), 0)
+        this.who.setScale(1.0 + totalBuff.size)
+        this.who.setMaxHP(100 + totalBuff.life.round())
 
     function addBuff(BuffType buffType, real duration) returns boolean
         // Security test for debugging
@@ -92,7 +117,7 @@ class UnitBuffs
 
         UnitBuff newBuff = new UnitBuff(buffType, this.who, duration)
         this.buffs.add(newBuff)
-        this.totalBuff.add(buffType)
+        this.totalBuff.modifyAdd(buffType)
 
         // Is there an effect to show periodically ?
         if buffType.effectPath.isNotBlank()
@@ -116,7 +141,8 @@ class UnitBuffs
             if unitBuffs.getBuffType().id == buffType.id
                 return true
 
-        Log.debug("Unit has " + this.buffs.size().toString() + " buffs but not this one : " + buffType.name)
+        if buffType == BUFF_TEST
+            Log.debug("Unit has " + this.buffs.size().toString() + " buffs but not this one : " + buffType.name)
         
         return false
 
@@ -134,7 +160,7 @@ class UnitBuffs
                     if unitBuff.getBuffType().id == id
                         destroy unitBuff
                         iter.remove()
-                        this.totalBuff.subtract(unitBuff.getBuffType())
+                        this.totalBuff.modifySubtract(unitBuff.getBuffType())
                         break
             else
                 // Buff not present : nothing to do
@@ -147,7 +173,7 @@ class UnitBuffs
                 if unitBuff.getBuffType().id == buffType.id
                     this.buffsById.remove(unitBuff.getBuffType().id)
                     iter.remove()
-                    this.totalBuff.subtract(unitBuff.getBuffType())
+                    this.totalBuff.modifySubtract(unitBuff.getBuffType())
                     // FIXME maybe ajust return value ?
 
         // Is there a buff icon to hide ?
@@ -163,9 +189,9 @@ class UnitBuffs
             // Has this buff finished ?
             if unitBuff.isFinished()
                 iter.remove()
-                this.totalBuff.subtract(unitBuff.getBuffType())
+                this.totalBuff.modifySubtract(unitBuff.getBuffType())
 
-                Log.trace("Buff disappeared from " + this.who.getName() + " " + unitBuff.getBuffType().name)
+                //Log.trace("Buff disappeared from unit '" + this.who.getName() + "' : '" + unitBuff.getBuffType().name + "'")
                 int id = unitBuff.getBuffType().id
                 if id != BUFF_ID_STACKABLE
                     this.buffsById.remove(id)
@@ -201,6 +227,8 @@ class UnitBuffs
     function getUnit() returns unit
         return this.who
 
+    
+
 /** Class for handling all buffs of the game */
 public class AllUnitsBuffs
     protected static constant HashMap<unit, UnitBuffs> MAP = new HashMap<unit, UnitBuffs>()
@@ -216,31 +244,53 @@ public class AllUnitsBuffs
         return unitBuffs
 
     static function addBuffPermanent(unit target, BuffType buffType)
-        addBuffTimed(target, buffType, BUFF_DURATION_INFINITE)
+        if not isDummyUnit(target)
+            addBuffTimed(target, buffType, BUFF_DURATION_INFINITE)
 
     static function addBuffTimed(unit target, BuffType buffType, real duration)
-        getUnitBuffs(target).addBuff(buffType, duration)
+        if not isDummyUnit(target)
+            getUnitBuffs(target).addBuff(buffType, duration)
 
     static function removeBuffsByType(unit target, BuffType buffType)
-        getUnitBuffs(target).removeBuffByType(buffType)
+        if not isDummyUnit(target)
+            getUnitBuffs(target).removeBuffByType(buffType)
 
     static function hasBuffByType(unit target, BuffType buffType) returns boolean
-        return getUnitBuffs(target).hasBuffByType(buffType)
+        if not isDummyUnit(target)
+            return getUnitBuffs(target).hasBuffByType(buffType)
+        return false
 
     static function getTotalBuffs(unit target) returns BuffType
+        if isDummyUnit(target)
+            Log.error("getTotalBuffs called for Dummy unit !")
+            return null
         return getUnitBuffs(target).getSumBuff()
     
-    @deprecated("Bad idea to access the internal list... Try to avoid using this method as possible")
+    /*@deprecated("Bad idea to access the internal list... Try to avoid using this method as possible")
     private static function getAllBuffs(unit target) returns LinkedList<UnitBuff>
-        return getUnitBuffs(target).buffs
+        return getUnitBuffs(target).buffs*/
 
 // 
 init
     // Periodically update buffs
     doPeriodically(BUFFS_UPDATE_PERIOD) cb -> 
+        // 
+        if AllUnitsBuffs.LIST.size() != UnitBuffs.REF_COUNTER
+            Log.error("Mauvaise gestion des buffs d'unites : " +
+                "{0} instances totales != {1} referencées !".format(UnitBuffs.REF_COUNTER.toString(), AllUnitsBuffs.LIST.size().toString()))
+
+        // Keep an eye on references of these classes
+        if UnitBuffs.REF_COUNTER > 15 or UnitBuff.REF_COUNTER > 30
+            Log.warn("UnitBuffs count | UnitBuff count = " + UnitBuffs.REF_COUNTER.toString() + " | " + UnitBuff.REF_COUNTER.toString())
+
         let iter = AllUnitsBuffs.LIST.iterator()
         while iter.hasNext()
             UnitBuffs unitBuffs = iter.next()
+            let u = unitBuffs.getUnit()
+            if u == null
+                Log.error("Buffs liés à une unité null !")
+            else
+                //Log.trace("Unité possédant des buffs : " + u.getName())
             if unitBuffs.update()
                 /*// Finished !
                 iter.remove()
@@ -254,4 +304,6 @@ init
             unit u = GetTriggerUnit()
             let unitBuffs = AllUnitsBuffs.MAP.get(u)
             if unitBuffs != null
-                //unitBuffs.
+                AllUnitsBuffs.LIST.remove(unitBuffs)
+                AllUnitsBuffs.MAP.remove(u)
+                destroy unitBuffs

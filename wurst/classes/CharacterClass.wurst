@@ -36,6 +36,6 @@ public class CharacterClass
     function getColoredName() returns string
         return "{1}{0}|r".format(this.name, this.col.toColorString())
 
-    static constant CharacterClass MAGICIEN = new CharacterClass('h000', "Magicien", colorA(32, 32, 255, 0), 'A013')
-    static constant CharacterClass ARCHER = new CharacterClass('h004', "Archer", colorA(32, 255, 32, 0), 'A012')
-    static constant CharacterClass PALADIN = new CharacterClass('h003', "Paladin", colorA(255, 32, 32, 0), '0')
+    static constant CharacterClass MAGICIEN = new CharacterClass('H00D', "Magicien", colorA(32, 32, 255, 0), 'A013')
+    static constant CharacterClass ARCHER = new CharacterClass('N00J', "Archer", colorA(32, 255, 32, 0), 'A012')
+    static constant CharacterClass PALADIN = new CharacterClass('H00C', "Paladin", colorA(255, 32, 32, 0), '0')

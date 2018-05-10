@@ -5,14 +5,9 @@ import HashMap
 import LinkedList
 
 // Custom imports
+import Dummys
 
 // Constants
-/** Unit-type ID of generic invisible Dummy */
-public constant int DUMMY_TYPE_ID = 'h001'
-
-/** Unit-type ID of visible Dummy (for debugging) */
-constant int DUMMY_TYPE_ID_VISIBLE = 'h009'
-
 /** Available types of targets */
 public enum TargetType
     LOCATION
@@ -40,10 +35,22 @@ public class Spell
         if MAP.has(this.abilityId)
             Log.error("Duplicated spell detected : " + this.abilityId.toString())
         MAP.put(this.abilityId, this)
+
+        // Just check that some spell order strings are not duplicated
+        if order.isNotBlank()
+            if ORDERS_MAP.has(order)
+                Log.error("Duplicated spell order detect : " + order + " => " + ORDERS_MAP.get(order).getName() + "+" + this.getName())
+            ORDERS_MAP.put(order, this)
     
     static constant LinkedList<Spell> LIST = new LinkedList<Spell>
     static constant HashMap<int, Spell> MAP = new HashMap<int, Spell>
     
+    private static constant HashMap<string, Spell> ORDERS_MAP = new HashMap<string, Spell>()
+
+    // Functions
+    function getName() returns string
+        return GetAbilityName(this.abilityId)
+
     // Spells
     static constant Spell INVENTORY_1_6_SLOTS = new Spell('A00J', 6, TargetType.PASSIVE, "")
     
@@ -89,25 +96,3 @@ public class DummySpell extends Spell
     // Methods
 
     // Dummy spells
-    
-
-// Functions
-init
-    // Check dummy spells order strings
-    vec2 targetLoc = ZERO2
-    for Spell spell in Spell.LIST
-        //if spell instanceof DummySpell
-        if spell.order.isNotBlank()
-            //DummySpell dummySpell = spell castTo DummySpell
-            switch spell.target
-                case PASSIVE // Nothing to do
-                case NONE
-                    if not spell.cast(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, 1)
-                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
-                case LOCATION
-                    if not spell.castPoint(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetLoc, 1)
-                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
-                default
-                    unit targetUnit = CreateUnit(players[PLAYER_NEUTRAL_PASSIVE], DUMMY_TYPE_ID, targetLoc.x, targetLoc.y, 0.0)
-                    if not spell.castUnit(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetUnit, 1)
-                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")

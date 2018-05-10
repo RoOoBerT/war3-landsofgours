@@ -7,7 +7,7 @@ import StringUtils
 // Custom imports
 import AoeEffect
 import ConeEffect
-import Spells
+import Dummys
 
 /** List of AoE that should stop if the caster stops channeling */
 public constant HashMap<unit, AoeEffect> CHANELING_AOES = new HashMap<unit, AoeEffect>()
@@ -35,15 +35,12 @@ class MyTextTag
             UNITS_TAGS.put(u, tt)
         return tt
 
-/** Returns true if the triggering unit is not a dummy caster */
-function isNotDummyCaster() returns boolean
-    return GetTriggerUnit().getTypeId() != DUMMY_TYPE_ID
 
 init
     // When a unit starts channeling
     CreateTrigger()
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_CHANNEL)
-        ..addCondition(Condition(function isNotDummyCaster))
+        ..addCondition(Condition(function isTriggeringUnitNotDummy))
         ..addAction() ->
             // Animate unit
             unit u = GetTriggerUnit()
@@ -63,7 +60,7 @@ init
     // When a unit finishes or cancels a spell casting
     CreateTrigger()
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_ENDCAST)
-        ..addCondition(Condition(function isNotDummyCaster))
+        ..addCondition(Condition(function isTriggeringUnitNotDummy))
         ..addAction() ->
             unit u = GetTriggerUnit()
             MyTextTag tt = MyTextTag.getUnitTextTag(u)
@@ -89,7 +86,7 @@ init
     // When a unit finishes a spell casting
     CreateTrigger()
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_SPELL_EFFECT)
-        ..addCondition(Condition(function isNotDummyCaster))
+        ..addCondition(Condition(function isTriggeringUnitNotDummy))
         ..addAction() ->
             unit u = GetTriggerUnit()
             MyTextTag tt = MyTextTag.getUnitTextTag(u)

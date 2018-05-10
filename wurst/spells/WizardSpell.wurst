@@ -3,6 +3,7 @@ package WizardSpell
 // Standard imports
 
 // Custom imports
+import Dummys
 import Spells
 
 /** Describes a school of magic */
@@ -42,14 +43,12 @@ public class WizardSpell extends Spell
         super(abilityId, maxLevel, target, order)
         this.school = school
     
-    function getName() returns string
-        return GetAbilityName(this.abilityId)
-
     function getColoredName() returns string
         return "{1}{0}|r".format(this.getName(), this.school.getColor().toColorString())
 
     // ======== WIZARD SPELL BOOK DIRECTORY ========
-    constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "", SpellSchool.INVOCATION)
+    constant static WizardSpell ARME_ENFLAMMEE                      = new WizardSpell('A009', 20, TargetType.UNIT    , "", SpellSchool.ABJURATION)
+    constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "", SpellSchool.TRANSMUTATION)
     constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.EVOCATION)
     constant static WizardSpell CONE_FROID                          = new WizardSpell('A00W', 20, TargetType.LOCATION, "carrionswarm", SpellSchool.EVOCATION)
     constant static WizardSpell DILATATION_TEMPORELLE               = new WizardSpell('A01F', 20, TargetType.LOCATION, "", SpellSchool.TRANSMUTATION)
@@ -61,8 +60,31 @@ public class WizardSpell extends Spell
     constant static WizardSpell NUAGE_MORTEL                        = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUAGE_PUANT                         = new WizardSpell('A005', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUEE_METEORES                       = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION)
-    constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A006', 20, TargetType.UNIT    , "bidon", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell PEAU_ECORCE                         = new WizardSpell('A007', 20, TargetType.UNIT    , "charm", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A006', 20, TargetType.UNIT    , "chainlightning", SpellSchool.TRANSMUTATION)
     constant static WizardSpell PROJECTILE_MAGIQUE                  = new WizardSpell('A004', 20, TargetType.UNIT    , "creepthunderbolt", SpellSchool.EVOCATION)
     constant static WizardSpell RENVOI_SORTS                        = new WizardSpell('A00I', 20, TargetType.UNIT    , "", SpellSchool.ABJURATION)
     constant static WizardSpell TOILES_ARAIGNEE                     = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION)
     constant static WizardSpell TRANSMUTATION_CHAIR_PIERRE          = new WizardSpell('A00E', 20, TargetType.UNIT    , "", SpellSchool.TRANSMUTATION)
+
+// Functions
+init
+    // Check dummy spells order strings
+    vec2 targetLoc = ZERO2
+    for Spell spell in Spell.LIST
+        //if spell instanceof DummySpell
+        if spell.order.isNotBlank()
+            //DummySpell dummySpell = spell castTo DummySpell
+            switch spell.target
+                case PASSIVE // Nothing to do
+                case NONE
+                    if not spell.cast(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, 1)
+                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
+                case LOCATION
+                    if not spell.castPoint(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetLoc, 1)
+                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
+                default
+                    unit targetUnit = CreateUnit(players[PLAYER_NEUTRAL_PASSIVE], DUMMY_TYPE_ID_VISIBLE, targetLoc.x, targetLoc.y, 0.0)
+                    if not spell.castUnit(players[PLAYER_NEUTRAL_PASSIVE], targetLoc, targetUnit, 1)
+                        Log.error("Spell order string might be wrong : " + GetAbilityName(spell.abilityId) + " => " + spell.order + " ?")
+                    targetUnit.setTimedLife(10.0)

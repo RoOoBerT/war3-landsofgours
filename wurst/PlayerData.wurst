@@ -67,12 +67,16 @@ public class PlayerData
 
     /** Mapping of ALL players */
     protected static constant HashMap<int, PlayerData> MAP = new HashMap<int, PlayerData>
+    protected static constant HashMap<unit, PlayerData> CHARACTERS_MAPS = new HashMap<unit, PlayerData>
 
     static function get(int index) returns PlayerData
         return MAP.get(index)
     
     static function get(player p) returns PlayerData
         return MAP.get(p.getId())
+    
+    static function get(unit character) returns PlayerData
+        return CHARACTERS_MAPS.get(character)
 
 // Functions
 /** Display a message of a certain type to a specific player */
@@ -108,7 +112,9 @@ function onCharacterSelected(unit _seller, unit character)
 
     // Register the selected character for this player
     player owner = character.getOwner()
-    PlayerData.get(owner).setCharacter(character)
+    let pd = PlayerData.get(owner)
+    pd.setCharacter(character)
+    PlayerData.CHARACTERS_MAPS.put(character, pd)
 
     // Move the picked character
     vec2 direction = character.getPos().polarOffset(0.0.asAngleDegrees(), 512.0)
@@ -160,26 +166,22 @@ init
 
     // Initialization
     PlayerData.ACTIVE_PLAYERS.forEach() p ->
-        // Set PlayerData properties
+        // Set player properties
         //p.setState(PLAYER_STATE_RESOURCE_FOOD_CAP, 1)
-        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_HELP_REQUEST, true)
-        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_HELP_RESPONSE, true)
-        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_SHARED_VISION, true)
-        SetPlayerAlliance(p, PLAYER_COLONS, ALLIANCE_PASSIVE, true)
+        p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_HELP_RESPONSE, true)
+        p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_HELP_RESPONSE, true)
+        p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_SHARED_VISION, true)
+        p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_PASSIVE, true)
 
-        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_HELP_REQUEST, false)
-        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_HELP_RESPONSE, false)
-        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_SHARED_VISION, false)
-        SetPlayerAlliance(p, PLAYER_GOURS_NEUTRAL, ALLIANCE_PASSIVE, true)
+        p.setPlayerAlliance(PLAYER_GOURS_NEUTRAL, ALLIANCE_HELP_REQUEST, false)
+        p.setPlayerAlliance(PLAYER_GOURS_NEUTRAL, ALLIANCE_HELP_RESPONSE, false)
+        p.setPlayerAlliance(PLAYER_GOURS_NEUTRAL, ALLIANCE_SHARED_VISION, false)
+        p.setPlayerAlliance(PLAYER_GOURS_NEUTRAL, ALLIANCE_PASSIVE, true)
 
-        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_HELP_REQUEST, false)
-        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_HELP_RESPONSE, false)
-        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_SHARED_VISION, false)
-        SetPlayerAlliance(p, PLAYER_GOURS_HOSTILE, ALLIANCE_PASSIVE, false)
-        
-        //Joueur - Make (Player((Integer A))) treat Joueur 22 (Neige) as an AlliÃ©
-        //Joueur - Make (Player((Integer A))) treat Joueur 23 (Ã‰meraude) as an Neutre
-        //Joueur - Make (Player((Integer A))) treat Joueur 24 (Bois) as an Ennemi
+        p.setPlayerAlliance(PLAYER_GOURS_HOSTILE, ALLIANCE_HELP_REQUEST, false)
+        p.setPlayerAlliance(PLAYER_GOURS_HOSTILE, ALLIANCE_HELP_RESPONSE, false)
+        p.setPlayerAlliance(PLAYER_GOURS_HOSTILE, ALLIANCE_SHARED_VISION, false)
+        p.setPlayerAlliance(PLAYER_GOURS_HOSTILE, ALLIANCE_PASSIVE, false)
 
         // Create a soul to select class
         createUnit(p, 'h002', p.getStartLocation(), 180.0.asAngleDegrees())

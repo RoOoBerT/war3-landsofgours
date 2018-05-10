@@ -19,8 +19,16 @@ import UnitsBuffs
 import WizardSpell
 
 init
+    // ARME_ENFLAMMEE
+    registerSpellEffectEvent(WizardSpell.ARME_ENFLAMMEE.abilityId) ->
+        unit target = GetSpellTargetUnit()
+        unit emitter = GetTriggerUnit()
+        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
+        real duration = 20 + level * 2.5
+        
+        AllUnitsBuffs.addBuffTimed(target, BUFF_ARME_ENFLAMMEE, duration)
 
-    // BAIES_NOURRICIERES     
+    // BAIES_NOURRICIERES
     registerSpellEffectEvent(WizardSpell.BAIES_NOURRICIERES.abilityId) ->
         unit emitter = GetTriggerUnit()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
@@ -35,12 +43,6 @@ init
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real duration = 15.0 + level
 
-        ConeUnitHandler enterConeHandler = (cone, who) ->
-            Log.debug("Unit entered cone effect : " + who.getName())
-
-        ConeUnitHandler leaveConeHandler = (cone, who) ->
-            Log.debug("Unit left cone effect : " + who.getName())
-
         ConicWaveGraphics head = new ConicWaveGraphics(Abilities.zigguratFrostMissile, 0.4, 64)
         new ConeEffect(duration, target.getPos().withZ(0.0), emitter, target)
                 ..setSpreadAngle(360.0.asAngleDegrees())
@@ -48,8 +50,8 @@ init
                 ..setHeadPropagationSpeed(vec2(128, 1))
                 ..setQueue(null)
                 ..setHead(head)
-                ..setUnitEnteringHandler(enterConeHandler)
-                ..setUnitLeavingHandler(leaveConeHandler)
+                ..setUnitEnteringHandler(null)
+                ..setUnitLeavingHandler(null)
                 ..start()
 
     // CONE_FROID
@@ -61,14 +63,13 @@ init
         real range = 384.0 + level * 32
         real duration = 10.0
         
-        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.2, 45)
-        //ConicWaveGraphics head = new ConicWaveGraphics(Abilities.frostWyrmMissile, 0.25, 64)
+        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.2, 60)
         let cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
                 ..setSpreadAngle(45.0.asAngleDegrees())
-                ..setQueuePropagationSpeed(vec2(32, 0))
-                ..setHeadPropagationSpeed(vec2(32, speed))
+                ..setQueuePropagationSpeed(vec2(48, 0))
+                ..setHeadPropagationSpeed(vec2(48, speed))
                 ..setQueue(queue)
                 ..setHead(null)
                 ..start()
@@ -89,7 +90,6 @@ init
     // FEU_SOLAIRE
     registerSpellEffectEvent(WizardSpell.FEU_SOLAIRE.abilityId) ->
         unit emitter = GetTriggerUnit()
-        //vec2 target = getSpellTargetPos()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real speed = 512
         real range = 256.0 + level * 32
@@ -152,20 +152,28 @@ init
     // HATE
     registerSpellEffectEvent(WizardSpell.HATE.abilityId) ->
         unit emitter = GetTriggerUnit()
-        //vec2 target = getSpellTargetPos()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real speed = 512
         real range = 384.0 + level * 32
-        real duration = 1.0
+        real graphicsDuration = range / speed
+        real duration = 12.0 + level * 2
         
+        // Buff : hate
+        AllUnitsBuffs.addBuffTimed(emitter, BUFF_HATE, duration)
+        ConeUnitHandler hateHandler = (ConeEffect cone, unit who) ->
+            AllUnitsBuffs.addBuffTimed(who, BUFF_HATE, duration)
+            skip
+
+        // Visual effect
         ConicWaveGraphics head = new ConicWaveGraphics(Abilities.devourEffectArt, 0.1, 64)
-        new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
+        new ConeEffect(graphicsDuration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setMaxRange(range)
                 ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setQueuePropagationSpeed(vec2(32, speed))
+                ..setQueuePropagationSpeed(vec2(0, 0))
                 ..setHeadPropagationSpeed(vec2(32, speed))
                 ..setQueue(null)
                 ..setHead(head)
+                ..setUnitEnteringHandler(hateHandler)
                 ..start()
 
     // INCINERATEUR_AGANAZZAR
@@ -260,7 +268,7 @@ init
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real duration = 30 + level * 2.5
         
-        AllUnitsBuffs.addBuffTimed(target, BUFF_TYPE_PEAU_PIERRE, duration)
+        AllUnitsBuffs.addBuffTimed(target, BUFF_PEAU_PIERRE, duration)
 
     // PROJECTILE_MAGIQUE
     // RENVOI_SORTS

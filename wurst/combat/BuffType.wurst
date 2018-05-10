@@ -101,6 +101,12 @@ public class BuffType
 
     function setDamage(DamageClass damageClass, real damage)
         this.damageMaps.put(damageClass, damage)
+
+    function getDamage(DamageClass damageClass) returns real
+        if not this.damageMaps.has(damageClass)
+            return 0.0
+        
+        return this.damageMaps.get(damageClass)
     
     function setAttackSpeed(real attackSpeed)
         this.attackSpeed = attackSpeed
@@ -119,6 +125,12 @@ public class BuffType
         for DamageClass damageClass in damageFamily.list
             this.resistanceMaps.put(damageClass, resistance)
 
+    function getResistance(DamageClass damageClass) returns real
+        if not this.resistanceMaps.has(damageClass)
+            return 0.0
+        
+        return this.resistanceMaps.get(damageClass)
+
     function setEvasion(real evasion)
         this.evasion = evasion
 
@@ -128,14 +140,14 @@ public class BuffType
 
     // Operators
     /** Decrements the stats of this buff by the stats of the provided buff */
-    function subtract(BuffType subWhat)
-        add(subWhat, -1)
+    function modifySubtract(BuffType subWhat)
+        modify(subWhat, -1)
 
     /** Increments the stats of this buff with the stats of the provided buff */
-    function add(BuffType addWhat)
-        add(addWhat, 1)
+    function modifyAdd(BuffType addWhat)
+        modify(addWhat, 1)
 
-    function add(BuffType addWhat, int multiplier)
+    function modify(BuffType addWhat, int multiplier)
         this.moveSpeed    += (addWhat.moveSpeed   * multiplier)
         this.life         += (addWhat.life        * multiplier)
         this.mana         += (addWhat.mana        * multiplier)
@@ -164,6 +176,7 @@ public class BuffType
             newValue += map.get(damageClass)
         map.put(damageClass, newValue)
 
+    /** Returns a detailed text with all data stored in this object */
     function toDetailedString(boolean showEmpty) returns string
         string humanReadableOutput = ""
 
@@ -218,7 +231,7 @@ public class BuffType
 
     // Test addition
     BuffType sum = new BuffType(0, "C = A + B")
-    sum..add(a)..add(b)
+    sum..modifyAdd(a)..modifyAdd(b)
     
     sum.size.assertEquals(0)
     sum.life.assertEquals(4)
@@ -228,10 +241,20 @@ public class BuffType
     
     // Test substraction
     BuffType difference = new BuffType(0, "D = A - B")
-    difference..add(a)..subtract(b)
+    difference..modifyAdd(b)
     
     difference.size.assertEquals(2)
     difference.life.assertEquals(0)
     difference.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(6)
     difference.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(2)
     difference.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(6)
+
+    // Test zero
+    BuffType zero = new BuffType(0, "zero = A - A")
+    zero..modify(a, 0)
+    
+    zero.size.assertEquals(0)
+    zero.life.assertEquals(0)
+    zero.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(0)
+    zero.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(0)
+    zero.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(0)
