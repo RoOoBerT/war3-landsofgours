@@ -2,7 +2,6 @@ package DotEffect
 
 // Standard imports
 import ClosureTimers
-import ClosureForGroups
 import LinkedList
 
 // Custom imports

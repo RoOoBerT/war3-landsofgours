@@ -134,6 +134,10 @@ public abstract class Adventure
     /** Position every player's character */
     function setup() returns AdventureStartLocation
         Log.debug("Setup " + this.toString())
+        // Configure shared view with team
+        for player p in PlayerData.ACTIVE_PLAYERS
+            PLAYER_COLONS.setPlayerAlliance(p, ALLIANCE_SHARED_VISION, false)
+
         // Position creatures
         for AdventureCreatureGroup creatureGroup in this.creatureGroups
             creatureGroup.getCreatureGroupType().spawn(this.allUnits, creatureGroup.getPosition(), creatureGroup.getOrientation())
@@ -159,7 +163,6 @@ public abstract class Adventure
             position = position.polarOffset(startLocation.getOrientation(), 32.0)
 
         return startLocation
-        //return null
 
     /** Cleanup the adventure */
     function cleanup()

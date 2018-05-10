@@ -1,6 +1,7 @@
 package Town
 
 // Standard imports
+import Assets
 import ClosureTimers
 
 // Custom imports
@@ -30,7 +31,7 @@ public function onUnitReadyToLeaveTown(unit who)
         pd.setReady(true)
         if isEveryPlayerReadyToLeaveTown()
             // Start the next adventure !
-            CinematicFadeBJ( bj_CINEFADETYPE_FADEOUT, 2.0, "ReplaceableTextures\\CameraMasks\\White_mask.blp", 0, 0, 0, 0)
+            CinematicFadeBJ( bj_CINEFADETYPE_FADEOUT, 2.0, Textures.white_mask, 0, 0, 0, 0)
             //FIXME Race condition if unit leaves and comes again within 2s
             doAfter(2.0) ->
                 AdventureManager.runRandom()

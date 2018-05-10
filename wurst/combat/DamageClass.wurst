@@ -66,7 +66,7 @@ public class DamageClass
     static constant DamageClass DAMAGE_FROID      = new DamageClass("Froid"     , color(32, 32, 255), DamageFamily.FAMILY_ELEMENTAIRE)
 
     static constant DamageClass DAMAGE_LUMIERE    = new DamageClass("Lumiere"   , color(255, 255, 255), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_MORT       = new DamageClass("Mort"      , color(32, 32, 32), DamageFamily.FAMILY_BIOLOGIQUE)
+    static constant DamageClass DAMAGE_MORT       = new DamageClass("Mort"      , color(0, 0, 0), DamageFamily.FAMILY_BIOLOGIQUE)
     static constant DamageClass DAMAGE_POISON     = new DamageClass("Poison"    , color(32, 255, 32), DamageFamily.FAMILY_BIOLOGIQUE)
     static constant DamageClass DAMAGE_PSYCHIQUE  = new DamageClass("Psychique" , color(255, 32, 255), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_SON        = new DamageClass("Son"       , color(92, 32, 0), DamageFamily.FAMILY_BIOLOGIQUE)
+    static constant DamageClass DAMAGE_SON        = new DamageClass("Son"       , color(139, 69, 19), DamageFamily.FAMILY_BIOLOGIQUE)
