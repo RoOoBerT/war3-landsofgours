@@ -1,10 +1,10 @@
 package BuffType
 
 // Standard imports
-import HashMap
+import BuffObjEditing
 
 // Custom imports
-import BuffObjEditing
+import CreatureStats
 import public DamageClass
 
 /** Represents a type of buff */
@@ -19,10 +19,14 @@ public class BuffType
     /** Name of the buff (informational) */
     constant string name
 
-    // Effect properties
+    // Graphical properties
     constant string effectPath = ""
     constant string effectAttachPoint = "origin"
     constant real effectPeriod = 0.0
+
+    // Stats modifiers
+    CreatureStats addedStatsModifiers = new CreatureStats()
+    CreatureStats addedPercentStatsModifiers = new CreatureStats()
 
     construct(int id, string name)
         this.id = id
@@ -57,204 +61,16 @@ public class BuffType
         this.effectPath = effectPath
         this.effectAttachPoint = effectAttachPoint
         this.effectPeriod = effectPeriod
-        
-    // General
-    real moveSpeed = 0.0
-    real life = 0.0
-    real mana = 0.0
-    real lifeRegen = 0.0
-    real manaRegen = 0.0
 
-    // Attacking
-    constant HashMap<DamageClass, real> damageMaps = new HashMap<DamageClass, real>()
-    real attackSpeed = 0.0
-    real range = 0.0
-    real accuracy = 0.0
+    // Accessors/modifiers
+    function setAddedStatsModifiers(CreatureStats addedStatsModifiers)
+        this.addedStatsModifiers = addedStatsModifiers
 
-    // Defending
-    constant HashMap<DamageClass, real> resistanceMaps = new HashMap<DamageClass, real>()
-    real evasion = 0.0
+    function getAddedStatsModifiers() returns CreatureStats
+        return this.addedStatsModifiers
 
-    // Graphics
-    real size = 0.0
+    function setAddedPercentStatsModifiers(CreatureStats addedPercentStatsModifiers)
+        this.addedPercentStatsModifiers = addedPercentStatsModifiers
 
-    // Accessors/Modifiers
-    function setMoveSpeed(real moveSpeed)
-        this.moveSpeed = moveSpeed
-    
-    function setLife(real life)
-        this.life = life
-    
-    function setMana(real mana)
-        this.mana = mana
-
-    function setLifeRegen(real lifeRegen)
-        this.lifeRegen = lifeRegen
-
-    function setManaRegen(real manaRegen)
-        this.manaRegen = manaRegen
-
-    // Attacking
-    function setDamage(DamageFamily damageFamily, real damage)
-        for DamageClass damageClass in damageFamily.list
-            this.damageMaps.put(damageClass, damage)
-
-    function setDamage(DamageClass damageClass, real damage)
-        this.damageMaps.put(damageClass, damage)
-
-    function getDamage(DamageClass damageClass) returns real
-        if not this.damageMaps.has(damageClass)
-            return 0.0
-        
-        return this.damageMaps.get(damageClass)
-    
-    function setAttackSpeed(real attackSpeed)
-        this.attackSpeed = attackSpeed
-    
-    function setRange(real range)
-        this.range = range
-
-    function setAccuracy(real accuracy)
-        this.accuracy = accuracy
-
-    // Defending
-    function setResistance(DamageClass damageClass, real resistance)
-        this.resistanceMaps.put(damageClass, resistance)
-
-    function setResistance(DamageFamily damageFamily, real resistance)
-        for DamageClass damageClass in damageFamily.list
-            this.resistanceMaps.put(damageClass, resistance)
-
-    function getResistance(DamageClass damageClass) returns real
-        if not this.resistanceMaps.has(damageClass)
-            return 0.0
-        
-        return this.resistanceMaps.get(damageClass)
-
-    function setEvasion(real evasion)
-        this.evasion = evasion
-
-    // Graphics
-    function setSize(real size)
-        this.size = size
-
-    // Operators
-    /** Decrements the stats of this buff by the stats of the provided buff */
-    function modifySubtract(BuffType subWhat)
-        modify(subWhat, -1)
-
-    /** Increments the stats of this buff with the stats of the provided buff */
-    function modifyAdd(BuffType addWhat)
-        modify(addWhat, 1)
-
-    function modify(BuffType addWhat, int multiplier)
-        this.moveSpeed    += (addWhat.moveSpeed   * multiplier)
-        this.life         += (addWhat.life        * multiplier)
-        this.mana         += (addWhat.mana        * multiplier)
-        this.lifeRegen    += (addWhat.lifeRegen   * multiplier)
-        this.manaRegen    += (addWhat.manaRegen   * multiplier)
-        this.attackSpeed  += (addWhat.attackSpeed * multiplier)
-        this.range        += (addWhat.range       * multiplier)
-        this.accuracy     += (addWhat.accuracy    * multiplier)
-        this.evasion      += (addWhat.evasion     * multiplier)
-        this.size         += (addWhat.size        * multiplier)
-
-        for DamageClass damageClass in DamageClass.LIST
-            // Damage maps
-            if addWhat.damageMaps.has(damageClass)
-                real amount = multiplier * addWhat.damageMaps.get(damageClass)
-                mapAdd(this.damageMaps, damageClass, amount)
-
-            // Resistance maps
-            if addWhat.resistanceMaps.has(damageClass)
-                real amount = multiplier * addWhat.resistanceMaps.get(damageClass)
-                mapAdd(this.resistanceMaps, damageClass, amount)
-
-    private static function mapAdd(HashMap<DamageClass, real> map, DamageClass damageClass, real amount)
-        real newValue = amount
-        if map.has(damageClass)
-            newValue += map.get(damageClass)
-        map.put(damageClass, newValue)
-
-    /** Returns a detailed text with all data stored in this object */
-    function toDetailedString(boolean showEmpty) returns string
-        string humanReadableOutput = ""
-
-        if showEmpty or 0.0 != this.moveSpeed
-            humanReadableOutput += " | Vitesse de déplacement : {0}".format(this.moveSpeed.toString())
-        if showEmpty or 0.0 != this.life       
-            humanReadableOutput += " | Vie : {0}".format(this.life.toString())
-        if showEmpty or 0.0 != this.mana       
-            humanReadableOutput += " | Mana : {0}".format(this.mana.toString())
-        if showEmpty or 0.0 != this.lifeRegen  
-            humanReadableOutput += " | Régénération vie : {0}".format(this.lifeRegen.toString())
-        if showEmpty or 0.0 != this.manaRegen  
-            humanReadableOutput += " | Régénération mana : {0}".format(this.manaRegen.toString())
-        if showEmpty or 0.0 != this.attackSpeed
-            humanReadableOutput += " | Vitesse d'attaque : {0}".format(this.attackSpeed.toString())
-        if showEmpty or 0.0 != this.range      
-            humanReadableOutput += " | Portee : {0}".format(this.range.toString())
-        if showEmpty or 0.0 != this.accuracy   
-            humanReadableOutput += " | Precision : {0}".format(this.accuracy.toString())
-        if showEmpty or 0.0 != this.evasion    
-            humanReadableOutput += " | Esquive : {0}".format(this.evasion.toString())
-        if showEmpty or 0.0 != this.size       
-            humanReadableOutput += " | Taille : {0}".format(this.size.toString())
-
-        for DamageClass damageClass in DamageClass.LIST
-            real damage = 0.0
-            if this.damageMaps.has(damageClass)
-                damage = this.damageMaps.get(damageClass)
-            if showEmpty or damage != 0.0
-                humanReadableOutput += " | Dommages {1} : {0}".format(damage.toString(), damageClass.getColoredName())
-            
-            real resistance = 0.0
-            if this.resistanceMaps.has(damageClass)
-                resistance = this.resistanceMaps.get(damageClass)
-            if showEmpty or resistance != 0.0
-                humanReadableOutput += " | Résistance {1} : {0}".format(resistance.toString(), damageClass.getColoredName())
-        
-        return humanReadableOutput
-
-@Test function testAddBuffs()
-    BuffType a = new BuffType(0, "A")
-    a.size = 1
-    a.life = 2
-    a.damageMaps.put(DamageClass.DAMAGE_CONTONDANT, 6)
-    a.damageMaps.put(DamageClass.DAMAGE_FEU, 3)
-    
-    BuffType b = new BuffType(0, "B")
-    b.size = -1
-    b.life = 2
-    b.damageMaps.put(DamageClass.DAMAGE_FEU, 1)
-    b.damageMaps.put(DamageClass.DAMAGE_PSYCHIQUE, -6)
-
-    // Test addition
-    BuffType sum = new BuffType(0, "C = A + B")
-    sum..modifyAdd(a)..modifyAdd(b)
-    
-    sum.size.assertEquals(0)
-    sum.life.assertEquals(4)
-    sum.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(6)
-    sum.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(4)
-    sum.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(-6)
-    
-    // Test substraction
-    BuffType difference = new BuffType(0, "D = A - B")
-    difference..modifyAdd(b)
-    
-    difference.size.assertEquals(2)
-    difference.life.assertEquals(0)
-    difference.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(6)
-    difference.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(2)
-    difference.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(6)
-
-    // Test zero
-    BuffType zero = new BuffType(0, "zero = A - A")
-    zero..modify(a, 0)
-    
-    zero.size.assertEquals(0)
-    zero.life.assertEquals(0)
-    zero.damageMaps.get(DamageClass.DAMAGE_CONTONDANT).assertEquals(0)
-    zero.damageMaps.get(DamageClass.DAMAGE_FEU).assertEquals(0)
-    zero.damageMaps.get(DamageClass.DAMAGE_PSYCHIQUE).assertEquals(0)
+    function getAddedPercentStatsModifiers() returns CreatureStats
+        return this.addedPercentStatsModifiers

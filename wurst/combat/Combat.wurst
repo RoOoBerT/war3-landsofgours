@@ -9,6 +9,7 @@ import RegisterEvents
 
 // Custom imports
 import CharacterClass
+import CreatureStats
 import ItemTypeArrows
 import ItemTypeBow
 import Musics
@@ -67,12 +68,13 @@ public function generateArrowFromUnit(unit attacker, unit target, ItemTypeArrows
         let customImpactHandler = arrows.getCustomImpactHandler()
         if customImpactHandler == null
             // Do the standard impact handling for arrows
+            CreatureStats statsAdded = AllUnitsBuffs.getStatsAdded(attacker)
 
             // Is there a radius of effect ?
             real impactRadius = arrows.getImpactRadius()
             if impactRadius > 0
                 forUnitsInRange(impactPoint.toVec2(), impactRadius) u ->
-                    onUnitPhysicalAttack(attacker, AllUnitsBuffs.getTotalBuffs(attacker), target)
+                    onUnitPhysicalAttack(attacker, statsAdded, target)
         else
             // Call the custom impact handler
             customImpactHandler.onImpact(impactPoint)
@@ -134,19 +136,19 @@ public function onUnitAttackWithBow(unit attacker, unit target)
 /** When a unit emits a "game" instant attack (delayed).
 The specified modifiers of the attacker should be used. */
 public function onUnitInstantPhysicalAttack(unit attacker, unit target)
-    BuffType attackerModifiers = AllUnitsBuffs.getTotalBuffs(attacker)
-    onUnitPhysicalAttack(attacker, attackerModifiers, target)
+    CreatureStats statsAdded = AllUnitsBuffs.getStatsAdded(attacker)
+    onUnitPhysicalAttack(attacker, statsAdded, target)
 
 /** When a unit emits a "game" instant attack (melee).
 The instant modifiers (buffs) of the attacker should be used. */
-public function onUnitPhysicalAttack(unit attacker, BuffType attackerModifiers, unit target)
+public function onUnitPhysicalAttack(unit attacker, CreatureStats statsAdded, unit target)
     // Check the stats of the attacker and the defender
-    BuffType targetModifiers = AllUnitsBuffs.getTotalBuffs(target)
+    CreatureStats targetStatsAdded = AllUnitsBuffs.getStatsAdded(attacker)
 
     for DamageClass damageClass in DamageClass.LIST
-        real damageOfType = attackerModifiers.getDamage(damageClass)
+        real damageOfType = statsAdded.getDamage(damageClass)
         if damageOfType != 0
-            real resistanceOfType = targetModifiers.getResistance(damageClass)
+            real resistanceOfType = targetStatsAdded.getResistance(damageClass)
             damageOfType *= (1 - resistanceOfType)
 
         if damageOfType != 0

@@ -42,7 +42,7 @@ public class SpellSchool
     static constant ENTROPIE = new SpellSchool("Entropie", color(255, 255, 0), Icons.bTNScatterRockets)
     static constant EVOCATION = new SpellSchool("Evocation", color(255, 0, 0), Icons.bTNPurge)
     static constant INVOCATION = new SpellSchool("Invocation", color(0, 255, 0), Icons.bTNSpiritLink)
-    static constant NECROMANCIE = new SpellSchool("Nécromancie", color (32, 32, 32), Icons.bTNSacrificialSkull)
+    static constant NECROMANCIE = new SpellSchool("Nécromancie", color (32, 32, 32), Icons.bTNOrbOfCorruption)
     static constant TRANSMUTATION = new SpellSchool("Transmutation", color(255, 128, 0), Icons.bTNPolymorph)
     
 /** Describes a wizard spell, associated to a specific school and learnable with a scroll */

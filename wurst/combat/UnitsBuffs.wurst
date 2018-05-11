@@ -10,10 +10,11 @@ import LinkedList
 // Custom imports
 import public BuffType
 import BuffTypesImplementation
+import CreatureStats
 import DilatableTime
 import Dummys
 
-constant real BUFFS_UPDATE_PERIOD = 0.5 //ANIMATION_PERIOD
+constant real BUFFS_UPDATE_PERIOD = 2.5 //ANIMATION_PERIOD
 
 constant real BUFF_ENDTIME_NEVER = 0.0
 
@@ -39,12 +40,12 @@ class UnitBuff
     //private boolean stop = false
 
     construct(BuffType buffType, unit target, real duration)
+        REF_COUNTER++
         this.buffType = buffType
         this.target = target
         this.beginTime = TimeDilatation.getModifiedTime(this.target.getPos3Real())
         if duration != BUFF_DURATION_INFINITE
             this.endTime = this.beginTime + duration
-        REF_COUNTER++
 
     // Accessors
     function getBuffType() returns BuffType
@@ -60,9 +61,10 @@ class UnitBuff
         return finished
 
     ondestroy
+        REF_COUNTER--
         if lastEffect != null
             lastEffect.destr()
-        REF_COUNTER--
+
 
 /** Represents the list of buffs currently linked to a unit */
 class UnitBuffs
@@ -73,14 +75,17 @@ class UnitBuffs
     private constant HashList<int> buffsById = new HashList<int>()
 
     /** Contains the total of all modifiers for this unit */
-    private constant BuffType totalBuff = new BuffType(0, "Computed virtual total buff")
+    private constant CreatureStats totalStatsAdded = new CreatureStats()
+
+    /** Contains the total of all modifiers for this unit */
+    private constant CreatureStats totalStatsAddedPercent = new CreatureStats()
 
     construct(unit who)
+        REF_COUNTER++
         if isDummyUnit(who)
             Log.error("Buff(s) handled for dummy unit ! Pinging position !" )
             PingMinimap(who.getX(), who.getY(), 5.0)
         this.who = who
-        REF_COUNTER++
 
     ondestroy
         REF_COUNTER--
@@ -90,11 +95,11 @@ class UnitBuffs
         destroy this.buffsById
 
     private function refreshUnitStatus()
-        this.who.setMoveSpeed(this.who.getDefaultMovespeed() * (1 + totalBuff.moveSpeed))
+        /*this.who.setMoveSpeed(this.who.getDefaultMovespeed() * (1 + totalBuff.get))
 
         // FIXME this.who.setBaseDamage(totalBuff.getDamage(DamageClass.DAMAGE_CONTONDANT).round(), 0)
         this.who.setScale(1.0 + totalBuff.size)
-        this.who.setMaxHP(100 + totalBuff.life.round())
+        this.who.setMaxHP(100 + totalBuff.life.round())*/
 
     function addBuff(BuffType buffType, real duration) returns boolean
         // Security test for debugging
@@ -117,7 +122,8 @@ class UnitBuffs
 
         UnitBuff newBuff = new UnitBuff(buffType, this.who, duration)
         this.buffs.add(newBuff)
-        this.totalBuff.modifyAdd(buffType)
+        this.totalStatsAdded.modifyAdd(buffType.getAddedStatsModifiers())
+        this.totalStatsAddedPercent.modifyAdd(buffType.getAddedPercentStatsModifiers())
 
         // Is there an effect to show periodically ?
         if buffType.effectPath.isNotBlank()
@@ -160,7 +166,8 @@ class UnitBuffs
                     if unitBuff.getBuffType().id == id
                         destroy unitBuff
                         iter.remove()
-                        this.totalBuff.modifySubtract(unitBuff.getBuffType())
+                        this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
+                        this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
                         break
             else
                 // Buff not present : nothing to do
@@ -173,7 +180,8 @@ class UnitBuffs
                 if unitBuff.getBuffType().id == buffType.id
                     this.buffsById.remove(unitBuff.getBuffType().id)
                     iter.remove()
-                    this.totalBuff.modifySubtract(unitBuff.getBuffType())
+                    this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
+                    this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
                     // FIXME maybe ajust return value ?
 
         // Is there a buff icon to hide ?
@@ -189,7 +197,8 @@ class UnitBuffs
             // Has this buff finished ?
             if unitBuff.isFinished()
                 iter.remove()
-                this.totalBuff.modifySubtract(unitBuff.getBuffType())
+                this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
+                this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
 
                 //Log.trace("Buff disappeared from unit '" + this.who.getName() + "' : '" + unitBuff.getBuffType().name + "'")
                 int id = unitBuff.getBuffType().id
@@ -221,13 +230,15 @@ class UnitBuffs
             destroy unitBuff*/
 
     // Accessors
-    function getSumBuff() returns BuffType
-        return this.totalBuff
+    function getTotalStatsAdded() returns CreatureStats
+        return this.totalStatsAdded
+
+    function getTotalStatsAddedPercent() returns CreatureStats
+        return this.totalStatsAddedPercent
 
     function getUnit() returns unit
         return this.who
 
-    
 
 /** Class for handling all buffs of the game */
 public class AllUnitsBuffs
@@ -264,7 +275,7 @@ public class AllUnitsBuffs
         if isDummyUnit(target)
             Log.error("getTotalBuffs called for Dummy unit !")
             return null
-        return getUnitBuffs(target).getSumBuff()
+        return getUnitBuffs(target).getTotalStatsAddedPercent()
     
     /*@deprecated("Bad idea to access the internal list... Try to avoid using this method as possible")
     private static function getAllBuffs(unit target) returns LinkedList<UnitBuff>

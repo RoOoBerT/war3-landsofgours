@@ -300,10 +300,13 @@ class CommandStats extends Command
         group selectedUnits = CreateGroup()
         GroupEnumUnitsSelected(selectedUnits, who, null)
 
-        displayMessage(MessageType.INFO, who, 10, "Showing selected units stats...")
+        displayMessage(MessageType.INFO, who, 10, "Affichage des stats des unités sélectionnées...")
         for unit u in selectedUnits
-            let detailedStats = AllUnitsBuffs.getTotalBuffs(u).toDetailedString(true)
-            displayMessage(MessageType.INFO, who, 10, "Stats of " + u.getName() + " : " + detailedStats)
+            let detailedStatsAdded = AllUnitsBuffs.getStatsAdded(u).toDetailedString(false, false)
+            displayMessage(MessageType.INFO, who, 10, "Bonus de stats de " + u.getName() + " : " + detailedStatsAdded)
+
+            let detailedStatsAddedPercent = AllUnitsBuffs.getStatsAdded(u).toDetailedString(false, true)
+            displayMessage(MessageType.INFO, who, 10, "Bonus de stats de (en pourcentage) " + u.getName() + " : " + detailedStatsAddedPercent)
 
         // Cleanup
         DestroyGroup(selectedUnits)
