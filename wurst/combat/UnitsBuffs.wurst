@@ -271,7 +271,13 @@ public class AllUnitsBuffs
             return getUnitBuffs(target).hasBuffByType(buffType)
         return false
 
-    static function getTotalBuffs(unit target) returns BuffType
+    static function getStatsAdded(unit target) returns CreatureStats
+        if isDummyUnit(target)
+            Log.error("getStatsAdded called for Dummy unit !")
+            return null
+        return getUnitBuffs(target).getTotalStatsAdded()
+
+    static function getStatsAddedPercent(unit target) returns CreatureStats
         if isDummyUnit(target)
             Log.error("getTotalBuffs called for Dummy unit !")
             return null
