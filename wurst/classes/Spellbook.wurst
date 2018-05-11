@@ -126,7 +126,7 @@ public class SpellbookEntry
             spellBookBoard.getItem(3 + entry.row, entry.column)
                 ..setValue(entry.spell.getName())
                 ..setIcon(entry.spell.getIconPath())
-                ..setStyle(true, true)
+                ..setStyle(false, true)
 
         spellBookBoard.setItemsWidth(0.125)
         spellBookBoard.display(true)

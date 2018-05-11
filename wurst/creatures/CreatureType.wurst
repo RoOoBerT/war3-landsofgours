@@ -57,4 +57,3 @@ public class CreatureType
     static constant CreatureType ARAIGNEE_NOIRE       = new CreatureType('n00C', CreatureRace.ARACHNID)
     static constant CreatureType ARAIGNEE_VENIMEUSE   = new CreatureType('n00F', CreatureRace.ARACHNID)
     static constant CreatureType BROODMOTHER          = new CreatureType('n00G', CreatureRace.ARACHNID)
-    

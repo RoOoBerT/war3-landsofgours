@@ -25,7 +25,7 @@ public class ItemTypeBow extends ItemType
     
     function getCasterStats() returns BuffType
         return this.casterStats
-
+    
     function getSelfSupplyArrows() returns ItemTypeArrows
         return this.selfSupplyArrows
     
@@ -33,7 +33,9 @@ public class ItemTypeBow extends ItemType
     static constant ItemTypeBow ARC_ELUNE_JOUR = new ItemTypeBow('I015', false, BUFF_EMPTY, null)
     static constant ItemTypeBow ARC_ELUNE_NUIT = new ItemTypeBow('I014', false, BUFF_EMPTY, null)
     static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', false, BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_CYCLONIQUE = new ItemTypeBow('I013', false, BUFF_EMPTY, null)
     static constant ItemTypeBow ARC_SPIRITUEL = new ItemTypeBow('I00Z', false, BUFF_EMPTY, ItemTypeArrows.FLECHES_SPIRITUELLES)
+    static constant ItemTypeBow ARC_TONNERRE = new ItemTypeBow('I016', false, BUFF_EMPTY, null)
 
     // Bow constrictor
     // Robin hood bow
