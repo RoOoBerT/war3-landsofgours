@@ -1,9 +1,11 @@
 package WizardSpell
 
 // Standard imports
+import Assets
 
 // Custom imports
 import Dummys
+import LinkedList
 import public Spells
 
 /** Describes a school of magic */
@@ -11,12 +13,17 @@ public class SpellSchool
     // Properties
     private constant string name
     private constant color col
+    private constant string iconPath
+
+    static constant LinkedList<SpellSchool> LIST = new LinkedList<SpellSchool>
 
     // Functions
-    private construct(string name, color col)
+    private construct(string name, color col, string iconPath)
         this.name = name
         this.col = col
+        this.iconPath = iconPath
         //Log.debug("Ecole de magie : " + this.getColoredName())
+        LIST.add(this)
 
     function getColoredName() returns string
         return this.col.toColorString() + this.name + "|r"
@@ -27,22 +34,28 @@ public class SpellSchool
     function getColor() returns color
         return this.col
     
+    function getIconPath() returns string
+        return this.iconPath
+    
     // Values
-    static constant ABJURATION = new SpellSchool("Abjuration", color(0, 0, 255))
-    static constant ENTROPIE = new SpellSchool("Entropie", color(255, 255, 0))
-    static constant EVOCATION = new SpellSchool("Evocation", color(255, 0, 0))
-    static constant INVOCATION = new SpellSchool("Invocation", color(0, 255, 0))
-    static constant NECROMANCIE = new SpellSchool("Nécromancie", color (32, 32, 32))
-    static constant TRANSMUTATION = new SpellSchool("Transmutation", color(255, 128, 0))
-
+    static constant ABJURATION = new SpellSchool("Abjuration", color(0, 0, 255), Icons.bTNLightningShield)
+    static constant ENTROPIE = new SpellSchool("Entropie", color(255, 255, 0), Icons.bTNScatterRockets)
+    static constant EVOCATION = new SpellSchool("Evocation", color(255, 0, 0), Icons.bTNPurge)
+    static constant INVOCATION = new SpellSchool("Invocation", color(0, 255, 0), Icons.bTNSpiritLink)
+    static constant NECROMANCIE = new SpellSchool("Nécromancie", color (32, 32, 32), Icons.bTNSacrificialSkull)
+    static constant TRANSMUTATION = new SpellSchool("Transmutation", color(255, 128, 0), Icons.bTNPolymorph)
+    
 /** Describes a wizard spell, associated to a specific school and learnable with a scroll */
 public class WizardSpell extends Spell
-    constant SpellSchool school
+    private constant SpellSchool school
 
     private construct(int abilityId, int maxLevel, TargetType target, string order, SpellSchool school)
         super(abilityId, maxLevel, target, order)
         this.school = school
     
+    function getSchool() returns SpellSchool
+        return this.school
+
     function getColoredName() returns string
         return "{1}{0}|r".format(this.getName(), this.school.getColor().toColorString())
 

@@ -30,10 +30,12 @@ public class ItemTypeBow extends ItemType
         return this.selfSupplyArrows
     
     // Bows directory
+    static constant ItemTypeBow ARC_ELUNE_JOUR = new ItemTypeBow('I015', false, BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_ELUNE_NUIT = new ItemTypeBow('I014', false, BUFF_EMPTY, null)
     static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', false, BUFF_EMPTY, null)
     static constant ItemTypeBow ARC_SPIRITUEL = new ItemTypeBow('I00Z', false, BUFF_EMPTY, ItemTypeArrows.FLECHES_SPIRITUELLES)
+
     // Bow constrictor
     // Robin hood bow
-    // Poignes lunaires
     // [MAUDIT] String of Hawkeye : Tire sur les allies
     // Eye of Legolas : True Strike. +% attack speed. +Range.

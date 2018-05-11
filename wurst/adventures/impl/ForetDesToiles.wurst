@@ -9,11 +9,14 @@ import CreatureGroupType
 import CreatureType
 import Initialization
 import Musics
+import PlayerData
 
 /** Represents a simple adventure */
 public class ForetDesToiles extends Adventure
     construct(string name, string description, rect area)
         super(name, description, area)
+
+        let groupTrap1  = new CreatureGroupType()..addSpawn(CreatureType.OEUFS_ARAIGNEE, 1, 1)
 
         // 
         let groupFewSmall  = new CreatureGroupType()..addSpawn(CreatureType.ARAIGNEE_PROGENITURE, 1, 2)
@@ -45,6 +48,8 @@ public class ForetDesToiles extends Adventure
 
         let groupBos       = new CreatureGroupType()..addSpawn(CreatureType.BROODMOTHER, 1)
         
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SMALL_TRAP              , groupTrap1)
+
         this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_SMALL     , groupFewSmall)
         this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_SMALL , groupSevSmall)
         this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_SMALL    , groupManSmall)
@@ -65,6 +70,12 @@ public class ForetDesToiles extends Adventure
                 Music.MUSIC_BGII_IRENICUSBATTLE.loopMusic(false)
 
     override function onUnitDying(unit dying)
+        // Did an egg sack die ?
+        if dying.getTypeId() == CreatureType.OEUFS_ARAIGNEE.getUnitTypeId()
+            for int i = 0 to GetRandomInt(0, 2)
+                let u = createUnit(PLAYER_GOURS_HOSTILE, CreatureType.ARAIGNEE_PROGENITURE.getUnitTypeId(), dying.getPos(), GetRandomReal(0, PI2).asAngleRadians())
+                this.allUnits.addUnit(u)
+
         // Did the boss die ?
         if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
             unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, new GenericUnitFilter(ADVENTURE_EXIT_UNIT_TYPE_ID))

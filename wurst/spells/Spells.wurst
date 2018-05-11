@@ -50,6 +50,9 @@ public class Spell
     // Functions
     function getName() returns string
         return GetAbilityName(this.abilityId)
+    
+    function getIconPath() returns string
+        return BlzGetAbilityIcon(this.abilityId)
 
     // Spells
     static constant Spell INVENTORY_1_6_SLOTS = new Spell('A00J', 6, TargetType.PASSIVE, "")

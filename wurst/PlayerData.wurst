@@ -122,6 +122,7 @@ function onCharacterSelected(unit _seller, unit character)
 
     // Select the character
     owner.selectSingle(character)
+    character.suspendHeroXp(true)
 
     // Check which character class it is
     CharacterClass characterClass = CharacterClass.MAP.get(character.getTypeId())

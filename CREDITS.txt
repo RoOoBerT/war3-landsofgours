@@ -1,0 +1,30 @@
+## Resources
+
+### Musics
+- Auteur? - Baldur's Gate II
+- Jeremy Soule - Neverwinter Nights
+- Jeremy Soule - Neverwinter Nights - Diamond Edition
+
+### Graphics from Hive Workshop
+
+#### Fingolfin
+https://www.hiveworkshop.com/threads/bubble-shield.247462/#resource-35549
+
+#### ApeJI from 
+https://www.hiveworkshop.com/threads/force-shield-no-colour.262815/#resource-36759
+
+#### eubz
+https://www.hiveworkshop.com/threads/arrow-n-quiver.211968/#resource-32536
+
+#### ChevronSeven
+https://www.hiveworkshop.com/threads/btnbowofelunesgrace.56212/#resource-49357
+
+#### Mc !
+https://www.hiveworkshop.com/threads/btnwindsbow.56074/#resource-49219
+
+#### The Panda
+https://www.hiveworkshop.com/threads/btnholybow.261416/#resource-64910
+
+
+https://www.hiveworkshop.com/threads/btnsimplebow.261424/#resource-64912
+https://www.hiveworkshop.com/threads/btnpoisonedarrow.145856/#resource-56287
