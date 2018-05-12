@@ -8,6 +8,7 @@ import LinkedList
 // Custom imports
 import DilatableTime
 import public ImpactHandler
+import Memory
 
 /* 
 A projectile is fired from a gun that is mounted on a cliff above the sea. What is the range of the gun? At what angle should the gun be fired to hit a ship within its range?
@@ -32,6 +33,7 @@ Source : http://www.egwald.ca/geometry/projectile3d.php
 
 /** A projectile object which can be followed over time and emits a notification upon impact */
 public abstract class Projectile
+    private static int REF_COUNTER = 0
     protected constant Fx fx
     protected constant unit emitter
     
@@ -42,11 +44,13 @@ public abstract class Projectile
     protected static constant LinkedList<Projectile> LIST = new LinkedList<Projectile>
     
     construct(unit emitter, string effectPath, vec3 origin)
+        REF_COUNTER++
         this.fx = new Fx(origin.toVec2(), effectPath)
         this.fx.setXYZ(origin, false)
         this.emitter = emitter
     
     ondestroy
+        REF_COUNTER--
         destroy this.fx
     
     // Modifiers
@@ -60,6 +64,9 @@ public abstract class Projectile
     
     /** Update the projectile position and returns true if it exploded */
     abstract function move() returns boolean
+
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("Projectiles", REF_COUNTER, LIST.size())
 
 /** A projectile with a "standard" (hyperbolic) trajectory */
 public class StandardProjectile extends Projectile

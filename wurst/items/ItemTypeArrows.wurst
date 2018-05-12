@@ -1,10 +1,10 @@
 package ItemTypeArrows
 
 // Standard imports
-import Assets
 
 // Custom imports
 import ImpactHandlers
+import Imports
 import public ItemType
 import Projectiles
 

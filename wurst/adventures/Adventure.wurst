@@ -135,7 +135,7 @@ public abstract class Adventure
     function setup() returns AdventureStartLocation
         Log.debug("Setup " + this.toString())
         // Configure shared view with team
-        for player p in PlayerData.ACTIVE_PLAYERS
+        for player p in ACTIVE_PLAYERS
             PLAYER_COLONS.setPlayerAlliance(p, ALLIANCE_SHARED_VISION, false)
 
         // Position creatures
@@ -152,7 +152,7 @@ public abstract class Adventure
         Log.debug("Position players " + this.toString())
         AdventureStartLocation startLocation = this.pickRandomStartLocation()
         vec2 position = startLocation.getPos()
-        for player p in PlayerData.ACTIVE_PLAYERS
+        for player p in ACTIVE_PLAYERS
             let pd = PlayerData.get(p.getId())
             let character = pd.getCharacter()
             character.setPos(position)

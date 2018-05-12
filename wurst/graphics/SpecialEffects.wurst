@@ -1,0 +1,119 @@
+package SpecialEffects
+
+// Standard imports
+import ClosureTimers
+import GameTimer
+import LinkedList
+import Memory
+
+// Custom imports
+import Imports
+
+constant real SPECIAL_EFFECTS_CLEANUP_PERIOD = 0.2
+
+public class SpecialEffect
+    private static int REF_COUNTER = 0
+
+    private constant effect fx
+    private constant real endTime
+
+    static constant LIST = new LinkedList<SpecialEffect>()
+
+    construct(SpecialEffectType fxType, vec2 pos)
+        REF_COUNTER++
+        this.fx = addEffect(fxType.getEffectPath(), pos)
+        this.endTime = getElapsedGameTime() + fxType.getDuration()
+        LIST.add(this)
+
+    construct(SpecialEffectType fxType, unit who, string attachment)
+        REF_COUNTER++
+        this.fx = who.addEffect(fxType.getEffectPath(), attachment)
+        this.endTime = getElapsedGameTime() + fxType.getDuration()
+        LIST.add(this)
+
+    ondestroy
+        REF_COUNTER--
+        this.fx.destr()
+
+    function process() returns boolean
+        // Is it finished ?
+        if getElapsedGameTime() > this.endTime
+            return true
+
+        return false
+
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("Special effects", LIST.size(), REF_COUNTER)
+
+/** One type of special effect with metadata to handle memory management */
+public class SpecialEffectType
+    /** Duration of 3D animation models that have a "death" animation and can be destroyed instantly,
+    without interrupting the effect */
+    static constant real FLASHABLE = 0.0
+
+    /** Path of the special effect */
+    private constant string effectPath
+
+    /** Duration of the effect */
+    private constant real duration = FLASHABLE
+
+    construct(string effectPath)
+        this.effectPath = effectPath
+
+    construct(string effectPath, real duration)
+        this.effectPath = effectPath
+        this.duration = duration
+
+    function getEffectPath() returns string
+        return this.effectPath
+    
+    function getDuration() returns real
+        return this.duration
+
+    /** Creates a special effect at a location and automatically 
+    destroys it later (instantly, if supported by the model). */
+    function flashWithoutLeak(vec2 pos)
+        if this.duration == FLASHABLE
+            flashEffect(this.effectPath, pos)
+        else
+            new SpecialEffect(this, pos)
+
+    /** Attaches a special effect to a unit and automatically 
+    destroys it later (instantly, if supported by the model). */
+    function flashWithoutLeak(unit who, string attachment)
+        if this.duration == FLASHABLE
+            who.addEffect(this.effectPath, attachment).destr()
+        else
+            new SpecialEffect(this, who, attachment)
+
+    // Effects directory
+    static constant AIFBSPECIALART        = new SpecialEffectType(Abilities.aIfbSpecialArt       , 0.1)
+    static constant AIOBSPECIALART        = new SpecialEffectType(Abilities.aIobSpecialArt       , 0.1)
+    static constant CARRIONSWARMDAMAGE    = new SpecialEffectType(Abilities.carrionSwarmDamage   , 0.2)
+    static constant CLOUDOFFOG            = new SpecialEffectType(Abilities.cloudOfFog           , 0.5)
+    static constant DEATHANDDECAYTARGET   = new SpecialEffectType(Abilities.deathandDecayTarget  , 0.2)
+    static constant DEVOUREFFECTART       = new SpecialEffectType(Abilities.devourEffectArt      , 0.2)
+    static constant FAERIEDRAGON_INVIS    = new SpecialEffectType(Abilities.faerieDragon_Invis   , 0.2)
+    static constant FROSTARMORDAMAGE      = new SpecialEffectType(Abilities.frostArmorDamage     , 0.2)
+    static constant IMMOLATIONREDDAMAGE   = new SpecialEffectType(Abilities.immolationRedDamage  , 0.2)
+    static constant LIGHTNINGSHIELDBUFF   = new SpecialEffectType(Abilities.lightningShieldBuff  , 0.2)
+    static constant PLAGUECLOUDCASTER     = new SpecialEffectType(Abilities.plagueCloudCaster    , 0.2)
+    static constant POISONSTINGTARGET     = new SpecialEffectType(Abilities.poisonStingTarget     )
+    static constant REPLENISHHEALTHCASTER = new SpecialEffectType(Abilities.replenishHealthCaster, 0.1)
+    static constant SILENCEAREABIRTH      = new SpecialEffectType(Abilities.silenceAreaBirth     , 0.)
+    static constant SNAPMISSILE           = new SpecialEffectType(Abilities.snapMissile          , FLASHABLE)
+    static constant STAMPEDEMISSILEDEATH  = new SpecialEffectType(Abilities.stampedeMissileDeath , 0.1)
+    static constant WEB                   = new SpecialEffectType(MODELS_WEB                     , 1)
+    static constant ZIGGURATFROSTMISSILE  = new SpecialEffectType(Abilities.zigguratFrostMissile , FLASHABLE)
+
+init
+    // Periodically cleanup finished effects
+    doPeriodically(SPECIAL_EFFECTS_CLEANUP_PERIOD) cb -> 
+        //Log.debug(SpecialEffect.getMemoryUsage().toString())
+        let iter = SpecialEffect.LIST.iterator()
+        while iter.hasNext()
+            SpecialEffect fx = iter.next()
+            if fx.process()
+                // Finished !
+                destroy fx
+                iter.remove()

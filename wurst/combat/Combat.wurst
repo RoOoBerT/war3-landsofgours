@@ -1,7 +1,6 @@
 package Combat
 
 // Standard imports
-import Assets
 import ClosureForGroups
 import DamageDetection
 import DamageType
@@ -9,7 +8,10 @@ import RegisterEvents
 
 // Custom imports
 import CharacterClass
+import CreatureRace
 import CreatureStats
+import CreatureType
+import Imports
 import ItemTypeArrows
 import ItemTypeBow
 import Musics
@@ -23,10 +25,20 @@ constant int ABILITY_RANGED = 'A00Z'
 /** Text tag aligment to display unit damage received*/
 constant vec3 DAMAGE_TEXTTAG_OFFSET = vec3(-64, 64, 0)
 
-/** Inflicts real damage from a source unit to a target */
+/** Cause a unit to inflict real damage of a certain class */
 function inflictRealDamageUnfiltered(unit damageSource, unit target, real amount, DamageClass damageClass)
+    inflictRealDamageUnfiltered(damageSource, target, amount, damageClass, vec3(0, 0, 0))
+function inflictRealDamageUnfiltered(unit damageSource, unit target, real amount, DamageClass damageClass, vec3 ttagOffset)
     if amount != 0
         dealCodeDamage(damageSource, target, amount)
+
+        // Show damage effect
+        /*string effectPath = damageClass.getEffectPath()
+        if effectPath != null
+            flashEffect(effectPath, target.getPos())*/
+        let fx = damageClass.getEffectType()
+        if fx != null
+            fx.flashWithoutLeak(target, "origin")
 
         // Show damage text
         int variation = -1 * amount.round()
@@ -35,7 +47,7 @@ function inflictRealDamageUnfiltered(unit damageSource, unit target, real amount
             if variation > 0
                 tTagText = "+" + tTagText
 
-            createTTEx(target.getPos3Zero() + DAMAGE_TEXTTAG_OFFSET, vec2(0, TextTagSpeed2Velocity(64)), tTagText, 9.0, 1.5, damageClass.getColor().withAlpha(0))
+            createTTEx(target.getPos3Zero() + DAMAGE_TEXTTAG_OFFSET + ttagOffset, vec2(0, TextTagSpeed2Velocity(64)), tTagText, 9.0, 1.5, damageClass.getColor())
 
 /** Find the first usable bow of the unit (if any) */
 function findBow(unit whichUnit) returns itemTuple
@@ -136,8 +148,31 @@ public function onUnitAttackWithBow(unit attacker, unit target)
 /** When a unit emits a "game" instant attack (delayed).
 The specified modifiers of the attacker should be used. */
 public function onUnitInstantPhysicalAttack(unit attacker, unit target)
-    CreatureStats statsAdded = AllUnitsBuffs.getStatsAdded(attacker)
-    onUnitPhysicalAttack(attacker, statsAdded, target)
+    // Get creature properties
+    CreatureType creatureType = CreatureType.get(attacker.getTypeId())
+    if creatureType == null
+        Log.warn("Properties not found for : " + attacker.getName() + ", aborting attack")
+        return
+    CreatureRace creatureRace = creatureType.getRace()
+    
+    // Compute the total cumulated stats of the attacker
+    CreatureStats attackerStats = new CreatureStats()
+    if creatureRace != null
+        attackerStats.modifyAdd(creatureRace.getStatsAdded()) // Race bonuses
+    attackerStats.modifyAdd(creatureType.getStatsAdded()) // Creature type bonuses
+    attackerStats.modifyAdd(AllUnitsBuffs.getStatsAdded(attacker)) // Buffs/state bonuses
+
+    // Compute cumulated bonus percentage
+    CreatureStats attackerStatsPercent = new CreatureStats()
+    if creatureRace != null
+        attackerStatsPercent.modifyAdd(creatureRace.getStatsAddedPercent()) // Race bonuses %
+    attackerStatsPercent.modifyAdd(creatureType.getStatsAddedPercent()) // Creature type bonuses %
+    attackerStatsPercent.modifyAdd(AllUnitsBuffs.getStatsAddedPercent(attacker)) // Buffs/state bonuses %
+
+    // Apply percentage bonuses
+    attackerStats.modifyAddPercent(attackerStatsPercent, 1.0)
+
+    onUnitPhysicalAttack(attacker, attackerStats, target)
 
 /** When a unit emits a "game" instant attack (melee).
 The instant modifiers (buffs) of the attacker should be used. */
@@ -145,6 +180,7 @@ public function onUnitPhysicalAttack(unit attacker, CreatureStats statsAdded, un
     // Check the stats of the attacker and the defender
     CreatureStats targetStatsAdded = AllUnitsBuffs.getStatsAdded(attacker)
 
+    vec3 ttagOffset = vec3(0, 0, 0)
     for DamageClass damageClass in DamageClass.LIST
         real damageOfType = statsAdded.getDamage(damageClass)
         if damageOfType != 0
@@ -152,7 +188,8 @@ public function onUnitPhysicalAttack(unit attacker, CreatureStats statsAdded, un
             damageOfType *= (1 - resistanceOfType)
 
         if damageOfType != 0
-            inflictRealDamageUnfiltered(attacker, target, damageOfType, damageClass)
+            inflictRealDamageUnfiltered(attacker, target, damageOfType, damageClass, ttagOffset)
+            ttagOffset += vec3(0, 40.0, 0)
 
 /** Called when a unit physically attacks another unit (in Warcraft's sense).
 This is equivalent to a "game attack" for melee units. For ranged units it 

@@ -1,7 +1,7 @@
 package Town
 
 // Standard imports
-import Assets
+import Imports
 import ClosureTimers
 
 // Custom imports
@@ -9,7 +9,7 @@ import Adventure
 import PlayerData
 
 function isEveryPlayerReadyToLeaveTown() returns boolean
-    for player p in PlayerData.ACTIVE_PLAYERS
+    for player p in ACTIVE_PLAYERS
         if not PlayerData.get(p).isReady()
             Log.debug("Player not yet ready : " + p.getName())
             return false

@@ -1,0 +1,147 @@
+package Spellbook
+
+//
+import ClosureTimers
+import LinkedList
+import HashMap
+
+//
+import Imports
+import WizardSpell
+
+/** What is the status of the spell in the spellbook ? */
+public class SpellStatus
+    constant string name
+    constant string iconPath
+
+    static constant LinkedList<SpellStatus> LIST = new LinkedList<SpellStatus>
+
+    construct(string name, string iconPath)
+        this.name = name
+        this.iconPath = iconPath
+        LIST.add(this)
+
+    /** We have learned and used this spell */
+    static constant LEARNED = new SpellStatus("Appris", Icons.bTNAbsorbMagic)
+
+    /** We have seen this spell's effect */
+    static constant SEEN = new SpellStatus("Vu", Icons.bTNSentryWard) 
+
+    /** We do not know what spell this is */
+    static constant UNKNOWN = new SpellStatus("Inconnu", Icons.bTNSelectHeroOn)
+
+/** Stats of a spell in the spellbook */
+public class SpellbookEntry
+    /** A wizard spell */
+    private constant WizardSpell spell
+
+    /** Board X */
+    private constant int row
+
+    /** Board Y */
+    private constant int column
+
+    /** Number of times this spell has been cast */
+    private int castCount = 0
+
+    /** Status of the spell */
+    private SpellStatus status = SpellStatus.UNKNOWN
+
+    construct(WizardSpell spell, int row, int column)
+        this.spell = spell
+        this.row = row
+        this.column = column
+    
+    /** This multiboard will show all known wizard spells */
+    private static multiboard spellBookBoard = null
+
+    /** List of all spellbook entries */
+    private static constant LinkedList<SpellbookEntry> LIST = new LinkedList<SpellbookEntry>
+
+    /** Generates the spell book multiboard for the first time */
+    static function initialize()
+        HashMap<SpellSchool, int> currentIndexes = new HashMap<SpellSchool, int>()
+        for SpellSchool school in SpellSchool.LIST
+            currentIndexes.put(school, 0)
+
+        // Analyze all wizard spells
+        int maxSpellsPerSchool = 0
+        for Spell spell in Spell.LIST
+            if spell instanceof WizardSpell
+                let wizardSpell = spell castTo WizardSpell
+                let school = wizardSpell.getSchool()
+
+                int row = currentIndexes.get(school)
+                currentIndexes.put(school, row + 1)
+
+                int column = SpellSchool.LIST.indexOf(school)
+
+                maxSpellsPerSchool = max(maxSpellsPerSchool, row)
+
+                LIST.add(new SpellbookEntry(wizardSpell, row, column))
+
+        // Initialize board
+        spellBookBoard = CreateMultiboard()
+        spellBookBoard.setTitle("Grimoire de magie")
+
+        // Dimensions
+        int columns = SpellSchool.LIST.size()
+        spellBookBoard.setColumnCount(columns)
+        int rows = 4 + maxSpellsPerSchool
+        spellBookBoard.setRowCount(rows)
+
+        // Cleanup
+        spellBookBoard.setItemsStyle(false, false)
+        spellBookBoard.setItemsIcon("")
+        spellBookBoard.setItemsValue("")
+        spellBookBoard.setItemsValueColor(255, 255, 255, 0)
+
+        // Row 1 : Legend
+        int index = 0
+        for status in SpellStatus.LIST
+            spellBookBoard.getItem(0, 2 * index)
+                ..setIcon(status.iconPath)
+                ..setValue(status.name)
+                ..setStyle(true, true)
+                //..setWidth(0.1)
+            
+            index++
+
+        // Row 2 : Empty
+
+        // Row 3 : Schools list
+        index = 0
+        for school in SpellSchool.LIST
+            spellBookBoard.getItem(2, index)
+                ..setValue(school.getName())
+                ..setValueColor(school.getColor().withAlpha(0))
+                ..setIcon(school.getIconPath())
+                ..setStyle(true, true)
+                //..setWidth(0.1)
+            
+            index++
+
+        // Fill spells
+        for entry in SpellbookEntry.LIST
+            spellBookBoard.getItem(3 + entry.row, entry.column)
+                ..setValue(entry.spell.getName())
+                ..setIcon(entry.spell.getIconPath())
+                ..setStyle(false, true)
+
+        spellBookBoard.setItemsWidth(0.125)
+        spellBookBoard.display(true)
+        spellBookBoard.minimalize(true)
+
+/* | GRIMOIRE DES SORTS |
+ICON1 = Maîtrisé      | ICON2 = Vu             | ICON3 = Inconnu
+
+Abjuration | Entropie | Evocation | Invocation | Nécromancie | Transmutation
+Sort Ab1 v | Sort En1
+Sort Ab2 o | Sort En2
+Sort Ab3 ?
+*/
+
+init
+    // After some time, initialize the spell book multiboard
+    doAfter(10) ->
+        SpellbookEntry.initialize()

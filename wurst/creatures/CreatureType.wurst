@@ -4,8 +4,10 @@ package CreatureType
 import HashMap
 
 // Custom imports
-import PlayerData
+import CharacterClass
 import CreatureRace
+import CreatureStats
+import PlayerConstants
 
 /** The properties of one specific type of creatures (unit-type) */
 public class CreatureType
@@ -14,6 +16,13 @@ public class CreatureType
 
     /** The race of the creature */
     private constant CreatureRace creatureRace
+
+    /** The class of the creature (if any), or null */
+    private CharacterClass characterClass = null
+
+    // Stats of this creature type (if any), otherwise null
+    private CreatureStats statsAdded = null
+    private CreatureStats statsAddedPercent = null
 
     /** TODO */
     private constant real powerIndication = 1.0
@@ -43,6 +52,25 @@ public class CreatureType
     function getRace() returns CreatureRace
         return this.creatureRace
 
+    function getClass() returns CharacterClass
+        return this.characterClass
+
+    function getStatsAdded() returns CreatureStats
+        return this.statsAdded
+
+    function getStatsAddedPercent() returns CreatureStats
+        return this.statsAddedPercent
+
+    // Modifiers
+    function setClass(CharacterClass characterClass)
+        this.characterClass = characterClass
+
+    function setStatsAdded(CreatureStats statsAdded)
+        this.statsAdded = statsAdded
+
+    function setStatsAddedPercent(CreatureStats statsAddedPercent)
+        this.statsAddedPercent = statsAddedPercent
+    
     // Functions
     function spawn(vec2 where, angle orientation) returns unit
         unit u = createUnit(PLAYER_GOURS_HOSTILE, this.unitTypeId, where, orientation)
@@ -50,10 +78,43 @@ public class CreatureType
         return u
 
     // ======= CREATURES DIRECTORY =======
+    static constant CreatureType HERO_PALADIN         = new CreatureType('H00C', CreatureRace.CENTAUR)
+        ..setClass(CharacterClass.PALADIN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_CONTONDANT, 2)
+        )
+    static constant CreatureType HERO_ARCHER          = new CreatureType('N00J', CreatureRace.ELF)
+        ..setClass(CharacterClass.ARCHER)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_PERCANT, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN        = new CreatureType('H00D', CreatureRace.HUMAN)
+        ..setClass(CharacterClass.MAGICIEN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_AIR, 2)
+        )
+
     // Spider family
     static constant CreatureType OEUFS_ARAIGNEE       = new CreatureType('n00L', CreatureRace.ARACHNID)
     static constant CreatureType ARAIGNEE_PROGENITURE = new CreatureType('n00I', CreatureRace.ARACHNID)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 1)
+        )
     static constant CreatureType PETITE_ARAIGNEE      = new CreatureType('n00D', CreatureRace.ARACHNID)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 2)
+        )
     static constant CreatureType ARAIGNEE_NOIRE       = new CreatureType('n00C', CreatureRace.ARACHNID)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
+        )
     static constant CreatureType ARAIGNEE_VENIMEUSE   = new CreatureType('n00F', CreatureRace.ARACHNID)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
+            ..setDamage(DamageClass.DAMAGE_POISON, 4)
+        )
     static constant CreatureType BROODMOTHER          = new CreatureType('n00G', CreatureRace.ARACHNID)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
+            ..setDamage(DamageClass.DAMAGE_POISON, 8)
+        )

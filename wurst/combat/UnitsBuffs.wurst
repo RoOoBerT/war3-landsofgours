@@ -93,6 +93,8 @@ class UnitBuffs
             destroy unitBuff
         destroy this.buffs
         destroy this.buffsById
+        destroy this.totalStatsAdded
+        destroy this.totalStatsAddedPercent
 
     private function refreshUnitStatus()
         /*this.who.setMoveSpeed(this.who.getDefaultMovespeed() * (1 + totalBuff.get))
@@ -277,6 +279,7 @@ public class AllUnitsBuffs
             return null
         return getUnitBuffs(target).getTotalStatsAdded()
 
+    /** Returns the total stats of this unit's buff */
     static function getStatsAddedPercent(unit target) returns CreatureStats
         if isDummyUnit(target)
             Log.error("getTotalBuffs called for Dummy unit !")

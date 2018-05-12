@@ -1,0 +1,134 @@
+package UnitStatsBoard
+
+// Standard imports
+import ClosureTimers
+import LinkedList
+
+// Custom imports
+import CreatureStats
+import Imports
+
+/** Stats of a spell in the spellbook */
+public class UnitStatsBoard
+    /** The unit whose stats are described */
+    private constant unit who
+
+    private constant CreatureStats stats
+
+    /** This multiboard will show detailed unit stats */
+    private multiboard statsBoard = CreateMultiboard()
+
+    static constant colorA COLOR_ZERO = colorA(255, 255, 255, 0)
+    static constant colorA COLOR_NEGATIVE = colorA(255, 0, 0, 0)
+    static constant colorA COLOR_POSITIVE = colorA(0, 255, 0, 0)
+
+    construct(unit who, CreatureStats stats)
+        this.who = who
+        this.stats = stats
+
+        this.initialize()
+    
+    ondestroy
+        this.statsBoard.destr()
+
+    static function getColorForValue(real value) returns colorA
+        if value == 0.0
+            return COLOR_ZERO
+        
+        if value > 0.0
+            if value < 1.0
+                return colorA(0, (value * 255).round(), 0, 0)
+            else
+                return COLOR_POSITIVE
+        else
+            if value > -1.0
+                return colorA(0, (value * 255).round(), 0, 0)
+            else
+                return COLOR_NEGATIVE
+
+    function minimalize(boolean minimalize)
+        this.statsBoard.minimalize(minimalize)
+
+    /** Generates the spell book multiboard for the first time */
+    private function initialize()
+        // Initialize board
+        statsBoard = CreateMultiboard()
+        statsBoard.setTitle("Statistiques de {0}".format(this.who.getName()))
+
+        // Dimensions
+        int columns = 4
+        statsBoard.setColumnCount(columns)
+        int damageClassesHeaderRow = 3
+        int rows = damageClassesHeaderRow + DamageClass.LIST.size() + DamageFamily.LIST.size()
+        statsBoard.setRowCount(rows)
+
+        // Cleanup
+        statsBoard.setItemsStyle(false, false)
+        statsBoard.setItemsIcon("")
+        statsBoard.setItemsValue("")
+        statsBoard.setItemsValueColor(255, 255, 255, 0)
+
+        // Row 1 : Column headers
+        statsBoard.getItem(damageClassesHeaderRow, 1)
+            ..setValue("Classe")
+            ..setStyle(true, false)
+        statsBoard.getItem(damageClassesHeaderRow, 1)
+            ..setValue("Dommages")
+            ..setStyle(true, false)
+        statsBoard.getItem(damageClassesHeaderRow, 2)
+            ..setValue("Résistance")
+            ..setStyle(true, false)
+
+        // Row 2 -> n
+        int row = damageClassesHeaderRow + 1
+        for damageFamily in DamageFamily.LIST
+            // Separation between damage families
+            statsBoard.getItem(row, 0)
+                ..setValue(damageFamily.getName())
+                ..setStyle(true, false)
+
+            row++
+
+            for damageClass in damageFamily.children
+                // Column 1 = icons
+                statsBoard.getItem(row, 0)
+                    ..setIcon(damageClass.getIconPath())
+                    ..setValue(damageClass.getName())
+                    ..setValueColor(damageClass.getColor())
+                    ..setStyle(true, true)
+                
+                // Column 2 = damage
+                real value = this.stats.getDamage(damageClass)
+                string strValue = value <= 0 ? value.round().toString() : "+" + value.round().toString()
+                statsBoard.getItem(row, 1)
+                    ..setValue(strValue)
+                    ..setValueColor(getColorForValue(value))
+                    ..setStyle(true, false)
+
+                // Column 3 = resistance
+                value = this.stats.getResistance(damageClass)
+                strValue = value <= 0 ? value.round().toString() : "+" + value.round().toString()
+                statsBoard.getItem(row, 2)
+                    ..setValue(strValue)
+                    ..setValueColor(getColorForValue(value))
+                    ..setStyle(true, false)
+
+                row++
+
+        statsBoard.setItemsWidth(0.08) // %
+        statsBoard.display(true)
+
+/* TODO | Caractéristiques de <Nom de l'unité> |
+0 <ICON> <Nom de l'unité>
+1 
+2 Vitesse :
+3 
+4 
+5 Entête table : Classe | Dommages | Résistance
+
+*/
+
+init
+    // After some time, initialize the spell book multiboard
+    doAfter(10) ->
+        

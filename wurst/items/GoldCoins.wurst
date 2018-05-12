@@ -37,9 +37,9 @@ function onPickupGoldCoin(unit who, item coin)
     RemoveLocation(sndLoc)
 
     // Divide gold amount into the players
-    int numPlayers = PlayerData.ACTIVE_PLAYERS.size()
+    int numPlayers = ACTIVE_PLAYERS.size()
     int dividedAmount = amount div numPlayers
-    for player p in PlayerData.ACTIVE_PLAYERS
+    for player p in ACTIVE_PLAYERS
         if p == who.getOwner()
             giveGold(PlayerData.get(p.getId()).getCharacter(), dividedAmount + amount mod numPlayers)
         else

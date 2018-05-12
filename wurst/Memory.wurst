@@ -1,0 +1,6 @@
+package Memory
+
+public tuple memoryUsage(string title, int references, int instances)
+
+public function memoryUsage.toString() returns string
+    return "{0} : references/instances : {1}/{2}".format(this.title, this.references.toString(), this.instances.toString())

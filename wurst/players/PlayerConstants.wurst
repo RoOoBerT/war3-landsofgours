@@ -1,0 +1,25 @@
+package PlayerConstants
+
+// Standard imports
+import LinkedList
+
+// Custom imports
+
+/** Maximum number of (active) PlayerData */
+@configurable public int PLAYERS_HUMAN_MAX = 20
+
+public constant player PLAYER_COLONS = players[21]
+public constant player PLAYER_GOURS_NEUTRAL = players[22]
+public constant player PLAYER_GOURS_HOSTILE = players[23]
+
+/** List of currently active (human) players */
+public constant LinkedList<player> ACTIVE_PLAYERS = new LinkedList<player>
+
+init
+    // Detect current players
+    for int i = 0 to PLAYERS_HUMAN_MAX - 1
+        player p = players[i]
+
+        // Player status
+        if p.isIngame() and p.getSlotState() == PLAYER_SLOT_STATE_PLAYING
+            ACTIVE_PLAYERS.add(p)

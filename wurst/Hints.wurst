@@ -27,8 +27,8 @@ class Hint
         return source
     
     private function replaceDynamicMarkers(string source) returns string
-        int index = GetRandomInt(0, PlayerData.ACTIVE_PLAYERS.size() - 1)
-        player p = PlayerData.ACTIVE_PLAYERS.get(index)
+        int index = GetRandomInt(0, ACTIVE_PLAYERS.size() - 1)
+        player p = ACTIVE_PLAYERS.get(index)
         string replaced = source.replace("{random player}", PlayerData.get(p).getName())
         replaced = replaced.replace("[[", COLOR_HIGHLIGHT.toColorString()).replace("]]", "|r")
         return replaced

@@ -4,40 +4,58 @@ package DamageClass
 import LinkedList
 
 // Custom imports
+import Imports
+import SpecialEffects
 
 /** Represents a family of damage classes */
 public class DamageFamily
-    /** List of damage classes existing for this family */
-    constant LinkedList<DamageClass> list = new LinkedList<DamageClass>()
+    private constant string name
 
-    private construct()
+    /** List of child damage classes existing for this family */
+    constant LinkedList<DamageClass> children = new LinkedList<DamageClass>()
+
+    /** Directory of all existing damage families */
+    static constant LinkedList<DamageFamily> LIST = new LinkedList<DamageFamily>()
+
+    private construct(string name)
+        this.name = name
+        LIST.add(this)
+
+    function getName() returns string
+        return this.name
 
     // Damage family directory
-    static constant DamageFamily FAMILY_BIOLOGIQUE = new DamageFamily()
-    static constant DamageFamily FAMILY_ELEMENTAIRE = new DamageFamily()
-    static constant DamageFamily FAMILY_PHYSIQUE = new DamageFamily()
+    static constant DamageFamily FAMILY_PHYSIQUE = new DamageFamily("Physique")
+    static constant DamageFamily FAMILY_ELEMENTAIRE = new DamageFamily("Elémentaire")
+    static constant DamageFamily FAMILY_BIOLOGIQUE = new DamageFamily("Biologique")
 
 /** Represents a type of damage */
 public class DamageClass
     private constant int index
     private constant string name
-    private constant color col
     private constant DamageFamily family
+
+    // 
+    private constant colorA col
+    private constant string iconPath
+    private constant SpecialEffectType effectType
 
     /** Directory of all existing damage classes */
     static constant LinkedList<DamageClass> LIST = new LinkedList<DamageClass>()
 
-    private construct (string name, color col, DamageFamily family)
+    private construct (string name, colorA col, DamageFamily family, string iconPath, SpecialEffectType effectType)
         this.index = LIST.size()
         this.name = name
         this.col = col
         this.family = family
+        this.iconPath = iconPath
+        this.effectType = effectType
 
         Log.debug("Damage class : " + this.getColoredName())
 
         // Register this damage type
         LIST.addAt(this, this.index)
-        this.family.list.add(this)
+        this.family.children.add(this)
 
     // Accessors
     //function getIndex() returns int
@@ -49,24 +67,43 @@ public class DamageClass
     function getColoredName() returns string
         return this.col.toColorString() + this.name + "|r"
 
-    function getColor() returns color
+    function getColor() returns colorA
         return this.col
 
     function getFamily() returns DamageFamily
         return this.family
 
+    function getIconPath() returns string
+        return this.iconPath
+
+    function getEffectType() returns SpecialEffectType
+        return this.effectType
+
     // Damage class directory
-    static constant DamageClass DAMAGE_CONTONDANT = new DamageClass("Contondant", color(64, 64, 64), DamageFamily.FAMILY_PHYSIQUE)
-    static constant DamageClass DAMAGE_PERCANT    = new DamageClass("Perçant"   , color(64, 64, 64), DamageFamily.FAMILY_PHYSIQUE)
-    static constant DamageClass DAMAGE_TRANCHANT  = new DamageClass("Tranchant" , color(64, 64, 64), DamageFamily.FAMILY_PHYSIQUE)
-    
-    static constant DamageClass DAMAGE_AIR        = new DamageClass("Air"       , color(32, 255, 255), DamageFamily.FAMILY_ELEMENTAIRE)
-    static constant DamageClass DAMAGE_FEU        = new DamageClass("Feu"       , color(255, 32, 32), DamageFamily.FAMILY_ELEMENTAIRE)
-    static constant DamageClass DAMAGE_FOUDRE     = new DamageClass("Foudre"    , color(255, 255, 32), DamageFamily.FAMILY_ELEMENTAIRE)
-    static constant DamageClass DAMAGE_FROID      = new DamageClass("Froid"     , color(32, 32, 255), DamageFamily.FAMILY_ELEMENTAIRE)
-    
-    static constant DamageClass DAMAGE_LUMIERE    = new DamageClass("Lumiere"   , color(255, 255, 255), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_MORT       = new DamageClass("Mort"      , color(0, 0, 0), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_POISON     = new DamageClass("Poison"    , color(32, 255, 32), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_PSYCHIQUE  = new DamageClass("Psychique" , color(255, 32, 255), DamageFamily.FAMILY_BIOLOGIQUE)
-    static constant DamageClass DAMAGE_SON        = new DamageClass("Son"       , color(139, 69, 19), DamageFamily.FAMILY_BIOLOGIQUE)
+    static constant DamageClass DAMAGE_CONTONDANT = new DamageClass("Contondant", colorA(128, 64, 64,   0) ,  DamageFamily.FAMILY_PHYSIQUE  , Icons.bTNHammer         , null)
+    static constant DamageClass DAMAGE_PERCANT    = new DamageClass("Perçant"   , colorA(128, 64, 64,   0) ,  DamageFamily.FAMILY_PHYSIQUE  , Icons.bTNMarksmanship   , SpecialEffectType.STAMPEDEMISSILEDEATH )
+    static constant DamageClass DAMAGE_TRANCHANT  = new DamageClass("Tranchant" , colorA(128, 64, 64,   0) ,  DamageFamily.FAMILY_PHYSIQUE  , Icons.bTNSteelMelee     , SpecialEffectType.STAMPEDEMISSILEDEATH )
+
+    static constant DamageClass DAMAGE_AIR        = new DamageClass("Air"       , colorA(32, 255, 255, 0) ,  DamageFamily.FAMILY_ELEMENTAIRE, ICONS_ORB_WINDS         , SpecialEffectType.REPLENISHHEALTHCASTER)
+    static constant DamageClass DAMAGE_FEU        = new DamageClass("Feu"       , colorA(255, 32, 32 , 0) ,  DamageFamily.FAMILY_ELEMENTAIRE, Icons.bTNOrbOfFire      , SpecialEffectType.IMMOLATIONREDDAMAGE  )
+    static constant DamageClass DAMAGE_FOUDRE     = new DamageClass("Foudre"    , colorA(255, 255, 32, 0) ,  DamageFamily.FAMILY_ELEMENTAIRE, Icons.bTNOrbOfLightning , SpecialEffectType.LIGHTNINGSHIELDBUFF  )
+    static constant DamageClass DAMAGE_FROID      = new DamageClass("Froid"     , colorA(32, 32, 255 , 0) ,  DamageFamily.FAMILY_ELEMENTAIRE, Icons.bTNOrbOfFrost     , SpecialEffectType.FROSTARMORDAMAGE     )
+ 
+    static constant DamageClass DAMAGE_LUMIERE    = new DamageClass("Lumiere"   , colorA(255, 255, 255, 0),  DamageFamily.FAMILY_BIOLOGIQUE , Icons.bTNResurrection   , SpecialEffectType.FAERIEDRAGON_INVIS   )
+    static constant DamageClass DAMAGE_MORT       = new DamageClass("Mort"      , colorA(0, 0, 0, 0)      ,  DamageFamily.FAMILY_BIOLOGIQUE , Icons.bTNOrbOfDeath     , SpecialEffectType.CARRIONSWARMDAMAGE   )
+    static constant DamageClass DAMAGE_POISON     = new DamageClass("Poison"    , colorA(32, 255, 32, 0)  ,  DamageFamily.FAMILY_BIOLOGIQUE , Icons.bTNOrbOfVenom     , SpecialEffectType.POISONSTINGTARGET    )
+    static constant DamageClass DAMAGE_PSYCHIQUE  = new DamageClass("Psychique" , colorA(255, 32, 255, 0) ,  DamageFamily.FAMILY_BIOLOGIQUE , ICONS_MIND_CONTROL_BRAIN, SpecialEffectType.DEATHANDDECAYTARGET  )
+    static constant DamageClass DAMAGE_SON        = new DamageClass("Son"       , colorA(139, 69, 19, 0)  ,  DamageFamily.FAMILY_BIOLOGIQUE , ICONS_WAVE              , SpecialEffectType.SILENCEAREABIRTH     )
+
+    /* Some good candidates :
+        Fire : Abilities\Spells\Items\AIfb\AIfbSpecialArt.mdl
+        Frost : Abilities\Spells\Items\AIob\AIobSpecialArt.mdl
+        Thunder : Abilities\Spells\Items\AIlb\AIlbSpecialArt.mdl
+
+        Light : Abilities\Weapons\ProcMissile\ProcMissile.mdl
+
+        Abilities\Spells\Human\SpellSteal\SpellStealTarget.mdl
+        Death (black) : Abilities\Spells\Undead\CarrionSwarm\CarrionSwarmDamage.mdl
+        Death / Black arrow : Abilities\Weapons\AvengerMissile\AvengerMissile.mdl
+        Poison : Abilities\Spells\Items\OrbVenom\OrbVenomSpecialArt.mdl
+    */

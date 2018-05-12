@@ -5,6 +5,10 @@ import HashMap
 
 // Custom imports
 import public DamageClass
+import Memory
+
+// TODO Remove ?
+public tuple statsModifiers(CreatureStats added, CreatureStats addedPercent)
 
 /** Stores data for all available stats of a creature.
 Can be used for units, buffs, modifiers, etc. */
@@ -17,6 +21,9 @@ public class CreatureStats
     ondestroy
         REF_COUNTER--
     
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("CreatureStats", 0, REF_COUNTER)
+
     // General
     private real moveSpeed = 0.0
     private real life = 0.0
@@ -76,7 +83,7 @@ public class CreatureStats
         return this.damageMaps.get(damageClass)
 
     function setDamage(DamageFamily damageFamily, real damage)
-        for DamageClass damageClass in damageFamily.list
+        for DamageClass damageClass in damageFamily.children
             this.damageMaps.put(damageClass, damage)
 
     function setDamage(DamageClass damageClass, real damage)
@@ -111,7 +118,7 @@ public class CreatureStats
         this.resistanceMaps.put(damageClass, resistance)
 
     function setResistance(DamageFamily damageFamily, real resistance)
-        for DamageClass damageClass in damageFamily.list
+        for DamageClass damageClass in damageFamily.children
             this.resistanceMaps.put(damageClass, resistance)
 
     function getEvasion() returns real
@@ -130,33 +137,36 @@ public class CreatureStats
     // Operators
     /** Decrements the stats of this buff by the stats of the provided buff */
     function modifySubtract(CreatureStats subWhat)
-        modify(subWhat, -1)
+        modifyAdd(subWhat, -1)
 
     /** Increments the stats of this buff with the stats of the provided buff */
     function modifyAdd(CreatureStats addWhat)
-        modify(addWhat, 1)
+        modifyAdd(addWhat, 1)
 
-    function modify(CreatureStats addWhat, real multiplier)
-        this.moveSpeed    += (addWhat.moveSpeed   * multiplier)
-        this.life         += (addWhat.life        * multiplier)
-        this.mana         += (addWhat.mana        * multiplier)
-        this.lifeRegen    += (addWhat.lifeRegen   * multiplier)
-        this.manaRegen    += (addWhat.manaRegen   * multiplier)
-        this.attackSpeed  += (addWhat.attackSpeed * multiplier)
-        this.range        += (addWhat.range       * multiplier)
-        this.accuracy     += (addWhat.accuracy    * multiplier)
-        this.evasion      += (addWhat.evasion     * multiplier)
-        this.size         += (addWhat.size        * multiplier)
+    private function modifyAdd(CreatureStats addStats, real multiplier)
+        if addStats == null
+            return
+
+        this.moveSpeed    += (addStats.moveSpeed   * multiplier)
+        this.life         += (addStats.life        * multiplier)
+        this.mana         += (addStats.mana        * multiplier)
+        this.lifeRegen    += (addStats.lifeRegen   * multiplier)
+        this.manaRegen    += (addStats.manaRegen   * multiplier)
+        this.attackSpeed  += (addStats.attackSpeed * multiplier)
+        this.range        += (addStats.range       * multiplier)
+        this.accuracy     += (addStats.accuracy    * multiplier)
+        this.evasion      += (addStats.evasion     * multiplier)
+        this.size         += (addStats.size        * multiplier)
 
         for DamageClass damageClass in DamageClass.LIST
             // Damage maps
-            if addWhat.damageMaps.has(damageClass)
-                real amount = multiplier * addWhat.damageMaps.get(damageClass)
+            if addStats.damageMaps.has(damageClass)
+                real amount = multiplier * addStats.damageMaps.get(damageClass)
                 mapAdd(this.damageMaps, damageClass, amount)
 
             // Resistance maps
-            if addWhat.resistanceMaps.has(damageClass)
-                real amount = multiplier * addWhat.resistanceMaps.get(damageClass)
+            if addStats.resistanceMaps.has(damageClass)
+                real amount = multiplier * addStats.resistanceMaps.get(damageClass)
                 mapAdd(this.resistanceMaps, damageClass, amount)
 
     private static function mapAdd(HashMap<DamageClass, real> map, DamageClass damageClass, real amount)
@@ -165,29 +175,32 @@ public class CreatureStats
             newValue += map.get(damageClass)
         map.put(damageClass, newValue)
 
-    /** Apply the bonus percentage <bonus> <multiplier> times to these stats.
-    The values are 0-based. 0.1 <=> +10%. */
-    function modifyAddPercent(CreatureStats factor, real multiplier)
-        this.moveSpeed    *= (1.0 + factor.moveSpeed  ) * multiplier
-        this.life         *= (1.0 + factor.life       ) * multiplier
-        this.mana         *= (1.0 + factor.mana       ) * multiplier
-        this.lifeRegen    *= (1.0 + factor.lifeRegen  ) * multiplier
-        this.manaRegen    *= (1.0 + factor.manaRegen  ) * multiplier
-        this.attackSpeed  *= (1.0 + factor.attackSpeed) * multiplier
-        this.range        *= (1.0 + factor.range      ) * multiplier
-        this.accuracy     *= (1.0 + factor.accuracy   ) * multiplier
-        this.evasion      *= (1.0 + factor.evasion    ) * multiplier
-        this.size         *= (1.0 + factor.size       ) * multiplier
+    /** Apply the bonus percentage <statsPercent> <factor> times to these stats.
+    The values are 0-based. 0.1 <=> +10%. | 1.0 <=> +100% <=> x2 */
+    function modifyAddPercent(CreatureStats statsAddPercent, real factor)
+        if statsAddPercent == null
+            return
+
+        this.moveSpeed    *= (1.0 + statsAddPercent.moveSpeed  ) * factor
+        this.life         *= (1.0 + statsAddPercent.life       ) * factor
+        this.mana         *= (1.0 + statsAddPercent.mana       ) * factor
+        this.lifeRegen    *= (1.0 + statsAddPercent.lifeRegen  ) * factor
+        this.manaRegen    *= (1.0 + statsAddPercent.manaRegen  ) * factor
+        this.attackSpeed  *= (1.0 + statsAddPercent.attackSpeed) * factor
+        this.range        *= (1.0 + statsAddPercent.range      ) * factor
+        this.accuracy     *= (1.0 + statsAddPercent.accuracy   ) * factor
+        this.evasion      *= (1.0 + statsAddPercent.evasion    ) * factor
+        this.size         *= (1.0 + statsAddPercent.size       ) * factor
 
         for DamageClass damageClass in DamageClass.LIST
             // Damage maps
-            if factor.damageMaps.has(damageClass)
-                real amount = multiplier * (1 + factor.damageMaps.get(damageClass))
+            if statsAddPercent.damageMaps.has(damageClass)
+                real amount = factor * (1 + statsAddPercent.damageMaps.get(damageClass))
                 mapAdd(this.damageMaps, damageClass, amount)
 
             // Resistance maps
-            if factor.resistanceMaps.has(damageClass)
-                real amount = multiplier * (1 + factor.resistanceMaps.get(damageClass))
+            if statsAddPercent.resistanceMaps.has(damageClass)
+                real amount = factor * (1 + statsAddPercent.resistanceMaps.get(damageClass))
                 mapAdd(this.resistanceMaps, damageClass, amount)
 
     /** Returns a detailed text with all data stored in this object */
@@ -271,7 +284,7 @@ public class CreatureStats
 
     // Test zero
     CreatureStats zero = new CreatureStats()
-    zero..modify(a, 0)
+    zero..modifyAdd(zero)
     
     zero.getSize().assertEquals(0)
     zero.getLife().assertEquals(0)

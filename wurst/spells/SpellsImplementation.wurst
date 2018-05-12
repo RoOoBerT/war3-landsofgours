@@ -1,11 +1,8 @@
 package SpellsImplementation
 
 // Standard imports
-import Abilities
 import ClosureTimers
 import EventHelper
-//import Fx
-import Units
 import RegisterEvents
 
 // Custom imports
@@ -13,6 +10,7 @@ import AoeEffect
 import BuffTypesImplementation
 import ConeEffect
 import DilatableTime
+import Imports
 import SpellCasting
 import UnitsBuffs
 import WizardSpell
@@ -296,6 +294,6 @@ init
         real radius = 400.0 + 20.0 * level
 
         // FIXME PATH CHANGED ?!
-        AoeImpactHandler handler = new GenericImpactHandler("war3mapImported\\web1.mdx", 2, color(0, 0, 0), 1, 250, 40)
+        AoeImpactHandler handler = new GenericImpactHandler(MODELS_WEB, 2, color(0, 0, 0), 1, 250, 40)
         new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
             ..start()

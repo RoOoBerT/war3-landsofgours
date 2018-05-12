@@ -1,0 +1,12 @@
+package Imports
+
+import public Assets
+
+// Icons
+public constant string ICONS_ORB_WINDS = "ReplaceableTextures\\CommandButtons\\BTNOrbOfWinds.blp"
+public constant string ICONS_WAVE = "ReplaceableTextures\\CommandButtons\\BTNWave.blp"
+public constant string ICONS_MIND_CONTROL_BRAIN = "ReplaceableTextures\\CommandButtons\\BTNMindControlWBrain.blp"
+
+// Models
+public constant string MODELS_WEB = "models\\web1.mdx"
+

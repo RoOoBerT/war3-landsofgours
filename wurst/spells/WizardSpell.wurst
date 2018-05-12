@@ -1,10 +1,10 @@
 package WizardSpell
 
 // Standard imports
-import Assets
 
 // Custom imports
 import Dummys
+import Imports
 import LinkedList
 import public Spells
 
@@ -62,12 +62,12 @@ public class WizardSpell extends Spell
     // ======== WIZARD SPELL BOOK DIRECTORY ========
     constant static WizardSpell ARME_ENFLAMMEE                      = new WizardSpell('A009', 20, TargetType.UNIT    , "", SpellSchool.ABJURATION)
     constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "", SpellSchool.TRANSMUTATION)
-    constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.EVOCATION)
+    constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.ABJURATION)
     constant static WizardSpell CONE_FROID                          = new WizardSpell('A00W', 20, TargetType.LOCATION, "carrionswarm", SpellSchool.EVOCATION)
     constant static WizardSpell DILATATION_TEMPORELLE               = new WizardSpell('A01F', 20, TargetType.LOCATION, "", SpellSchool.TRANSMUTATION)
     constant static WizardSpell FEU_SOLAIRE                         = new WizardSpell('A00Y', 20, TargetType.NONE    , "corporealform", SpellSchool.EVOCATION)
     constant static WizardSpell FLETRISSURE_ABOMINABLE_ABI_DALZIM   = new WizardSpell('A00D', 20, TargetType.LOCATION, "", SpellSchool.NECROMANCIE)
-    constant static WizardSpell HATE                                = new WizardSpell('A00O', 20, TargetType.NONE    , "bearform", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell HATE                                = new WizardSpell('A00O', 20, TargetType.NONE    , "bearform", SpellSchool.ABJURATION)
     constant static WizardSpell INCINERATEUR_AGANAZZAR              = new WizardSpell('A00T', 20, TargetType.LOCATION, "", SpellSchool.EVOCATION)
     constant static WizardSpell NUAGE_INCENDIAIRE                   = new WizardSpell('A00A', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUAGE_MORTEL                        = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
