@@ -1,0 +1,29 @@
+package BuffIcons
+
+// Standard imports
+import Assets
+import BuffObjEditing
+
+public class BuffIcons
+    /** Test buff for debugging */
+    static constant TEST = compiletime(createDummyBuffObject("TEST", "C'est un buff dynamique de test !", Textures.doodad_Cinematic, Abilities.invisibilityTarget, "origin"))
+
+    // FIXME Generic buffs : set proper icons
+    static constant GENERAL_ASPHYXIE   = compiletime(createDummyBuffObject("Asphyxie", "Cette créature ne parvient plus à respirer.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_ASSOURDISSEMENT = compiletime(createDummyBuffObject("Assourdissement", "Cette créature est assourdie.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_BLESSURE   = compiletime(createDummyBuffObject("Blessure ouverte", "Cette créature est grièvement blessée.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_CONFUSION = compiletime(createDummyBuffObject("Confusion", "Cette créature est complètement désorientée.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_BRULURE   = compiletime(createDummyBuffObject("Brûlure", "Cette créature brûle.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_ETOURDI   = compiletime(createDummyBuffObject("Etourdi", "Cette créature est étourdie.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_FROID = compiletime(createDummyBuffObject("Froid", "Cette créature est ralentie par le froid.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_FROID_GEL = compiletime(createDummyBuffObject("Gel", "Cette créature est gelée.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_LUMIERE = compiletime(createDummyBuffObject("Aveuglement", "Cette créature est aveuglée.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_POISON = compiletime(createDummyBuffObject("Poison", "Cette créature est empoisonnée.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    static constant GENERAL_PARALYSIE = compiletime(createDummyBuffObject("Paralysie", "Cette créature est paralysée par un courant électrique.", Icons.bTNAnimalWarTraining, Abilities.frostDamage, "origin"))
+    
+    // Spells
+    static constant SORT_ARME_ENFLAMMEE = compiletime(createDummyBuffObject("Arme enflammée", "Les attaques physiques de cette créatures sont enchantées par du feu magique.", Icons.bTNArcaniteMelee, Abilities.fireBallMissile, "hand,left"))
+    static constant SORT_BOUCLIER_GLACE = compiletime(createDummyBuffObject("Bouclier de glace", "Cette unité est protégée par un bouclier de glace qui ralentit les unités à proximité.", Icons.bTNAbsorbMagic, Abilities.frostArmorTarget, "origin"))
+    static constant SORT_HATE = compiletime(createDummyBuffObject("Hâte", "Cette unité est sous l'effet d'un sortilège de hâte. Elle se déplace et attaque plus rapidement.", Icons.bTNAnimalWarTraining, Abilities.speedTarget, "overhead"))
+    static constant SORT_PEAU_ECORCE = compiletime(createDummyBuffObject("Peau d'écorce", "La peau de cette créature a l'aspect de l'écorce d'un arbre. Elle est protégée contre les dommages physiques.", Icons.bTNUnholyStrength, Abilities.aIdaTarget, "overhead"))
+    static constant SORT_PEAU_PIERRE = compiletime(createDummyBuffObject("Peau de pierre", "La peau de cette créature a l'aspect de la pierre. Elle est protégée contre les dommages physiques.", Icons.bTNHardenedSkin, Abilities.aIdaTarget, "overhead"))

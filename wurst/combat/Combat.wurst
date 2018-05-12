@@ -12,8 +12,8 @@ import CreatureRace
 import CreatureStats
 import CreatureType
 import Imports
-import ItemTypeArrows
-import ItemTypeBow
+import public ItemTypeArrows
+import public ItemTypeBow
 import Musics
 import PlayerData
 import Projectiles
@@ -33,9 +33,6 @@ function inflictRealDamageUnfiltered(unit damageSource, unit target, real amount
         dealCodeDamage(damageSource, target, amount)
 
         // Show damage effect
-        /*string effectPath = damageClass.getEffectPath()
-        if effectPath != null
-            flashEffect(effectPath, target.getPos())*/
         let fx = damageClass.getEffectType()
         if fx != null
             fx.flashWithoutLeak(target, "origin")
@@ -50,12 +47,12 @@ function inflictRealDamageUnfiltered(unit damageSource, unit target, real amount
             createTTEx(target.getPos3Zero() + DAMAGE_TEXTTAG_OFFSET + ttagOffset, vec2(0, TextTagSpeed2Velocity(64)), tTagText, 9.0, 1.5, damageClass.getColor())
 
 /** Find the first usable bow of the unit (if any) */
-function findBow(unit whichUnit) returns itemTuple
+public function findBow(unit whichUnit) returns itemTuple
     ItemFilter bowFilter = (ItemType itemType, item itm) -> itemType instanceof ItemTypeBow
     return ItemType.findFirstItem(whichUnit, bowFilter)
 
 /** Find the first usable arrows of the unit (if any) */
-function findArrows(unit whichUnit, ItemTypeBow bowType, item _bow) returns itemTuple
+public function findArrows(unit whichUnit, ItemTypeBow bowType, item _bow) returns itemTuple
     // Does this bow automatically supply arrows ?
     if bowType.getSelfSupplyArrows() != null
         return itemTuple(null, bowType.getSelfSupplyArrows())

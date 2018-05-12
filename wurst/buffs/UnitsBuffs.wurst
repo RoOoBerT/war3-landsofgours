@@ -1,0 +1,329 @@
+package UnitsBuffs
+
+// Standard imports
+import ClosureTimers
+import GameTimer
+import HashMap
+import HashList
+import LinkedList
+
+// Custom imports
+import public BuffType
+import BuffTypesImplementation
+import CreatureStats
+import DilatableTime
+import Dummys
+
+constant real BUFFS_UPDATE_PERIOD = 2.5 //ANIMATION_PERIOD
+
+constant real BUFF_ENDTIME_NEVER = 0.0
+
+/** The duration of a buff which does not expire automatically */
+public constant real BUFF_DURATION_INFINITE = 0.0
+
+/** The ID of a buff that can be stacked multiple times */
+public constant int BUFF_ID_STACKABLE = 0
+
+/** Represents a currently active buff on a unit */
+class UnitBuff
+    static int REF_COUNTER = 0
+
+    private constant BuffType buffType
+    private constant unit target
+    private real beginTime = 0.0
+    private real endTime = BUFF_ENDTIME_NEVER
+
+    real lastEffectTime = 0.0
+    effect lastEffect = null
+
+    ///** To put to true to remove the buff */
+    //private boolean stop = false
+
+    construct(BuffType buffType, unit target, real duration)
+        REF_COUNTER++
+        this.buffType = buffType
+        this.target = target
+        this.beginTime = TimeDilatation.getModifiedTime(this.target.getPos3Real())
+        if duration != BUFF_DURATION_INFINITE
+            this.endTime = this.beginTime + duration
+
+    // Accessors
+    function getBuffType() returns BuffType
+        return this.buffType
+
+    function isInfinite() returns boolean
+        return this.endTime == BUFF_ENDTIME_NEVER
+
+    function isFinished() returns boolean
+        boolean finished = this.endTime != BUFF_ENDTIME_NEVER and TimeDilatation.getModifiedTime(target.getPos3Real()) >= this.endTime
+        if finished and this.buffType == BUFF_TEST
+            Log.debug("A test buff is finished : begun at " + this.beginTime.toString() + " and ended at " + this.endTime.toString())
+        return finished
+
+    ondestroy
+        REF_COUNTER--
+        if lastEffect != null
+            lastEffect.destr()
+
+
+/** Represents the list of buffs currently linked to a unit */
+class UnitBuffs
+    static int REF_COUNTER = 0
+
+    private constant unit who
+    constant LinkedList<UnitBuff> buffs = new LinkedList<UnitBuff>()
+    private constant HashList<int> buffsById = new HashList<int>()
+
+    /** Contains the total of all modifiers for this unit */
+    private constant CreatureStats totalStatsAdded = new CreatureStats()
+
+    /** Contains the total of all modifiers for this unit */
+    private constant CreatureStats totalStatsAddedPercent = new CreatureStats()
+
+    construct(unit who)
+        REF_COUNTER++
+        if isDummyUnit(who)
+            Log.error("Buff(s) handled for dummy unit ! Pinging position !" )
+            PingMinimap(who.getX(), who.getY(), 5.0)
+        this.who = who
+
+    ondestroy
+        REF_COUNTER--
+        for unitBuff in this.buffs
+            destroy unitBuff
+        destroy this.buffs
+        destroy this.buffsById
+        destroy this.totalStatsAdded
+        destroy this.totalStatsAddedPercent
+
+    private function refreshUnitStatus()
+        /*this.who.setMoveSpeed(this.who.getDefaultMovespeed() * (1 + totalBuff.get))
+
+        // FIXME this.who.setBaseDamage(totalBuff.getDamage(DamageClass.DAMAGE_CONTONDANT).round(), 0)
+        this.who.setScale(1.0 + totalBuff.size)
+        this.who.setMaxHP(100 + totalBuff.life.round())*/
+
+    function addBuff(BuffType buffType, real duration) returns boolean
+        // Security test for debugging
+        if buffType.id == BUFF_ID_STACKABLE and duration == BUFF_DURATION_INFINITE
+            Log.error("Infinite duration buff with id 0 ! How is it supposed to be removed later ?! : " + buffType.name)
+
+        // Is the buff stackable ?
+        int id = buffType.id
+        if id != BUFF_ID_STACKABLE
+            // Non stackable buff : is it already present ?
+            if this.buffsById.has(id)
+                // Unit is already affected
+                // FIXME -> Update existing buff(s) ??
+                return false
+            else
+                // Non stackable buff to add
+                this.buffsById.add(id)
+        else
+            // The buff is stackable, just add it (do not list the ID which is 0)
+
+        UnitBuff newBuff = new UnitBuff(buffType, this.who, duration)
+        this.buffs.add(newBuff)
+        this.totalStatsAdded.modifyAdd(buffType.getAddedStatsModifiers())
+        this.totalStatsAddedPercent.modifyAdd(buffType.getAddedPercentStatsModifiers())
+
+        // Is there an effect to show periodically ?
+        if buffType.effectPath.isNotBlank()
+            newBuff.lastEffect = this.who.addEffect(buffType.effectPath, buffType.effectAttachPoint)
+
+        // Is there a buff icon to show on the unit ?
+        if buffType.abilityId != 0
+            this.who.addAbility(buffType.abilityId)
+
+        return true
+
+    function hasBuffByType(BuffType buffType) returns boolean
+        // Non-stackable buff ?
+        if buffType.id != BUFF_ID_STACKABLE
+            return this.buffsById.has(buffType.id)
+
+        // Stackable buff
+        let iter = this.buffs.iterator()
+        while iter.hasNext()
+            let unitBuffs = iter.next()
+            if unitBuffs.getBuffType().id == buffType.id
+                return true
+
+        if buffType == BUFF_TEST
+            Log.debug("Unit has " + this.buffs.size().toString() + " buffs but not this one : " + buffType.name)
+        
+        return false
+
+    function removeBuffByType(BuffType buffType) returns boolean
+        // Is the buff stackable ?
+        int id = buffType.id
+        if id != BUFF_ID_STACKABLE
+            // Non stackable buff : is it already present ?
+            if this.buffsById.has(id)
+                // Find the (only) buff and remove it
+                this.buffsById.remove(id)
+                let iter = this.buffs.iterator()
+                while iter.hasNext()
+                    let unitBuff = iter.next()
+                    if unitBuff.getBuffType().id == id
+                        destroy unitBuff
+                        iter.remove()
+                        this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
+                        this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
+                        break
+            else
+                // Buff not present : nothing to do
+                return false
+        else
+            // The buff is stackable, remove all instances
+            let iter = this.buffs.iterator()
+            while iter.hasNext()
+                let unitBuff = iter.next()
+                if unitBuff.getBuffType().id == buffType.id
+                    this.buffsById.remove(unitBuff.getBuffType().id)
+                    iter.remove()
+                    this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
+                    this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
+                    // FIXME maybe ajust return value ?
+
+        // Is there a buff icon to hide ?
+        if buffType.abilityId != 0
+            this.who.removeAbility(buffType.abilityId)
+        return true
+
+    function update() returns boolean
+        let iter = this.buffs.iterator()
+        while iter.hasNext()
+            let unitBuff = iter.next()
+
+            // Has this buff finished ?
+            if unitBuff.isFinished()
+                iter.remove()
+                this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
+                this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
+
+                //Log.trace("Buff disappeared from unit '" + this.who.getName() + "' : '" + unitBuff.getBuffType().name + "'")
+                int id = unitBuff.getBuffType().id
+                if id != BUFF_ID_STACKABLE
+                    this.buffsById.remove(id)
+
+                // Remove ability
+                int abilityId = unitBuff.getBuffType().abilityId
+                if abilityId != 0
+                    this.who.removeAbility(abilityId)
+                
+                destroy unitBuff
+            else
+                // Buff not finished : Is there an effect to show periodically ?
+                let buffType = unitBuff.getBuffType()
+                if buffType.effectPeriod != 0.0
+                    let currentTime = getElapsedGameTime()
+                    if currentTime - unitBuff.lastEffectTime >= buffType.effectPeriod
+                        unitBuff.lastEffectTime = currentTime
+
+                        // Show effect
+                        this.who.addEffect(buffType.effectPath, buffType.effectAttachPoint).destr()
+
+        // Return true if this unit has no more buffs
+        return this.buffs.size() == 0
+
+    /*function destr()
+        for UnitBuff unitBuff from this.buffs
+            destroy unitBuff*/
+
+    // Accessors
+    function getTotalStatsAdded() returns CreatureStats
+        return this.totalStatsAdded
+
+    function getTotalStatsAddedPercent() returns CreatureStats
+        return this.totalStatsAddedPercent
+
+    function getUnit() returns unit
+        return this.who
+
+
+/** Class for handling all buffs of the game */
+public class AllUnitsBuffs
+    protected static constant HashMap<unit, UnitBuffs> MAP = new HashMap<unit, UnitBuffs>()
+    protected static constant LinkedList<UnitBuffs> LIST = new LinkedList<UnitBuffs>()
+
+    private static function getUnitBuffs(unit who) returns UnitBuffs
+        UnitBuffs unitBuffs = MAP.get(who)
+        if unitBuffs == null
+            unitBuffs = new UnitBuffs(who)
+            //Log.debug("Put " + who.getName())
+            MAP.put(who, unitBuffs)
+            LIST.add(unitBuffs)
+        return unitBuffs
+
+    static function addBuffPermanent(unit target, BuffType buffType)
+        if not isDummyUnit(target)
+            addBuffTimed(target, buffType, BUFF_DURATION_INFINITE)
+
+    static function addBuffTimed(unit target, BuffType buffType, real duration)
+        if not isDummyUnit(target)
+            getUnitBuffs(target).addBuff(buffType, duration)
+
+    static function removeBuffsByType(unit target, BuffType buffType)
+        if not isDummyUnit(target)
+            getUnitBuffs(target).removeBuffByType(buffType)
+
+    static function hasBuffByType(unit target, BuffType buffType) returns boolean
+        if not isDummyUnit(target)
+            return getUnitBuffs(target).hasBuffByType(buffType)
+        return false
+
+    static function getStatsAdded(unit target) returns CreatureStats
+        if isDummyUnit(target)
+            Log.error("getStatsAdded called for Dummy unit !")
+            return null
+        return getUnitBuffs(target).getTotalStatsAdded()
+
+    /** Returns the total stats of this unit's buff */
+    static function getStatsAddedPercent(unit target) returns CreatureStats
+        if isDummyUnit(target)
+            Log.error("getTotalBuffs called for Dummy unit !")
+            return null
+        return getUnitBuffs(target).getTotalStatsAddedPercent()
+    
+    /*@deprecated("Bad idea to access the internal list... Try to avoid using this method as possible")
+    private static function getAllBuffs(unit target) returns LinkedList<UnitBuff>
+        return getUnitBuffs(target).buffs*/
+
+// 
+init
+    // Periodically update buffs
+    doPeriodically(BUFFS_UPDATE_PERIOD) cb -> 
+        // 
+        if AllUnitsBuffs.LIST.size() != UnitBuffs.REF_COUNTER
+            Log.error("Mauvaise gestion des buffs d'unites : " +
+                "{0} instances totales != {1} referencées !".format(UnitBuffs.REF_COUNTER.toString(), AllUnitsBuffs.LIST.size().toString()))
+
+        // Keep an eye on references of these classes
+        if UnitBuffs.REF_COUNTER > 15 or UnitBuff.REF_COUNTER > 30
+            Log.warn("UnitBuffs count | UnitBuff count = " + UnitBuffs.REF_COUNTER.toString() + " | " + UnitBuff.REF_COUNTER.toString())
+
+        let iter = AllUnitsBuffs.LIST.iterator()
+        while iter.hasNext()
+            UnitBuffs unitBuffs = iter.next()
+            let u = unitBuffs.getUnit()
+            if u == null
+                Log.error("Buffs liés à une unité null !")
+            else
+                //Log.trace("Unité possédant des buffs : " + u.getName())
+            if unitBuffs.update()
+                /*// Finished !
+                iter.remove()
+                AllUnitsBuffs.MAP.remove(unitBuffs.getUnit())
+                destroy unitBuffs*/
+
+    // When a unit dies -> Cleanup hashtable data
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_DEATH)
+        ..addAction() ->
+            unit u = GetTriggerUnit()
+            let unitBuffs = AllUnitsBuffs.MAP.get(u)
+            if unitBuffs != null
+                AllUnitsBuffs.LIST.remove(unitBuffs)
+                AllUnitsBuffs.MAP.remove(u)
+                destroy unitBuffs

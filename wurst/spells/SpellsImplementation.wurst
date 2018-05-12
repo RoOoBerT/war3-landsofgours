@@ -1,6 +1,7 @@
 package SpellsImplementation
 
 // Standard imports
+import ClosureForGroups
 import ClosureTimers
 import EventHelper
 import RegisterEvents
@@ -8,13 +9,21 @@ import RegisterEvents
 // Custom imports
 import AoeEffect
 import BuffTypesImplementation
+import Combat
 import ConeEffect
+import CreatureStats
+import DotEffect
 import DilatableTime
 import Imports
 import SpecialEffects
 import SpellCasting
 import UnitsBuffs
 import WizardSpell
+
+let STATS_BOUCLIER_GLACE_FROST = new CreatureStats()
+    ..setDamage(DamageClass.DAMAGE_FROID, 2.0)
+
+// FIXME a lot of `new Something()` here should be made static
 
 init
     // ARME_ENFLAMMEE
@@ -36,19 +45,26 @@ init
 
     // BOUCLIER_GLACE
     registerSpellEffectEvent(WizardSpell.BOUCLIER_GLACE.abilityId) ->
-        unit emitter = GetTriggerUnit()
-        unit target = GetSpellTargetUnit()
-        int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real duration = 15.0 + level
+        unit spellCaster = GetTriggerUnit()
+        unit shieldedUnit = GetSpellTargetUnit()
+        int level = GetUnitAbilityLevel(spellCaster, GetSpellAbilityId())
+        real coneDuration = 15.0 + level
+        real frostDuration = 3.0 + level * 0.25
 
-        ConicWaveGraphics head = new ConicWaveGraphics(SpecialEffectType.ZIGGURATFROSTMISSILE, 0.4, 64)
-        new ConeEffect(duration, target.getPos().withZ(0.0), emitter, target)
+        DotEffectHandler frostHandler = new GenericDotEffectHandler(spellCaster, SpecialEffectType.ZIGGURATFROSTMISSILE, "origin", STATS_BOUCLIER_GLACE_FROST)
+
+        ConeUnitHandler enterHandler = (ConeEffect cone, unit entering) ->
+            if entering != shieldedUnit
+                new DotEffect(entering, frostDuration, shieldedUnit, 0.5, frostHandler)
+                    ..start()
+
+        ConicWaveGraphics shield = new ConicWaveGraphics(SpecialEffectType.ZIGGURATFROSTMISSILE, 0.3, 50)
+        new ConeEffect(coneDuration, shieldedUnit.getPos().withZ(0.0), spellCaster, shieldedUnit)
                 ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setQueuePropagationSpeed(vec2(64, 1))
-                ..setHeadPropagationSpeed(vec2(128, 1))
-                ..setQueue(null)
-                ..setHead(head)
-                ..setUnitEnteringHandler(null)
+                ..setQueuePropagationSpeed(vec2(50, 1))
+                ..setHeadPropagationSpeed(vec2(100, 1))
+                ..setQueue(shield)
+                ..setUnitEnteringHandler(enterHandler)
                 ..setUnitLeavingHandler(null)
                 ..start()
 
@@ -61,15 +77,14 @@ init
         real range = 384.0 + level * 32
         real duration = 10.0
         
-        ConicWaveGraphics queue = new ConicWaveGraphics(SpecialEffectType.AIOBSPECIALART, 0.2, 45)
+        ConicWaveGraphics along = new ConicWaveGraphics(SpecialEffectType.AIOBSPECIALART, 0.15, 40)
         let cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
                 ..setSpreadAngle(45.0.asAngleDegrees())
                 ..setQueuePropagationSpeed(vec2(48, 0))
                 ..setHeadPropagationSpeed(vec2(48, speed))
-                ..setQueue(queue)
-                ..setHead(null)
+                ..setAlong(along)
                 ..start()
         
         CHANELING_CONES.put(emitter, cone)
@@ -131,7 +146,7 @@ init
                 ..setSpreadAngle(360.0.asAngleDegrees())
                 ..setMaxRange(range)
                 ..setHeadPropagationSpeed(vec2(0, 250))
-                ..setQueue(queue)
+                ..setAlong(queue)
                 ..setUnitEnteringHandler(enterConeHandler)
                 ..setUnitLeavingHandler(leaveConeHandler)
                 ..start()
@@ -149,7 +164,6 @@ init
         AllUnitsBuffs.addBuffTimed(emitter, BUFF_HATE, duration)
         ConeUnitHandler hateHandler = (ConeEffect cone, unit who) ->
             AllUnitsBuffs.addBuffTimed(who, BUFF_HATE, duration)
-            skip
 
         // Visual effect
         ConicWaveGraphics head = new ConicWaveGraphics(SpecialEffectType.WITCHDOCTORMISSILE, 0.1, 64)
@@ -172,14 +186,14 @@ init
         real range = 384.0 + level * 32
         real duration = 6.0 + level * 0.25
         
-        ConicWaveGraphics queue = new ConicWaveGraphics(SpecialEffectType.AIFBSPECIALART, 0.1, 32)
+        ConicWaveGraphics along = new ConicWaveGraphics(SpecialEffectType.AIFBSPECIALART, 0.1, 32)
         new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
                 ..setSpreadAngle(0.0.asAngleDegrees())
                 ..setQueuePropagationSpeed(vec2(64, 0))
                 ..setHeadPropagationSpeed(vec2(64, speed))
-                ..setQueue(queue)
+                ..setAlong(along)
                 ..setHead(null)
                 ..start()
 
@@ -242,7 +256,7 @@ init
                     ..setSpreadAngle(360.0.asAngleDegrees())
                     ..setMaxRange(150.0)
                     ..setHeadPropagationSpeed(vec2(75.0, 75.0))
-                    ..setQueue(new ConicWaveGraphics(SpecialEffectType.FLAMESTRIKEEMBERS, 0.65, 32.0))
+                    ..setAlong(new ConicWaveGraphics(SpecialEffectType.FLAMESTRIKEEMBERS, 0.65, 32.0))
                 burningGroundEffect.start()
                 
         new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
@@ -262,16 +276,24 @@ init
     // TOILES_ARAIGNEE
     // TRANSMUTATION_CHAIR_PIERRE
 
-    // Rain of arrows
-    registerSpellEffectEvent('A00V') ->
-        /*Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
+    // Non-wizard
+    // PLUIE_FLECHES
+    registerSpellEffectEvent(Spell.PLUIE_FLECHES.abilityId) ->
+        Log.debug("Spell was cast : " + GetSpellAbility().getHandleId().toString())
         
         unit caster = GetTriggerUnit()
-        int abilityLevel = 1
-        vec2 fromPoint = GetTriggerUnit().getPos()
+        int abilityLevel = caster.getAbilityLevel(GetSpellAbilityId())
         vec2 targetPoint = getSpellTargetPos()
-        for int i = 1 to abilityLevel
-            // FIXME generateArrowFromUnit(caster, targetPoint, )*/
+        real radius = 250.0
+        
+        int arrowsRemaining = abilityLevel + 5
+        real delay = 0
+        forUnitsInRangeCounted(targetPoint, radius, 1) u ->
+            while arrowsRemaining != 0
+                doAfter(delay) ->
+                    onUnitAttackWithBow(caster, u)
+                delay += 0.25
+                arrowsRemaining--
     
     // Toiles d'araignee
     registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->

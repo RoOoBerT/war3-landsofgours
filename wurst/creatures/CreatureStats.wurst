@@ -7,8 +7,9 @@ import HashMap
 import public DamageClass
 import Memory
 
-// TODO Remove ?
-public tuple statsModifiers(CreatureStats added, CreatureStats addedPercent)
+/* This class should probably be a tuple ?
+So no memory management to do with it.
+*/
 
 /** Stores data for all available stats of a creature.
 Can be used for units, buffs, modifiers, etc. */

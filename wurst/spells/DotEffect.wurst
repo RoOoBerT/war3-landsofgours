@@ -5,28 +5,33 @@ import ClosureTimers
 import LinkedList
 
 // Custom imports
-import DamageClass
+import Combat
+import CreatureStats
 import DilatableTime
+import SpecialEffects
 
-@configurable public constant real DOT_EFFECTS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
+@configurable public constant real DOT_EFFECTS_UPDATE_PERIOD = 0.1
 
 /** FIXME DoT effect handler */
 public interface DotEffectHandler
     function onEffect(DotEffect which, unit who)
 
 public class GenericDotEffectHandler implements DotEffectHandler
-    constant string effectPath
-    constant DamageClass damageClass
-    constant real damage
+    constant unit caster
+    constant SpecialEffectType effectType
+    constant string attachment = "origin"
 
-    construct(string effectPath, DamageClass damageClass, real damage)
-        this.effectPath = effectPath
-        this.damageClass = damageClass
-        this.damage = damage
+    constant CreatureStats stats = null
 
-    // FIXME add caster + target
-    function onEffect(DotEffect which, unit who)
+    construct(unit caster, SpecialEffectType effectType, string attachment, CreatureStats stats)
+        this.caster = caster
+        this.effectType = effectType
+        this.attachment = attachment
+        this.stats = stats
 
+    function onEffect(DotEffect _which, unit who)
+        if this.stats != null
+            onUnitPhysicalAttack(this.caster, this.stats, who)
 
 /** Data related to a damage over time (DoT) effect */
 public class DotEffect
@@ -34,8 +39,10 @@ public class DotEffect
     /** The target affected by the DoT */
     private constant unit target
 
+    private constant real duration
+
     /** The time at which the effect will stop */
-    private constant real endTime
+    private real endTime
 
     /** The initial unit that casted the spell */
     private constant unit emitter
@@ -57,9 +64,9 @@ public class DotEffect
     /** Directory of all active AoEs */
     static constant LinkedList<DotEffect> LIST = new LinkedList<DotEffect>
 
-    construct(unit target, real endTime, unit emitter, real period, DotEffectHandler effectHandler)
+    construct(unit target, real duration, unit emitter, real period, DotEffectHandler effectHandler)
         this.target = target
-        this.endTime = endTime
+        this.duration = duration
         this.emitter = emitter
         this.period = max(period, DOT_EFFECTS_UPDATE_PERIOD)
         this.effectHandler = effectHandler
@@ -79,7 +86,9 @@ public class DotEffect
     // Functions
     /** Start handling the effects of this DoT */
     function start()
-        this.lastEffectTime = TimeDilatation.getModifiedTime(this.target.getPos3Real())
+        let currentTime = TimeDilatation.getModifiedTime(this.target.getPos3Real())
+        this.lastEffectTime = currentTime - this.period
+        this.endTime = currentTime + duration
         LIST.add(this)
 
     /** Handles DoT effect. Returns true if it is finished and should be deleted */
@@ -92,7 +101,10 @@ public class DotEffect
             // Finished
             return true
 
-        // TODO DoTEffect
+        if this.effectHandler != null
+            if time >= this.lastEffectTime + this.period
+                this.lastEffectTime += this.period
+                this.effectHandler.onEffect(this, this.target)
 
         return false
 

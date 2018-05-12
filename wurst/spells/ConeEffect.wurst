@@ -38,11 +38,13 @@ public class ConicWaveGraphics
 /** Data related to a spell with a line/cone/circle shape */
 public class ConeEffect
     // Generic properties
-    /** The currentTime at which the effect started */
+    /** The time at which the effect started */
     private real beginTime
 
-    /** The currentTime at which the effect will stop */
+    /** The time at which the effect will stop */
     private real endTime
+
+    private constant real duration
 
     /** The initial unit that casted the spell */
     private constant unit emitter
@@ -74,6 +76,7 @@ public class ConeEffect
 
     // Graphics
     private ConicWaveGraphics queue = null
+    private ConicWaveGraphics along = null
     private ConicWaveGraphics head = null
 
     // Handlers
@@ -88,14 +91,14 @@ public class ConeEffect
     static constant LinkedList<ConeEffect> LIST = new LinkedList<ConeEffect>
 
     construct(real duration, vec3 origin, unit emitter, unit followUnit)
+        this.duration = duration
         this.origin = origin
-        this.beginTime = TimeDilatation.getModifiedTime()
-        this.endTime = this.beginTime + duration
         this.emitter = emitter
         this.followUnit = followUnit
 
     function start()
         this.beginTime = TimeDilatation.getModifiedTime(this.origin)
+        this.endTime = beginTime + this.duration
 
         // Register this cone effect
         LIST.add(this)
@@ -104,12 +107,6 @@ public class ConeEffect
         DestroyGroup(this.unitsInCone)
 
     // Modifiers
-    function setBeginTime(real beginTime)
-        this.beginTime = beginTime
-
-    function setEndTime(real endTime)
-        this.endTime = endTime
-
     function setAngle(angle ang)
         this.ang = ang
 
@@ -130,9 +127,12 @@ public class ConeEffect
 
     function setMaxRange(real maxRange)
         this.maxRange = maxRange
-
+    
     function setQueue(ConicWaveGraphics queue)
         this.queue = queue
+
+    function setAlong(ConicWaveGraphics along)
+        this.along = along
     
     function setHead(ConicWaveGraphics head)
         this.head = head
@@ -232,11 +232,15 @@ public class ConeEffect
         let queuePosition = min(headPosition,  this.computePosition(currentTime, this.queuePropagationSpeed))
         
         //Log.trace("Cone propagating : " + this.emitter.getName() + " from " + queuePosition.toString(0) + " to " + headPosition.toString(0))
-        
-        // Queue graphics : All along the way
+
+        // Along graphics : All along the way
         if this.queue != null
-            this.handleGraphics(this.queue, queuePosition, headPosition)
-        
+            this.handleGraphics(this.queue, queuePosition, queuePosition)
+
+        // Queue graphics : behind (close to center)
+        if this.along != null
+            this.handleGraphics(this.along, queuePosition, headPosition)
+
         // Head graphics : ahead
         if this.head != null
             this.handleGraphics(this.head, headPosition, headPosition)
@@ -270,7 +274,7 @@ public class ConeEffect
                     for unit u from this.unitsInCone
                         if not newUnitsInCone.contains(u)
                             this.unitLeavingHandler.onUnitAffected(this, u)
-
+                
                 DestroyGroup(this.unitsInCone)
                 this.unitsInCone = newUnitsInCone
                 
