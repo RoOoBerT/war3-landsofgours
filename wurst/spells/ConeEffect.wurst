@@ -8,6 +8,7 @@ import LinkedList
 
 // Custom imports
 import DilatableTime
+import SpecialEffects
 
 @configurable public constant real CONE_EFFECTS_UPDATE_PERIOD = ANIMATION_PERIOD
 
@@ -18,7 +19,7 @@ public interface ConeUnitHandler
 /** Stores graphical metadata associated to a conic wave (part of a cone effect) */
 public class ConicWaveGraphics
     /** Special effect (optional) */
-    constant string effectPath
+    constant SpecialEffectType effectType
 
     /** Time interval for head special effects */
     constant real effectPeriod
@@ -27,10 +28,10 @@ public class ConicWaveGraphics
     constant real effectRadius
 
     /** Time of last head special effect */
-    real effectLastTime = getElapsedGameTime()
+    real effectLastTime = 0
 
-    construct(string effectPath, real effectInterval, real effectRadius)
-        this.effectPath = effectPath
+    construct(SpecialEffectType effectType, real effectInterval, real effectRadius)
+        this.effectType = effectType
         this.effectPeriod = effectInterval
         this.effectRadius = max(1.0, effectRadius)
 
@@ -72,8 +73,8 @@ public class ConeEffect
     private boolean stop = false
 
     // Graphics
-    private ConicWaveGraphics queue
-    private ConicWaveGraphics head
+    private ConicWaveGraphics queue = null
+    private ConicWaveGraphics head = null
 
     // Handlers
     private ConeUnitHandler unitEnteringHandler
@@ -145,7 +146,7 @@ public class ConeEffect
     function handleGraphics(ConicWaveGraphics gfx, real queuePosition, real headPosition)
         let currentTime = getElapsedGameTime()
         if currentTime - gfx.effectLastTime >= gfx.effectPeriod
-            gfx.effectLastTime += gfx.effectPeriod
+            gfx.effectLastTime = currentTime
 
             // All along the way
             real currentPosition = queuePosition
@@ -163,8 +164,7 @@ public class ConeEffect
                     let currentPoint = this.origin.toVec2().polarOffset(currentAngle, currentPosition)
 
                     // Show effect
-                    addEffect(gfx.effectPath, currentPoint.withZ(this.origin.z))
-                        ..destr()
+                    gfx.effectType.flashWithoutLeak(currentPoint)
 
                     // Increase angle
                     currentAngle = currentAngle.op_plus(angleStep)

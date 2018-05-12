@@ -11,6 +11,7 @@ import BuffTypesImplementation
 import ConeEffect
 import DilatableTime
 import Imports
+import SpecialEffects
 import SpellCasting
 import UnitsBuffs
 import WizardSpell
@@ -40,7 +41,7 @@ init
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
         real duration = 15.0 + level
 
-        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.zigguratFrostMissile, 0.4, 64)
+        ConicWaveGraphics head = new ConicWaveGraphics(SpecialEffectType.ZIGGURATFROSTMISSILE, 0.4, 64)
         new ConeEffect(duration, target.getPos().withZ(0.0), emitter, target)
                 ..setSpreadAngle(360.0.asAngleDegrees())
                 ..setQueuePropagationSpeed(vec2(64, 1))
@@ -60,7 +61,7 @@ init
         real range = 384.0 + level * 32
         real duration = 10.0
         
-        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIobSpecialArt, 0.2, 60)
+        ConicWaveGraphics queue = new ConicWaveGraphics(SpecialEffectType.AIOBSPECIALART, 0.2, 45)
         let cone = new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
@@ -92,7 +93,7 @@ init
         real range = 256.0 + level * 32
         real duration = range / speed
         
-        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.aIfbSpecialArt, 0.1, 64)
+        ConicWaveGraphics head = new ConicWaveGraphics(SpecialEffectType.AIFBSPECIALART, 0.1, 64)
         new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setMaxRange(range)
                 ..setSpreadAngle(360.0.asAngleDegrees())
@@ -116,13 +117,7 @@ init
         ConeUnitHandler leaveConeHandler = (cone, who) ->
             Log.debug("Unit left Abi Dalzim : " + who.getName())
 
-        // Skull effect
-        // buildings\\other\\SacrificialAltar\\SacrificialAltar.mdl
-        /*Fx fx = new Fx(target, 270.0.asAngleDegrees(), "buildings\\other\\SacrificialAltar\\SacrificialAltar.mdl")
-            ..setZ(-200)*/
-        /*fx.getDummy()
-            ..setFlyHeight(0, 50)*/
-
+        // FIXME Skull effect
         unit dummyFx = createUnit(players[PLAYER_NEUTRAL_PASSIVE], 'h006', target, 227.0.asAngleDegrees())
             ..addAbility(HEIGHT_ENABLER)
             ..removeAbility(HEIGHT_ENABLER)
@@ -131,12 +126,7 @@ init
         doAfter(duration) ->
             dummyFx.remove()
 
-        /*effect fx = addEffect("buildings\\other\\SacrificialAltar\\SacrificialAltar.mdl", target)
-            ..setColor(255, 64, 64)
-        doAfter(duration) ->
-            fx.destr()*/
-
-        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.devourEffectArt, 0.3, 64)
+        ConicWaveGraphics queue = new ConicWaveGraphics(SpecialEffectType.DEVOUREFFECTART, 0.3, 64)
         new ConeEffect(duration, target.withZ(0.0), emitter, null)
                 ..setSpreadAngle(360.0.asAngleDegrees())
                 ..setMaxRange(range)
@@ -162,7 +152,7 @@ init
             skip
 
         // Visual effect
-        ConicWaveGraphics head = new ConicWaveGraphics(Abilities.devourEffectArt, 0.1, 64)
+        ConicWaveGraphics head = new ConicWaveGraphics(SpecialEffectType.WITCHDOCTORMISSILE, 0.1, 64)
         new ConeEffect(graphicsDuration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setMaxRange(range)
                 ..setSpreadAngle(360.0.asAngleDegrees())
@@ -182,7 +172,7 @@ init
         real range = 384.0 + level * 32
         real duration = 6.0 + level * 0.25
         
-        ConicWaveGraphics queue = new ConicWaveGraphics(Abilities.aIfbSpecialArt, 0.1, 32)
+        ConicWaveGraphics queue = new ConicWaveGraphics(SpecialEffectType.AIFBSPECIALART, 0.1, 32)
         new ConeEffect(duration, emitter.getPos().withZ(100.0), emitter, emitter)
                 ..setAngle(emitter.getPos().angleTo(target))
                 ..setMaxRange(range)
@@ -216,8 +206,8 @@ init
         real frequency = 1 / (2.0 + level * 0.1)
         
         AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
-            addEffect(Abilities.plagueCloudCaster, where)
-                
+            SpecialEffectType.PLAGUECLOUDCASTER.flashWithoutLeak(where)
+        
         new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 64.0, frequency, handler)
             ..start()
 
@@ -230,7 +220,7 @@ init
         real frequency = 1 / (2.0 + level * 0.1)
         
         AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
-            addEffect(Abilities.cloudOfFog, where)
+            SpecialEffectType.CLOUDOFFOG.flashWithoutLeak(where)
         
         new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
             ..start()
@@ -244,15 +234,15 @@ init
         real frequency = 2.25 - level * 0.1
         
         AoeImpactHandler handler = (AoeEffect aoe, vec2 where) ->
-            flashEffect(Units.infernalBirth, where)
+            SpecialEffectType.INFERNALBIRTH.flashWithoutLeak(where)
 
             // Meteor burning ground
-            ConeEffect burningGroundEffect = new ConeEffect(5.0, where.withZ(0), emitter, null)
-                ..setSpreadAngle(360.0.asAngleDegrees())
-                ..setMaxRange(150.0)
-                ..setHeadPropagationSpeed(vec2(75, 75.0))
-                ..setQueue(new ConicWaveGraphics(Abilities.flameStrikeEmbers, 0.65, 32.0))
             doAfter(1.0) ->
+                ConeEffect burningGroundEffect = new ConeEffect(5.0, where.withZ(0), emitter, null)
+                    ..setSpreadAngle(360.0.asAngleDegrees())
+                    ..setMaxRange(150.0)
+                    ..setHeadPropagationSpeed(vec2(75.0, 75.0))
+                    ..setQueue(new ConicWaveGraphics(SpecialEffectType.FLAMESTRIKEEMBERS, 0.65, 32.0))
                 burningGroundEffect.start()
                 
         new AoeEffect(endTime, emitter, target.withZ(0.), 600.0 - 250.0, frequency, handler)
@@ -282,8 +272,7 @@ init
         vec2 targetPoint = getSpellTargetPos()
         for int i = 1 to abilityLevel
             // FIXME generateArrowFromUnit(caster, targetPoint, )*/
-        
-
+    
     // Toiles d'araignee
     registerSpellEffectEvent(WizardSpell.TOILES_ARAIGNEE.abilityId) ->
         vec2 target = getSpellTargetPos()
@@ -294,6 +283,6 @@ init
         real radius = 400.0 + 20.0 * level
 
         // FIXME PATH CHANGED ?!
-        AoeImpactHandler handler = new GenericImpactHandler(MODELS_WEB, 2, color(0, 0, 0), 1, 250, 40)
+        AoeImpactHandler handler = new GenericImpactHandler(SpecialEffectType.WEB, 2, color(0, 0, 0), 1, 250, 40)
         new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
             ..start()

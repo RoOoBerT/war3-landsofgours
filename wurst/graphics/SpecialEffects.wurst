@@ -94,9 +94,12 @@ public class SpecialEffectType
     static constant DEATHANDDECAYTARGET   = new SpecialEffectType(Abilities.deathandDecayTarget  , 0.2)
     static constant DEVOUREFFECTART       = new SpecialEffectType(Abilities.devourEffectArt      , 0.2)
     static constant FAERIEDRAGON_INVIS    = new SpecialEffectType(Abilities.faerieDragon_Invis   , 0.2)
+    static constant FLAMESTRIKEEMBERS     = new SpecialEffectType(Abilities.flameStrikeEmbers    , FLASHABLE)
     static constant FROSTARMORDAMAGE      = new SpecialEffectType(Abilities.frostArmorDamage     , 0.2)
     static constant IMMOLATIONREDDAMAGE   = new SpecialEffectType(Abilities.immolationRedDamage  , 0.2)
+    static constant INFERNALBIRTH         = new SpecialEffectType(Units.infernalBirth            , FLASHABLE)
     static constant LIGHTNINGSHIELDBUFF   = new SpecialEffectType(Abilities.lightningShieldBuff  , 0.2)
+    static constant LIGHTNINGBOLTMISSILE  = new SpecialEffectType(Abilities.lightningBoltMissile , FLASHABLE)
     static constant PLAGUECLOUDCASTER     = new SpecialEffectType(Abilities.plagueCloudCaster    , 0.2)
     static constant POISONSTINGTARGET     = new SpecialEffectType(Abilities.poisonStingTarget     )
     static constant REPLENISHHEALTHCASTER = new SpecialEffectType(Abilities.replenishHealthCaster, 0.1)
@@ -104,6 +107,7 @@ public class SpecialEffectType
     static constant SNAPMISSILE           = new SpecialEffectType(Abilities.snapMissile          , FLASHABLE)
     static constant STAMPEDEMISSILEDEATH  = new SpecialEffectType(Abilities.stampedeMissileDeath , 0.1)
     static constant WEB                   = new SpecialEffectType(MODELS_WEB                     , 1)
+    static constant WITCHDOCTORMISSILE    = new SpecialEffectType(Abilities.witchDoctorMissile   , 0.1)
     static constant ZIGGURATFROSTMISSILE  = new SpecialEffectType(Abilities.zigguratFrostMissile , FLASHABLE)
 
 init

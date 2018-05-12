@@ -7,6 +7,7 @@ import LinkedList
 
 // Custom imports
 import DilatableTime
+import SpecialEffects
 
 @configurable public constant real AOE_EFFECTS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
 
@@ -15,7 +16,7 @@ public interface AoeImpactHandler
     function onImpact(AoeEffect aoe, vec2 where)
 
 public class GenericImpactHandler implements AoeImpactHandler
-    constant string effectPath
+    constant SpecialEffectType effectType
     constant real scale
     constant color col
     constant real delay
@@ -23,8 +24,8 @@ public class GenericImpactHandler implements AoeImpactHandler
     constant real damage
     constant attacktype attackType = ATTACK_TYPE_CHAOS
 
-    construct(string effectPath, real scale, color col, real delay, real radius, real damage)
-        this.effectPath = effectPath
+    construct(SpecialEffectType effectType, real scale, color col, real delay, real radius, real damage)
+        this.effectType = effectType
         this.scale = scale
         this.col = col
         this.delay = delay
@@ -35,10 +36,7 @@ public class GenericImpactHandler implements AoeImpactHandler
 
     function onImpact(AoeEffect aoe, vec2 where)
         // Create impact effect
-        addEffect(this.effectPath, where)
-            ..setScale(this.scale)
-            ..setColor(this.col.red, this.col.green, this.col.blue)
-            ..destr()
+        this.effectType.flashWithoutLeak(where)
 
         // Impact after some delay
         doAfter(this.delay) ->
