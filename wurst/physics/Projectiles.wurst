@@ -27,9 +27,7 @@ Source : http://www.egwald.ca/geometry/projectile3d.php
 */
 
 /** Projectiles impact check frequency */
-@configurable public constant real PROJECTILES_UPDATE_PERIOD = ANIMATION_PERIOD
-
-@configurable public constant string EFFECT_PATH = "Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl"
+@configurable public constant real PROJECTILES_UPDATE_PERIOD = 0.5 // ANIMATION_PERIOD
 
 /** A projectile object which can be followed over time and emits a notification upon impact */
 public abstract class Projectile
@@ -38,7 +36,7 @@ public abstract class Projectile
     protected constant unit emitter
     
     // Handlers
-    protected ImpactHandler impactHandler
+    protected ImpactHandler impactHandler = null
 
     // Projectiles directory
     protected static constant LinkedList<Projectile> LIST = new LinkedList<Projectile>
@@ -52,6 +50,7 @@ public abstract class Projectile
     ondestroy
         REF_COUNTER--
         destroy this.fx
+        // TODO Maybe remove impact handler
     
     // Modifiers
     function setImpactHandler(ImpactHandler impactHandler)
@@ -73,8 +72,8 @@ public class StandardProjectile extends Projectile
     // Physics
     protected constant vec3 origin
     protected vec3 dest
-    protected real speed = 200
-    protected real arc = 0.5
+    protected real speed = 200.0
+    protected real height = 250
 
     // Internal physics data
     private real launchTime
@@ -83,8 +82,8 @@ public class StandardProjectile extends Projectile
     private real arrivalTime
     
     // Height function (hyperbolic) coefficients
-    private real a
-    private real b
+    private real verticalAcceleration
+    private real verticalSpeed
 
     // Temporary
     private real previousDistance
@@ -103,8 +102,8 @@ public class StandardProjectile extends Projectile
     function setSpeed(real speed)
         this.speed = speed
 
-    function setArc(real arc)
-        this.arc = 1024 * max(0, min(1, arc))
+    function setHeight(real height)
+        this.height = height
 
     // Functions
     /** Starts the trajectory and effects of the projectile */
@@ -116,8 +115,11 @@ public class StandardProjectile extends Projectile
 
         this.fx.setXYAngleInstant(this.groundAngle)
 
-        this.b = this.arc
-        this.a = (((this.origin.z - this.dest.z) / arrivalTime) - this.b) / arrivalTime
+        // Compute vertical speed to reach the specified maximum height
+        this.verticalSpeed = 2 * this.height / this.arrivalTime
+        // Compute acceleration to reach the target point precisely
+        this.verticalAcceleration = (((this.origin.z - this.dest.z) / arrivalTime) - this.verticalSpeed) / arrivalTime
+        Log.debug("maxHeight={0} / verticalSpeed={1} / accel={2}".format(this.height.round().toString(), this.verticalSpeed.round().toString(), this.verticalAcceleration.round().toString()))
 
         //
         this.previousDistance = 0
@@ -125,7 +127,6 @@ public class StandardProjectile extends Projectile
         
         /*this.a = this.arc
         this.b = ((this.origin.z - this.dest.z) / arrivalTime) - (this.a * arrivalTime)*/
-
         //Log.debug("Projectile : a=" + this.a.toString(1) + " b=" + this.b.toString(1))
 
         super.launch()
@@ -147,7 +148,7 @@ public class StandardProjectile extends Projectile
         vec2 posXY = this.origin.toVec2().polarOffset(this.groundAngle, distance)
 
         // Compute Z
-        let posZ = this.a * timeElapsed * timeElapsed + this.b * timeElapsed + this.origin.z
+        let posZ = this.verticalAcceleration * timeElapsed * timeElapsed + this.verticalSpeed * timeElapsed + this.origin.z
 
         // Compute Z angle
         let zAngle = vec2(distance - this.previousDistance, posZ - this.previousHeight)
@@ -166,17 +167,17 @@ public class StandardProjectile extends Projectile
 /** A projectile following a specific unit */
 public class FollowingProjectile extends Projectile
     // Physics
-    protected unit target = null
-    protected real speed = 200
+    protected unit target
+    protected real speed = 200.0
 
     // Temporary
     private real previousMoveTime
-    private real previousHeight
+    private vec3 previousPosition
 
     construct(unit emitter, string effectPath, vec3 origin, unit target)
         super(emitter, effectPath, origin)
         this.target = target
-        this.previousHeight = origin.z
+        this.previousPosition = origin
     
     ondestroy
     
@@ -190,36 +191,37 @@ public class FollowingProjectile extends Projectile
     // Functions
     /** Starts the trajectory and effects of the projectile */
     override function launch()
-        this.previousMoveTime = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real())
+        this.previousMoveTime = TimeDilatation.getModifiedTime(this.previousPosition)
         super.launch()
     
     /** Update the projectile position and returns true if it exploded */
     override function move() returns boolean
-        let currentTime = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real())
+        let currentTime = TimeDilatation.getModifiedTime(this.previousPosition)
         let intervalTime = currentTime - this.previousMoveTime
 
         // Distance at this step
-        let targetPoint = this.target.getPos3Real()
+        let targetPoint = this.target.getPos3Real() + vec3(0, 0, 64.0)
         let moveDistance = this.speed * intervalTime
 
         // Check impact
-        let distance = this.fx.getPos3().distanceTo(targetPoint)
-        if distance <= 128
+        if this.previousPosition.distanceToSq(targetPoint) <= moveDistance * moveDistance
             // BOOM !
             if this.impactHandler != null
                 this.impactHandler.onImpact(this.target.getPos3Real())
             return true
         
-        let angleGround = this.fx.getPos2().angleTo(targetPoint.toVec2())
-        let angleAir = vec2(distance, targetPoint.z - this.previousHeight).getAngle()
-        let posXYZ = this.fx.getPos3().polarProject(moveDistance, angleGround, angleAir)
+        let angleGround = this.previousPosition.toVec2().angleTo(targetPoint.toVec2())
+        let groundDistance = this.previousPosition.toVec2().distanceTo(targetPoint.toVec2())
+        let angleAir = vec2(groundDistance, targetPoint.z - this.previousPosition.z).getAngle()
+        let posXYZ = this.previousPosition.polarProject(moveDistance, angleGround, angleAir)
+        //Log.trace("Angle ground = {0} / Angle air = {1}".format(angleGround.degrees().round().toString(), angleAir.degrees().round().toString()))
         
         // Update location (DO NOT USE fx.setZ !)
         this.fx.setXYZ(posXYZ, false)
         this.fx.setXYAngle(angleGround)
         this.fx.setZAngle(angleAir)
 
-        this.previousHeight = posXYZ.z
+        this.previousPosition = posXYZ
         this.previousMoveTime = currentTime
 
         // Not destroyed

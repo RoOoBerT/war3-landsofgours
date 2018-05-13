@@ -13,38 +13,21 @@ import Projectiles
 public class ItemTypeArrows extends ItemType
     // Graphical information
     private constant string projectileEffectPath
-    private constant real arc = 0.5
-
     private string impactEffectPath = null
 
     // Arrows properties
     private boolean followUnit = false
     private real timeLimit = 0.0
+    
+    /** The (maximum) height at which the projectile will travel */
+    private real height = 200.0
 
     /** Radius in which units are hit, or <= 0.0 if no units are affected */
     private real impactRadius = 32.0
 
     private ImpactHandler customImpactHandler = null
 
-    ///** Does the arrow pierce the ennemies */
-    // TODO constant int pierceAmount = 0
-
-    ///** Does the arrow */
-    // TODO constant real knockBackPower = 0.0
-
-    ///***/
-    //constant real leechLifeRate
-    //constant real poisonRate
-    //constant real fireRate
-    //constant real leechLifeRate
-    //constant real explosionRate
-
     // Functions
-    private construct(int itemType, string effectPath, real arc)
-        super(itemType, false)
-        this.projectileEffectPath = effectPath
-        this.arc = arc
-
     construct(int itemType, string effectPath)
         super(itemType, false)
         this.projectileEffectPath = effectPath
@@ -53,14 +36,14 @@ public class ItemTypeArrows extends ItemType
     function getEffectPath() returns string
         return this.projectileEffectPath
 
-    function getArc() returns real
-        return this.arc
-    
     function isFollowUnit() returns boolean
         return this.followUnit
 
     function getTimeLimit() returns real
         return this.timeLimit
+
+    function getHeight() returns real
+        return this.height
 
     function getImpactEffectPath() returns string
         return this.impactEffectPath
@@ -77,6 +60,9 @@ public class ItemTypeArrows extends ItemType
 
     function setTimeLimit(real timeLimit)
         this.timeLimit = timeLimit
+
+    function setHeight(real height)
+        this.height = height
 
     function setImpactEffectPath(string impactEffectPath)
         this.impactEffectPath = impactEffectPath
@@ -99,6 +85,6 @@ public class ItemTypeArrows extends ItemType
     static constant ItemTypeArrows FLECHES_SPIRITUELLES = new ItemTypeArrows('I00Z', Abilities.shadowStrikeMissile)
         ..setImpactEffectPath(Abilities.dispelMagicTarget)
 
-    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', Abilities.tinkerRocketMissile, 0.5)
+    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', Abilities.guardTowerMissile/*Abilities.tinkerRocketMissile*/)
         ..setFollowUnit(true)
         ..setTimeLimit(15.0)
