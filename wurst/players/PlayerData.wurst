@@ -114,7 +114,11 @@ function onCharacterSelected(unit _seller, unit character)
 
     // Select the character
     owner.selectSingle(character)
+
+    // Configure experience options
     character.suspendXp(true)
+    // FIXME character.
+
 
     // Check which character class it is
     CreatureType creatureType = CreatureType.get(character.getTypeId())
@@ -157,7 +161,6 @@ init
     // Initialization
     ACTIVE_PLAYERS.forEach() p ->
         // Set player properties
-        //p.setState(PLAYER_STATE_RESOURCE_FOOD_CAP, 1)
         p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_HELP_RESPONSE, true)
         p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_HELP_RESPONSE, true)
         p.setPlayerAlliance(PLAYER_COLONS, ALLIANCE_SHARED_VISION, true)

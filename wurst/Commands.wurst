@@ -227,8 +227,8 @@ class CommandMemory extends Command
         super(false, false, "memory", "-memory", "Affiche des détails sur l'utilisation de la mémoire")
     
     override function onCall(player who, LinkedList<string> params)
-
-        // TODO AllUnitsBuffs.memory(who)
+        //displayMessage(MessageType.INFO, who, 15.0, UnitsBuffs.getMemoryUsage().toString())
+        displayMessage(MessageType.INFO, who, 15.0, AllUnitsBuffs.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, Projectile.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, CreatureStats.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, SpecialEffect.getMemoryUsage().toString())

@@ -27,7 +27,7 @@ Source : http://www.egwald.ca/geometry/projectile3d.php
 */
 
 /** Projectiles impact check frequency */
-@configurable public constant real PROJECTILES_UPDATE_PERIOD = 0.5 // ANIMATION_PERIOD
+@configurable public constant real PROJECTILES_UPDATE_PERIOD = ANIMATION_PERIOD
 
 /** A projectile object which can be followed over time and emits a notification upon impact */
 public abstract class Projectile
@@ -119,7 +119,7 @@ public class StandardProjectile extends Projectile
         this.verticalSpeed = 2 * this.height / this.arrivalTime
         // Compute acceleration to reach the target point precisely
         this.verticalAcceleration = (((this.origin.z - this.dest.z) / arrivalTime) - this.verticalSpeed) / arrivalTime
-        Log.debug("maxHeight={0} / verticalSpeed={1} / accel={2}".format(this.height.round().toString(), this.verticalSpeed.round().toString(), this.verticalAcceleration.round().toString()))
+        //Log.debug("maxHeight={0} / verticalSpeed={1} / accel={2}".format(this.height.round().toString(), this.verticalSpeed.round().toString(), this.verticalAcceleration.round().toString()))
 
         //
         this.previousDistance = 0

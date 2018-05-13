@@ -78,6 +78,11 @@ public class CreatureType
         return u
 
     // ======= CREATURES DIRECTORY =======
+
+    // === Special creatures ===
+    static constant CreatureType CIBLE_ENTRAINEMENT   = new CreatureType('h00E', null)
+
+    // === Heroes for players ===
     static constant CreatureType HERO_PALADIN         = new CreatureType('H00C', CreatureRace.CENTAUR)
         ..setClass(CharacterClass.PALADIN)
         ..setStatsAdded(new CreatureStats()
@@ -94,6 +99,7 @@ public class CreatureType
             ..setDamage(DamageClass.DAMAGE_AIR, 2)
         )
 
+    // === Neutral monsters ===
     // Spider family
     static constant CreatureType OEUFS_ARAIGNEE       = new CreatureType('n00L', CreatureRace.ARACHNID)
     static constant CreatureType ARAIGNEE_PROGENITURE = new CreatureType('n00I', CreatureRace.ARACHNID)

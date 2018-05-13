@@ -91,14 +91,14 @@ public function generateArrowFromUnit(unit attacker, unit target, ItemTypeArrows
     if not arrows.isFollowUnit()
         new StandardProjectile(attacker, arrows.getEffectPath(), sourcePoint)
             ..setDestination(targetPoint)
-            ..setSpeed(600)
+            ..setSpeed(800)
             ..setHeight(arrows.getHeight())
             ..setImpactHandler(arrowImpactHandler)
             ..launch()
     else
         new FollowingProjectile(attacker, arrows.getEffectPath(), sourcePoint, target)
             ..setImpactHandler(arrowImpactHandler)
-            ..setSpeed(50)
+            ..setSpeed(600)
             ..launch()
 
 /** Called when a unit attacks another unit with a bow */

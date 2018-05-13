@@ -13,6 +13,7 @@ import BuffTypesImplementation
 import CreatureStats
 import DilatableTime
 import Dummys
+import Memory
 
 constant real BUFFS_UPDATE_PERIOD = 2.5 //ANIMATION_PERIOD
 
@@ -65,6 +66,8 @@ class UnitBuff
         if lastEffect != null
             lastEffect.destr()
 
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("UnitBuff", REF_COUNTER, -1)
 
 /** Represents the list of buffs currently linked to a unit */
 class UnitBuffs
@@ -289,6 +292,9 @@ public class AllUnitsBuffs
     /*@deprecated("Bad idea to access the internal list... Try to avoid using this method as possible")
     private static function getAllBuffs(unit target) returns LinkedList<UnitBuff>
         return getUnitBuffs(target).buffs*/
+
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("UnitBuffs", UnitBuffs.REF_COUNTER, LIST.size())
 
 // 
 init

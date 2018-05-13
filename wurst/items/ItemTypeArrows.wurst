@@ -85,6 +85,6 @@ public class ItemTypeArrows extends ItemType
     static constant ItemTypeArrows FLECHES_SPIRITUELLES = new ItemTypeArrows('I00Z', Abilities.shadowStrikeMissile)
         ..setImpactEffectPath(Abilities.dispelMagicTarget)
 
-    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', Abilities.guardTowerMissile/*Abilities.tinkerRocketMissile*/)
+    static constant ItemTypeArrows ROQUETTE_PRIMITIVE = new ItemTypeArrows('I00W', Abilities.tinkerRocketMissile)
         ..setFollowUnit(true)
         ..setTimeLimit(15.0)

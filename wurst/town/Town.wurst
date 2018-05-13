@@ -6,7 +6,9 @@ import ClosureTimers
 
 // Custom imports
 import Adventure
+import CreatureType
 import PlayerData
+import Orders
 
 function isEveryPlayerReadyToLeaveTown() returns boolean
     for player p in ACTIVE_PLAYERS
@@ -32,7 +34,7 @@ public function onUnitReadyToLeaveTown(unit who)
         if isEveryPlayerReadyToLeaveTown()
             // Start the next adventure !
             CinematicFadeBJ( bj_CINEFADETYPE_FADEOUT, 2.0, Textures.white_mask, 0, 0, 0, 0)
-            //FIXME Race condition if unit leaves and comes again within 2s
+            //FIXME Race condition if unit leaves and comes again within 2s -> maybe add pauseUnit in isEveryPlayerReadyToLeaveTown
             doAfter(2.0) ->
                 AdventureManager.runRandom()
                 CinematicFadeBJ( bj_CINEFADETYPE_FADEIN, 2.0, "ReplaceableTextures\\CameraMasks\\White_mask.blp", 0, 0, 0, 0)
@@ -55,3 +57,12 @@ init
         ..registerLeaveRegion(regionReady, null)
         ..addAction() ->
             onUnitNotReadyToLeaveTown(GetTriggerUnit())
+
+    // When a units targets a training target
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER)
+        ..addAction() ->
+            if GetIssuedOrderId() == Orders.move
+                unit target = GetTriggerUnit()
+                if target.getTypeId() == CreatureType.CIBLE_ENTRAINEMENT.getUnitTypeId()
+                    GetAttacker().issueTargetOrder("attack", target)
