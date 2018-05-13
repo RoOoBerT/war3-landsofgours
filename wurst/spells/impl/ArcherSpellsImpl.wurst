@@ -1,0 +1,37 @@
+package ArcherSpellsImpl
+
+// Standard imports
+import ClosureForGroups
+import ClosureTimers
+import EventHelper
+import RegisterEvents
+
+// Custom imports
+import AoeEffect
+import Combat
+import CreatureStats
+import DilatableTime
+import SpecialEffects
+import WizardSpell
+
+let STATS_BOUCLIER_GLACE_FROST = new CreatureStats()
+    ..setDamage(DamageClass.DAMAGE_FROID, 2.0)
+
+// FIXME a lot of `new Something()` here should be made static
+
+init
+    // PLUIE_FLECHES
+    registerSpellEffectEvent(Spell.PLUIE_FLECHES.abilityId) ->
+        unit caster = GetTriggerUnit()
+        int abilityLevel = caster.getAbilityLevel(GetSpellAbilityId())
+        vec2 targetPoint = getSpellTargetPos()
+        real radius = 250.0
+        
+        int arrowsRemaining = abilityLevel + 5
+        real delay = 0
+        forUnitsInRangeCounted(targetPoint, radius, 1) u ->
+            while arrowsRemaining != 0
+                doAfter(delay) ->
+                    onUnitAttackWithBow(caster, u)
+                delay += 0.25
+                arrowsRemaining--

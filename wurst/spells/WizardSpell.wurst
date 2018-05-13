@@ -71,7 +71,7 @@ public class WizardSpell extends Spell
     constant static WizardSpell INCINERATEUR_AGANAZZAR              = new WizardSpell('A00T', 20, TargetType.LOCATION, "", SpellSchool.EVOCATION)
     constant static WizardSpell NUAGE_INCENDIAIRE                   = new WizardSpell('A00A', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
     constant static WizardSpell NUAGE_MORTEL                        = new WizardSpell('A008', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
-    constant static WizardSpell NUAGE_PUANT                         = new WizardSpell('A005', 20, TargetType.LOCATION, "", SpellSchool.INVOCATION)
+    constant static WizardSpell NUAGE_PUANT                         = new WizardSpell('A005', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION)
     constant static WizardSpell NUEE_METEORES                       = new WizardSpell('A00P', 20, TargetType.LOCATION, "devourmagic", SpellSchool.EVOCATION)
     constant static WizardSpell PEAU_ECORCE                         = new WizardSpell('A007', 20, TargetType.UNIT    , "charm", SpellSchool.TRANSMUTATION)
     constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A006', 20, TargetType.UNIT    , "chainlightning", SpellSchool.TRANSMUTATION)

@@ -1,0 +1,30 @@
+package StandardSpellsImpl
+
+// Standard imports
+import ClosureForGroups
+import ClosureTimers
+import EventHelper
+import RegisterEvents
+
+// Custom imports
+import AoeEffect
+import BuffTypesImpl
+import Combat
+import ConeEffect
+import CreatureStats
+import DotEffect
+import DilatableTime
+import Imports
+import Projectiles
+import SpecialEffects
+import SpellCasting
+import UnitsBuffs
+import WizardSpell
+
+let STATS_BOUCLIER_GLACE_FROST = new CreatureStats()
+    ..setDamage(DamageClass.DAMAGE_FROID, 2.0)
+
+// FIXME a lot of `new Something()` here should be made static
+
+init
+    

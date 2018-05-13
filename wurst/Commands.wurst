@@ -64,10 +64,12 @@ abstract class Command
     static constant DEBUG = new CommandDebug()
     static constant MEMORY = new CommandMemory()
     static constant MUSIC = new CommandMusic()
+    static constant ORDER = new CommandOrder()
     static constant SPELLBOOK = new CommandSpellBook()
     static constant SPELL_LEARN = new CommandSpellLearn()
     static constant STATS = new CommandStats()
     static constant TIME = new CommandTime()
+    static constant XP = new CommandXp()
 
 class CommandHelp extends Command
     construct()
@@ -246,6 +248,28 @@ class CommandMusic extends Command
                 default
                     displayMessage(MessageType.ERROR, who, 15.0, "Musique inconnue : " + param)
         
+class CommandOrder extends Command
+    construct()
+        super(false, false, "order", "-order [instantorder]", "Affiche l'ordre en cours des unités sélectionnées ou leur envoit l'ordre spécifié. ")
+    
+    override function onCall(player who, LinkedList<string> params)
+        group selectedUnits = CreateGroup()
+        GroupEnumUnitsSelected(selectedUnits, who, null)
+
+        // What action ?
+        string order = params.removeAt(0)
+        if order != null and order.isNotBlank()
+            for unit u in selectedUnits
+                displayMessage(MessageType.INFO, who, 5, "Ordre donné à '" + u.getName() + "' : '" + order + "'")
+                u.issueImmediateOrder(order)
+        else
+            for unit u in selectedUnits
+                displayMessage(MessageType.INFO, who, 5, "Ordre actuel de  '" + u.getName() + "' : '" + OrderId2String(u.getCurrentOrder()) + "'")
+        
+        // Cleanup
+        DestroyGroup(selectedUnits)
+
+
 class CommandSpellBook extends Command
     construct()
         super(false, true, "spellbook", "-spellbook [<index>]", "Affiche la liste des sorts de mage")
@@ -360,6 +384,28 @@ class CommandTime extends Command
         humanReadable += remaining.toString() + "s"
         
         displayMessage(MessageType.SUCCESS, who, 10, "Temps écoulé : " + realTime.toInt().toString() + "s = " + humanReadable)
+
+class CommandXp extends Command
+    construct()
+        super(false, false, "xp", "-xp [amount]", "Ajoute le montant spécifié d'expérience aux unités sélectionnées. ")
+    
+    override function onCall(player who, LinkedList<string> params)
+        group selectedUnits = CreateGroup()
+        GroupEnumUnitsSelected(selectedUnits, who, null)
+
+        // What amount of XP ?
+        int amount = 1000
+        string param = params.removeAt(0)
+        if param != null and param.isNotBlank()
+            amount = param.toInt()
+
+        // Add xp
+        for unit u in selectedUnits
+            displayMessage(MessageType.INFO, who, 5, "Bonus d'expérience à '" + u.getName() + "' : '" + amount.toString() + "'")
+            u.addXp(amount, true)
+    
+        // Cleanup
+        DestroyGroup(selectedUnits)
 
 // Initialization
 init

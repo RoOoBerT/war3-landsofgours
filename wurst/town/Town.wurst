@@ -62,7 +62,7 @@ init
     CreateTrigger()
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER)
         ..addAction() ->
-            if GetIssuedOrderId() == Orders.move
-                unit target = GetTriggerUnit()
+            if GetIssuedOrderId() == Orders.smart or GetIssuedOrderId() == Orders.move
+                unit target = GetOrderTargetUnit()
                 if target.getTypeId() == CreatureType.CIBLE_ENTRAINEMENT.getUnitTypeId()
-                    GetAttacker().issueTargetOrder("attack", target)
+                    GetTriggerUnit().issueTargetOrder("attack", target)

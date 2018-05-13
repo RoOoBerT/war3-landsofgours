@@ -1,6 +1,7 @@
 package Imports
 
 import public Assets
+import public Orders
 
 // Icons
 public constant string ICONS_ORB_WINDS = "ReplaceableTextures\\CommandButtons\\BTNOrbOfWinds.blp"

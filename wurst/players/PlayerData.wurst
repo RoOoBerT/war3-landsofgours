@@ -107,6 +107,7 @@ function onCharacterSelected(unit _seller, unit character)
     let pd = PlayerData.get(owner)
     pd.setCharacter(character)
     PlayerData.CHARACTERS_MAPS.put(character, pd)
+    BlzSetHeroProperName(character, pd.getName())
 
     // Move the picked character
     vec2 direction = character.getPos().polarOffset(0.0.asAngleDegrees(), 512.0)
@@ -114,11 +115,6 @@ function onCharacterSelected(unit _seller, unit character)
 
     // Select the character
     owner.selectSingle(character)
-
-    // Configure experience options
-    character.suspendXp(true)
-    // FIXME character.
-
 
     // Check which character class it is
     CreatureType creatureType = CreatureType.get(character.getTypeId())
@@ -141,6 +137,9 @@ init
 
         // Player data
         PlayerData.MAP.put(i, new PlayerData(p))
+    
+        // Configure experience options
+        SetPlayerHandicapXP(p, 0.0)
 
     // Is there only one player ?
     if ACTIVE_PLAYERS.size() == 1
