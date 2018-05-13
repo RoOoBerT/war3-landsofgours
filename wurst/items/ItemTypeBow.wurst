@@ -4,7 +4,7 @@ package ItemTypeBow
 
 // Custom imports
 import BuffType
-import BuffTypesImplementation
+import BuffTypesImpl
 import public ItemType
 import ItemTypeArrows
 

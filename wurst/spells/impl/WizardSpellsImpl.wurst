@@ -1,7 +1,6 @@
 package WizardSpellsImpl
 
 // Standard imports
-import ClosureForGroups
 import ClosureTimers
 import EventHelper
 import RegisterEvents
@@ -55,7 +54,7 @@ init
         DotEffectHandler frostHandler = new GenericDotEffectHandler(spellCaster, SpecialEffectType.ZIGGURATFROSTMISSILE, "origin", STATS_BOUCLIER_GLACE_FROST)
 
         ConeUnitHandler enterHandler = (ConeEffect cone, unit entering) ->
-            if entering != shieldedUnit
+            if entering != shieldedUnit and entering.isAlive()
                 new DotEffect(entering, frostDuration, shieldedUnit, 0.5, frostHandler)
                     ..start()
 
@@ -277,11 +276,22 @@ init
         unit target = GetSpellTargetUnit()
         unit emitter = GetTriggerUnit()
         int level = GetUnitAbilityLevel(emitter, GetSpellAbilityId())
-        real duration = 30 + level * 2.5
+        //real duration = 30 + level * 2.5
 
-        FollowingProjectile projectile = new FollowingProjectile(emitter, Abilities.spiritOfVengeanceMissile, emitter.getPos3Real(), target)
-                ..setSpeed(100.0)
-                ..launch()
+        ImpactHandler handler = (vec3 v) ->
+            onUnitPhysicalAttack(emitter, new CreatureStats()
+                    ..setDamage(DamageClass.DAMAGE_CONTONDANT, 5)
+                , target)
+
+        real delay = 0.2
+        for int i = 0 to level
+            doAfter(delay) ->
+                if target.isAlive()
+                    new FollowingProjectile(emitter, Abilities.spiritOfVengeanceMissile, emitter.getPos3Real(), target)
+                            ..setSpeed(600.0)
+                            ..setImpactHandler(handler)
+                            ..launch()
+            delay += 0.2
 
 
     // RENVOI_SORTS

@@ -24,8 +24,11 @@ public class CreatureType
     private CreatureStats statsAdded = null
     private CreatureStats statsAddedPercent = null
 
+    /** Quantity of experience given by this type of creatures */
+    private int xpGain = 0
+
     /** TODO */
-    private constant real powerIndication = 1.0
+    private real powerIndication = 1.0
 
     /** Mapping of all creature types */
     private static constant HashMap<int, CreatureType> MAP = new HashMap<int, CreatureType>()
@@ -46,6 +49,9 @@ public class CreatureType
     function getUnitTypeId() returns int
         return this.unitTypeId
 
+    function getXpGain() returns int
+        return this.xpGain
+
     function getPowerIndication() returns real
         return this.powerIndication
     
@@ -65,6 +71,9 @@ public class CreatureType
     function setClass(CharacterClass characterClass)
         this.characterClass = characterClass
 
+    function setXpGain(int xpGain)
+        this.xpGain = xpGain
+
     function setStatsAdded(CreatureStats statsAdded)
         this.statsAdded = statsAdded
 
@@ -81,45 +90,83 @@ public class CreatureType
 
     // === Special creatures ===
     static constant CreatureType CIBLE_ENTRAINEMENT   = new CreatureType('h00E', null)
+    static constant CreatureType TOMBE                = new CreatureType('h00F', null)
 
     // === Heroes for players ===
-    static constant CreatureType HERO_PALADIN         = new CreatureType('H00C', CreatureRace.CENTAUR)
+    static constant CreatureType HERO_PALADIN                 = new CreatureType('H00C', CreatureRace.CENTAUR)
         ..setClass(CharacterClass.PALADIN)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_CONTONDANT, 2)
         )
-    static constant CreatureType HERO_ARCHER          = new CreatureType('N00J', CreatureRace.ELF)
-        ..setClass(CharacterClass.ARCHER)
+    static constant CreatureType HERO_CHASSEUR_CENTAURE       = new CreatureType('N00M', CreatureRace.CENTAUR)
+        ..setClass(CharacterClass.CHASSEUR)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_PERCANT, 2)
         )
-    static constant CreatureType HERO_MAGICIEN        = new CreatureType('H00D', CreatureRace.HUMAN)
+    static constant CreatureType HERO_CHASSEUR_ELFE          = new CreatureType('N00J', CreatureRace.ELF)
+        ..setClass(CharacterClass.CHASSEUR)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_PERCANT, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN_ABJURATEUR     = new CreatureType('H003', CreatureRace.HUMAN)
+        ..setClass(CharacterClass.MAGICIEN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_AIR, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN_ENTROPISTE     = new CreatureType('H004', CreatureRace.ORC)
+        ..setClass(CharacterClass.MAGICIEN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_AIR, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN_EVOCATEUR      = new CreatureType('H00D', CreatureRace.HUMAN)
+        ..setClass(CharacterClass.MAGICIEN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_AIR, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN_NECROMANCIEN   = new CreatureType('H000', CreatureRace.UNDEAD)
+        ..setClass(CharacterClass.MAGICIEN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_AIR, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN_INVOCATEUR     = new CreatureType('H00H', CreatureRace.ELF)
+        ..setClass(CharacterClass.MAGICIEN)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_AIR, 2)
+        )
+    static constant CreatureType HERO_MAGICIEN_TRANSMUTATEUR  = new CreatureType('H00G', CreatureRace.ORC)
         ..setClass(CharacterClass.MAGICIEN)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_AIR, 2)
         )
 
+
     // === Neutral monsters ===
     // Spider family
     static constant CreatureType OEUFS_ARAIGNEE       = new CreatureType('n00L', CreatureRace.ARACHNID)
+        ..setXpGain(1)
     static constant CreatureType ARAIGNEE_PROGENITURE = new CreatureType('n00I', CreatureRace.ARACHNID)
+        ..setXpGain(2)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_TRANCHANT, 1)
         )
     static constant CreatureType PETITE_ARAIGNEE      = new CreatureType('n00D', CreatureRace.ARACHNID)
+        ..setXpGain(4)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_TRANCHANT, 2)
         )
     static constant CreatureType ARAIGNEE_NOIRE       = new CreatureType('n00C', CreatureRace.ARACHNID)
+        ..setXpGain(20)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
         )
     static constant CreatureType ARAIGNEE_VENIMEUSE   = new CreatureType('n00F', CreatureRace.ARACHNID)
+        ..setXpGain(40)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
             ..setDamage(DamageClass.DAMAGE_POISON, 4)
         )
     static constant CreatureType BROODMOTHER          = new CreatureType('n00G', CreatureRace.ARACHNID)
+        ..setXpGain(250)
         ..setStatsAdded(new CreatureStats()
             ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
             ..setDamage(DamageClass.DAMAGE_POISON, 8)

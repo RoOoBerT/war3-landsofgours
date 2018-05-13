@@ -103,6 +103,7 @@ public class SpecialEffectType
     static constant PLAGUECLOUDCASTER     = new SpecialEffectType(Abilities.plagueCloudCaster    , 0.2)
     static constant POISONSTINGTARGET     = new SpecialEffectType(Abilities.poisonStingTarget     )
     static constant REPLENISHHEALTHCASTER = new SpecialEffectType(Abilities.replenishHealthCaster, 0.1)
+    static constant RESOURCEEFFECTTARGET  = new SpecialEffectType(Abilities.resourceEffectTarget , FLASHABLE)
     static constant SILENCEAREABIRTH      = new SpecialEffectType(Abilities.silenceAreaBirth     , 0.)
     static constant SNAPMISSILE           = new SpecialEffectType(Abilities.snapMissile          , FLASHABLE)
     static constant STAMPEDEMISSILEDEATH  = new SpecialEffectType(Abilities.stampedeMissileDeath , 0.1)

@@ -43,7 +43,7 @@ class Hint
 // Hints initialization
 init
     // Hints directory
-    new Hint("A leur récupération, les [[pièces d'or]] sont réparties équitablement entre les joueurs. Pas besoin de se ruer dessus au péril de sa vie donc... Pigé {random player} ?")
+    // WRONG new Hint("A leur récupération, les [[pièces d'or]] sont réparties équitablement entre les joueurs. Pas besoin de se ruer dessus au péril de sa vie donc... Pigé {random player} ?")
     new Hint("Cromwell peut assembler des [[fragments d'objets]] pour reconstituer de légendaires artefacts.")
     new Hint("{random player} a un [[petit zizi]] !")
     new Hint("Pour signaler un bug ou suggérer une nouvelle fonctionnalité, n'hésitez pas à vous connecter à cette adresse : |c000000ff https://github.com/RoOoBerT/war3-landsofgours/issues/new |r")
@@ -61,7 +61,9 @@ init
         DamageClass.DAMAGE_CONTONDANT.getColoredName(), DamageClass.DAMAGE_PERCANT.getColoredName(), DamageClass.DAMAGE_TRANCHANT.getColoredName()))
     new Hint("Il y a quatre types de [[dommages élémentaires]] : " + "{0}, {1}, {2} et {3}".format(
         DamageClass.DAMAGE_AIR.getColoredName(), DamageClass.DAMAGE_FEU.getColoredName(), DamageClass.DAMAGE_FOUDRE.getColoredName(), DamageClass.DAMAGE_FROID.getColoredName()))
-
+    new Hint("Il y a cinq types de [[dommages biologiques]] : " + "{0}, {1}, {2}, {3} et {4}".format(
+        DamageClass.DAMAGE_LUMIERE.getColoredName(), DamageClass.DAMAGE_MORT.getColoredName(), DamageClass.DAMAGE_POISON.getColoredName(), DamageClass.DAMAGE_PSYCHIQUE.getColoredName(), DamageClass.DAMAGE_SON.getColoredName()))
+    
     // Let's avoid showing twice the same hint, if possible
     LinkedList<Hint> nextHintsToShow = new LinkedList<Hint>()
     doPeriodically(60.0) cb ->

@@ -123,7 +123,7 @@ function onCharacterSelected(unit _seller, unit character)
     owner.setName("|r[{1}] {0}".format(owner.getNameColored(), characterClass.getColoredName()))
 
     // Specifics : ARCHER
-    if characterClass == CharacterClass.ARCHER
+    if characterClass == CharacterClass.CHASSEUR
         character.setAbilityLevel('A00J', 2) // 2 slots in inventory
         character.addItemById('I00O') // Give bow
         character.addItemById('I00N') // Give arrows

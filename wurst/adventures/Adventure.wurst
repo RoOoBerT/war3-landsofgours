@@ -114,7 +114,6 @@ public abstract class Adventure
                     this.startLocations.add(new AdventureStartLocation(u.getPos(), u.getFacingAngle()))
                 case ADVENTURE_EXIT_UNIT_TYPE_ID
                     this.exitLocations.add(new AdventureExitLocation(u.getPos(), u.getFacingAngle(), 64))
-
                 default
                     // Check if this is a marker of a known creatures pack
                     CreatureGroupType creatureGroupType = this.creatureGroupsMap.get(u.getTypeId())
@@ -147,9 +146,12 @@ public abstract class Adventure
             unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], ADVENTURE_EXIT_UNIT_TYPE_ID, exitLoc.getPos(), exitLoc.getOrientation())
             u.hide()
             this.allUnits.addUnit(u)
+        
+        if this.exitLocations.isEmpty()
+            Log.error("No exit location for this adventure !")
 
         // Position players
-        Log.debug("Position players " + this.toString())
+        //Log.debug("Position players " + this.toString())
         AdventureStartLocation startLocation = this.pickRandomStartLocation()
         vec2 position = startLocation.getPos()
         for player p in ACTIVE_PLAYERS
@@ -166,8 +168,8 @@ public abstract class Adventure
 
     /** Cleanup the adventure */
     function cleanup()
-        for unit u from this.allUnits
-            u.remove()
+        /*for unit u from this.allUnits
+            u.remove()*/
         
     // Overridable functions
     /** Called when the adventure has been cleanup */

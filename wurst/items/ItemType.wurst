@@ -68,4 +68,5 @@ public class ItemType
         return itemTuple(null, null)
         
     static constant ItemType ANNEAU_ELFIQUE_EN_OR = new ItemType('I000', true)
+    static constant ItemType PIECES_OR = new ItemType('I003', false)
 

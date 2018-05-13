@@ -9,7 +9,7 @@ import LinkedList
 
 // Custom imports
 import public BuffType
-import BuffTypesImplementation
+import BuffTypesImpl
 import CreatureStats
 import DilatableTime
 import Dummys

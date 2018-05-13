@@ -4,13 +4,13 @@ package GoldCoins
 import RegisterEvents
 
 // Custom imports
+import SpecialEffects
+import ItemType
 import PlayerData
-
-public constant int GOLD_COIN_ITEM = 'I003'
 
 /** Create a gold coin with the defined amount of money */
 public function createGoldCoin(vec2 where, int amount)
-    createItem(GOLD_COIN_ITEM, where)
+    createItem(ItemType.PIECES_OR.itemType, where)
         ..setCharges(amount)
 
 /** Plays the animations for gold pickup */
@@ -19,8 +19,8 @@ public function giveGold(unit who, int amount)
     who.getOwner().addGold(amount)
 
     // Display "gold" effect
-    flashEffect("Abilities\\Spells\\Items\\ResourceItems\\ResourceEffectTarget.mdl", who.getPos())
-
+    SpecialEffectType.RESOURCEEFFECTTARGET.flashWithoutLeak(who.getPos())
+    
     // Create text tag : +x
     createTTEx(who.getPos3Real(), vec2(0, 0.05), "+{0}".format(amount.toString()), 10, 2.5, colorA(255, 255, 0, 0))
 
@@ -51,6 +51,6 @@ init
     //    return GetFilterItem().getTypeId() == GOLD_COIN_ITEM
     registerPlayerUnitEvent(EVENT_PLAYER_UNIT_PICKUP_ITEM) ->
         item what = GetManipulatedItem()
-        if what.getTypeId() == GOLD_COIN_ITEM
+        if what.getTypeId() == ItemType.PIECES_OR.itemType
             unit who = GetTriggerUnit()
             onPickupGoldCoin(who, what)

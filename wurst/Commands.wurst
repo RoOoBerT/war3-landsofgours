@@ -8,7 +8,7 @@ import StringUtils
 
 // Custom imports
 import Adventure
-import BuffTypesImplementation
+import BuffTypesImpl
 import CreatureStats
 import Imports
 import Memory
@@ -387,7 +387,7 @@ class CommandTime extends Command
 
 class CommandXp extends Command
     construct()
-        super(false, false, "xp", "-xp [amount]", "Ajoute le montant spécifié d'expérience aux unités sélectionnées. ")
+        super(true, false, "xp", "-xp [amount]", "Ajoute le montant spécifié d'expérience aux unités sélectionnées. ")
     
     override function onCall(player who, LinkedList<string> params)
         group selectedUnits = CreateGroup()

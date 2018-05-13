@@ -21,9 +21,12 @@ public class GenericUnitFilter implements UnitFilter
         this.owner = owner
     
     function isValid(unit u) returns boolean
-        return u != null
+        boolean valid = u != null
             and (this.unitTypeId == 0 or u.getTypeId() == this.unitTypeId)
             and (this.owner == null or u.getOwner() == this.owner)
+
+        //Log.trace(u.getName() + " is valid for filter ? " + valid.toString() + " : " + u.getTypeId().toString())
+        return valid
 
 /** Fill a group of units in <area> matching the criterion <filter>.
 Returns the number of units matched. */
@@ -54,9 +57,9 @@ public function findUnitsInGroupMatching(group gp, UnitFilter filter, int maxCou
 
     int count = 0
     let iter = gp.iterator()
-    while iter.hasNext()
+    while iter.hasNext() and (maxCount == 0 or count < maxCount)
         unit u = iter.next()
-        if filter.isValid(u) and (maxCount == 0 or count < maxCount)
+        if filter.isValid(u) 
             results.addUnit(u)
             count++
 
@@ -64,11 +67,12 @@ public function findUnitsInGroupMatching(group gp, UnitFilter filter, int maxCou
 
 /** Returns the first unit found on the map that matches a criterion */
 public function findFirstUnitInGroupMatching(group gp, UnitFilter filter) returns unit
-    group matchGroup = CreateGroup()
-    findUnitsInGroupMatching(gp, filter, 1)
-    unit result = matchGroup.next()
-    DestroyGroup(matchGroup)
-    return result
+    let iter = gp.iterator()
+    while iter.hasNext()
+        unit u = iter.next()
+        if filter.isValid(u) 
+            return u
+    return null
 
 /** Returns the first unit found on the map that matches a criterion */
 public function findFirstUnitMatching(UnitFilter filter) returns unit

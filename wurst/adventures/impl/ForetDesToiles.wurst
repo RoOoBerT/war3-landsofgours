@@ -78,9 +78,9 @@ public class ForetDesToiles extends Adventure
 
         // Did the boss die ?
         if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
+            // FIXME This call is VERY slow and generates a freeze !
             unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, new GenericUnitFilter(ADVENTURE_EXIT_UNIT_TYPE_ID))
             exitLoc.show()
-            PingMinimap(exitLoc.getX(), exitLoc.getY(), 20.0)
             Music.MUSIC_TOWN.loopMusic(true)
 
     override function onEnd()

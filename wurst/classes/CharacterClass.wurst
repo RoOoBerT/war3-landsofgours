@@ -33,5 +33,5 @@ public class CharacterClass
         return "{1}{0}|r".format(this.name, this.col.toColorString())
 
     static constant CharacterClass MAGICIEN = new CharacterClass("Magicien", colorA(32, 32, 255, 0), 'A013')
-    static constant CharacterClass ARCHER = new CharacterClass("Archer", colorA(32, 255, 32, 0), 'A012')
+    static constant CharacterClass CHASSEUR = new CharacterClass("Archer", colorA(32, 255, 32, 0), 'A012')
     static constant CharacterClass PALADIN = new CharacterClass("Paladin", colorA(255, 32, 32, 0), '0')

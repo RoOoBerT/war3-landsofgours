@@ -181,8 +181,10 @@ public function onUnitPhysicalAttack(unit attacker, CreatureStats statsAdded, un
     for DamageClass damageClass in DamageClass.LIST
         real damageOfType = statsAdded.getDamage(damageClass)
         if damageOfType != 0
-            real resistanceOfType = targetStatsAdded.getResistance(damageClass)
-            damageOfType *= (1 - resistanceOfType)
+            real resistanceOfType = 0.0
+            if targetStatsAdded != null
+                resistanceOfType = targetStatsAdded.getResistance(damageClass)
+                damageOfType *= (1 - resistanceOfType)
 
         if damageOfType != 0
             inflictRealDamageUnfiltered(attacker, target, damageOfType, damageClass, ttagOffset)
@@ -195,27 +197,12 @@ function onUnitRealWarcraftAttackEvent(unit attacker, unit target)
     BlzSetEventDamage(0)
 
     // Check what kind of attack this is
-    if attacker.getAbilityLevel(CharacterClass.ARCHER.abil) > 0
+    if attacker.getAbilityLevel(CharacterClass.CHASSEUR.abil) > 0
         // This is a ranged attack with defined ammo and weapon
         onUnitAttackWithBow(attacker, target)
     else
         // This is a standard attack : melee or ranged (but no "custom" projectile and ammo management)
         onUnitInstantPhysicalAttack(attacker, target)
-
-/** Called when a player's main character has died */
-function onPlayerCharacterDies(PlayerData pd, unit characterDead)
-    displayMessage(MessageType.PLAYER, null, 15.0, "R.I.P. {0} !".format(pd.getName()))
-
-    // Play death music for local player
-    if pd.getPlayer() == localPlayer
-        // Play sad music
-        Music.MUSIC_DEAD.loopMusic(true)
-
-        // Apply screen filter
-        CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT, 5.0, Textures.black_mask, 0, 0, 0, 128)
-
-        // Prevent cadavre from disappearing
-        characterDead.pause()
 
 init
     // Register an event when a unit is physically attacked
@@ -227,9 +214,4 @@ init
 
     addOnDamageFunc(action)
 
-    // Register player's main character's death
-    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_DEATH) ->
-        unit characterDead = GetTriggerUnit()
-        PlayerData pd = PlayerData.get(characterDead)
-        if pd != null
-            onPlayerCharacterDies(pd, characterDead)
+

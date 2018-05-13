@@ -1,0 +1,66 @@
+package Death
+
+// Standard imports
+
+// Custom imports
+import Imports
+import CreatureType
+import Musics
+import PlayerData
+import RegisterEvents
+
+public constant real EXPERIENCE_GAIN_RADIUS = 1024
+
+/** Called when a player's main character has died */
+function onPlayerCharacterDies(PlayerData pd, unit characterDead)
+    displayMessage(MessageType.PLAYER, null, 15.0, "R.I.P. {0} !".format(pd.getName()))
+
+    // Play death music for local player
+    if pd.getPlayer() == localPlayer
+        // Play sad music
+        Music.MUSIC_DEAD.loopMusic(true)
+
+        // Apply screen filter
+        CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT, 5.0, Textures.black_mask, 0, 0, 0, 128)
+
+        // Prevent cadavre from disappearing
+        characterDead.pause()
+        createUnit(pd.getPlayer(), CreatureType.TOMBE.getUnitTypeId(), characterDead.getPos(), 0.0.asAngleDegrees())
+
+/** Plays the animations for experience gain */
+public function giveXp(unit who, int amount)
+    // Increase player's gold amount
+    who.addXp(amount, true)
+
+    // Create text tag : +x
+    //createTTEx(who.getPos3Real(), vec2(0, 0.05), "+{0}".format(amount.toString()), 10, 2.5, colorA(255, 255, 0, 0))
+
+/** Called when a neutral unit has died */
+function onGoursUnitDied(unit deadUnit, unit killer)
+    // Check if this creature is known
+    CreatureType creatureType = CreatureType.get(deadUnit.getTypeId())
+    if creatureType != null
+        // Gain XP
+        int xpGain = creatureType.getXpGain()
+        if xpGain != 0
+            for player p in ACTIVE_PLAYERS
+                unit character = PlayerData.get(p).getCharacter()
+                if character != null and character.isAlive() and character.getPos().distanceToSq(deadUnit.getPos()) < EXPERIENCE_GAIN_RADIUS * EXPERIENCE_GAIN_RADIUS
+                    giveXp(character, xpGain)
+
+        // Drop items
+
+init
+    // Register player's main character's death
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_DEATH) ->
+        unit deadUnit = GetTriggerUnit()
+
+        // Who died ?
+        if deadUnit.getOwner() == PLAYER_GOURS_HOSTILE
+            onGoursUnitDied(deadUnit, GetKillingUnit())
+            
+        else
+            // Did a hero die ?
+            PlayerData pd = PlayerData.get(deadUnit)
+            if pd != null
+                onPlayerCharacterDies(pd, deadUnit)
