@@ -2,7 +2,6 @@ package Projectiles
 
 // Standard imports
 import ClosureTimers
-import Fx
 import LinkedList
 
 // Custom imports
@@ -32,7 +31,7 @@ Source : http://www.egwald.ca/geometry/projectile3d.php
 /** A projectile object which can be followed over time and emits a notification upon impact */
 public abstract class Projectile
     private static int REF_COUNTER = 0
-    protected constant Fx fx
+    protected constant effect fx
     protected constant unit emitter
     
     // Handlers
@@ -43,13 +42,12 @@ public abstract class Projectile
     
     construct(unit emitter, string effectPath, vec3 origin)
         REF_COUNTER++
-        this.fx = new Fx(origin.toVec2(), effectPath)
-        this.fx.setXYZ(origin, false)
+        this.fx = addEffect(effectPath, origin)
         this.emitter = emitter
     
     ondestroy
         REF_COUNTER--
-        destroy this.fx
+        this.fx.destr()
         // TODO Maybe remove impact handler
     
     // Modifiers
@@ -64,6 +62,16 @@ public abstract class Projectile
     /** Update the projectile position and returns true if it exploded */
     abstract function move() returns boolean
 
+    /*static function setEffectOrientation(effect fx, angle groundAngle, angle airAngle)
+        real test = (groundAngle.degrees() % 360.0)
+        angle airAngle2
+        if test >= 90 and test <= 270
+            airAngle2 = vec2(distance - this.previousDistance, posZ - this.previousPosition.z).getAngle()
+        else
+            airAngle2 = 0.0.asAngleDegrees() - vec2(distance - this.previousDistance, posZ - this.previousPosition.z).getAngle()
+
+        fx.setOrientation(0.0, zAngle.radians(), groundAngle.radians()) // <- WORKS PARTIALLY (Ground ANGLE is correct)*/
+
     static function getMemoryUsage() returns memoryUsage
         return memoryUsage("Projectiles", REF_COUNTER, LIST.size())
 
@@ -72,8 +80,8 @@ public class StandardProjectile extends Projectile
     // Physics
     protected constant vec3 origin
     protected vec3 dest
-    protected real speed = 200.0
-    protected real height = 250
+    protected real speed = 600.0
+    protected real height = 250.0
 
     // Internal physics data
     private real launchTime
@@ -87,7 +95,7 @@ public class StandardProjectile extends Projectile
 
     // Temporary
     private real previousDistance
-    private real previousHeight
+    private vec3 previousPosition
 
     construct(unit emitter, string effectPath, vec3 origin)
         super(emitter, effectPath, origin)
@@ -113,7 +121,7 @@ public class StandardProjectile extends Projectile
         this.arrivalTime = this.totalDistance / this.speed
         this.launchTime = TimeDilatation.getModifiedTime(this.origin)
 
-        this.fx.setXYAngleInstant(this.groundAngle)
+        this.fx.setYaw(PI)
 
         // Compute vertical speed to reach the specified maximum height
         this.verticalSpeed = 2 * this.height / this.arrivalTime
@@ -123,7 +131,7 @@ public class StandardProjectile extends Projectile
 
         //
         this.previousDistance = 0
-        this.previousHeight = this.origin.z
+        this.previousPosition = this.origin
         
         /*this.a = this.arc
         this.b = ((this.origin.z - this.dest.z) / arrivalTime) - (this.a * arrivalTime)*/
@@ -133,7 +141,7 @@ public class StandardProjectile extends Projectile
     
     /** Update the projectile position and returns true if it exploded */
     override function move() returns boolean
-        let timeElapsed = TimeDilatation.getModifiedTime(this.fx.getDummy().getPos3Real()) - this.launchTime
+        let timeElapsed = TimeDilatation.getModifiedTime(this.previousPosition) - this.launchTime
         
         // Check impact
         //Log.trace("Projectile pos : " + pos.toString() + " -> target " + projectile.dest.toString())
@@ -151,15 +159,20 @@ public class StandardProjectile extends Projectile
         let posZ = this.verticalAcceleration * timeElapsed * timeElapsed + this.verticalSpeed * timeElapsed + this.origin.z
 
         // Compute Z angle
-        let zAngle = vec2(distance - this.previousDistance, posZ - this.previousHeight)
+        angle zAngle
+        real groundAngleDegrees = (this.groundAngle.degrees() % 360.0)
+        if groundAngleDegrees >= 90 and groundAngleDegrees <= 270
+            zAngle = vec2(distance - this.previousDistance, posZ - this.previousPosition.z).getAngle()
+        else
+            zAngle = vec2(distance - this.previousDistance, this.previousPosition.z - posZ).getAngle() // WORKS
 
-        // Update location (DO NOT USE fx.setZ !)
+        // Update location
         vec3 posXYZ = posXY.withZ(posZ)
-        this.fx.setXYZ(posXYZ, false)
-        this.fx.setZAngle(zAngle.getAngle())
+        this.fx.setPosition(posXYZ.x, posXYZ.y, posXYZ.z)
+        this.fx.setOrientation(0.0, zAngle.radians(), this.groundAngle.radians()) // Ground ANGLE = usual warcraft units angle
 
         this.previousDistance = distance
-        this.previousHeight = posZ
+        this.previousPosition = posXYZ
 
         // Not destroyed
         return false
@@ -212,15 +225,18 @@ public class FollowingProjectile extends Projectile
         
         let angleGround = this.previousPosition.toVec2().angleTo(targetPoint.toVec2())
         let groundDistance = this.previousPosition.toVec2().distanceTo(targetPoint.toVec2())
-        let angleAir = vec2(groundDistance, targetPoint.z - this.previousPosition.z).getAngle()
+
+        angle angleAir = vec2(groundDistance, (this.previousPosition.z - targetPoint.z).abs()).getAngle()
+        // AT THIS POINT : angleAir = 90 means looking at the ground | 0 means looking at the horizon
+        angleAir = 90.0.asAngleDegrees() - angleAir
+
+        // FOR polarProject: angleGround=0 means looking at the ground | angleGround=90 means looking at the horizon
         let posXYZ = this.previousPosition.polarProject(moveDistance, angleGround, angleAir)
         //Log.trace("Angle ground = {0} / Angle air = {1}".format(angleGround.degrees().round().toString(), angleAir.degrees().round().toString()))
         
-        // Update location (DO NOT USE fx.setZ !)
-        this.fx.setXYZ(posXYZ, false)
-        this.fx.setXYAngle(angleGround)
-        this.fx.setZAngle(angleAir)
-
+        // Update location
+        this.fx.setPosition(posXYZ.x, posXYZ.y, posXYZ.z)
+        this.fx.setOrientation(0.0, angleAir.radians(), angleGround.radians())
         this.previousPosition = posXYZ
         this.previousMoveTime = currentTime
 
