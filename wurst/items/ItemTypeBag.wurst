@@ -14,19 +14,19 @@ public class ItemTypeBag extends ItemType
     private constant int numberOfSlots
 
     // Functions
-    private construct(int itemType, boolean unique, int numberOfSlots)
-        super(itemType, unique)
+    private construct(int itemType, int numberOfSlots)
+        super(itemType)
         this.numberOfSlots = numberOfSlots
     
     function getNumberOfSlots() returns int
         return this.numberOfSlots
     
     // Bags directory
-    static constant ItemTypeBag POCHETTE_ROUGE = new ItemTypeBag('I00C', false, 2)
-    static constant ItemTypeBag BOURSE_BLEUE = new ItemTypeBag('I00E', false, 3)
-    static constant ItemTypeBag SACOCHE_ROSE = new ItemTypeBag('I00F', false, 4)
-    static constant ItemTypeBag SAV_VERT_TISSU = new ItemTypeBag('I00G', false, 5)
-    static constant ItemTypeBag SAC_MERCENAIRE = new ItemTypeBag('I00D', false, 6)
+    static constant ItemTypeBag POCHETTE_ROUGE = new ItemTypeBag('I00C', 2)
+    static constant ItemTypeBag BOURSE_BLEUE = new ItemTypeBag('I00E', 3)
+    static constant ItemTypeBag SACOCHE_ROSE = new ItemTypeBag('I00F', 4)
+    static constant ItemTypeBag SAV_VERT_TISSU = new ItemTypeBag('I00G', 5)
+    static constant ItemTypeBag SAC_MERCENAIRE = new ItemTypeBag('I00D', 6)
 
 /** Called when a unit equips a bag */
 function onEquipBag(unit who, item _bag, ItemTypeBag typ)

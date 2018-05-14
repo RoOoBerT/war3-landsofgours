@@ -1,0 +1,121 @@
+package Loot
+
+// Standard imports
+import LinkedList
+
+// Custom imports
+import GoldCoins
+import ItemType
+import ItemTypeArrows
+import ItemTypeBag
+import ItemTypeBow
+import ItemTypeFragment
+import ItemTypeSpellScroll
+import SpecialEffects
+
+constant real LOOT_GOLD_PROBABILITY = 0.4
+constant real LOOT_ITEM_PROBABILITY = 1
+
+// Probabilities of looting each class of item
+class LootType
+    constant LinkedList<ItemType> itemList
+    constant real maximumRoll
+    constant real classProbability
+
+    construct(LinkedList<ItemType> itemList, real classProbability)
+        this.itemList = itemList
+        this.maximumRoll = computeMaximumItemRoll(this.itemList)
+        this.classProbability = classProbability
+
+    static LinkedList<LootType> LIST = new LinkedList<LootType>()
+
+    static real LOOT_TYPE_MAX_ROLL
+
+/** Computes cumulated items rarity of the items of the list */
+function computeMaximumItemRoll(LinkedList<ItemType> itemList) returns real
+    real total = 0
+    for ItemType itemType in itemList
+        total += itemType.getLootProbability()
+    return total
+
+/** This function has <probability (%)> chances to return true,
+otherwise returns false */
+function testProbability(real probability) returns boolean
+    if probability >= 1
+        return true
+    if probability <= 0
+        return false
+
+    return GetRandomReal(0, 1)  <= probability
+
+public function generateLoot(vec2 pos, int itemLevel, int numRolls)
+    vec2 spread = pos
+
+    // How many items could be generated ?
+    for int i = 1 to numRolls
+
+        // Loot gold only ?
+        if testProbability(LOOT_GOLD_PROBABILITY)
+            int amount = GetRandomInt(1, itemLevel * 10)
+            if amount != 0
+                createGoldCoin(spread, amount)
+
+        if testProbability(LOOT_ITEM_PROBABILITY)
+            spread = spread.polarOffset(GetRandomDirectionDeg().asAngleDegrees(), GetRandomReal(8, 32))
+
+            // What class of item should be gerenated ?
+            real roll = GetRandomReal(0, LootType.LOOT_TYPE_MAX_ROLL)
+            real current = 0.0
+            Log.trace("Class roll : " + roll.round().toString())
+            for LootType lootType in LootType.LIST
+                current += lootType.classProbability
+                if roll <= current
+
+                    // What item of this class should be looted ?
+                    roll = GetRandomReal(0, lootType.maximumRoll)
+                    current = 0.0
+                    Log.trace("Type roll : " + roll.round().toString())
+                    for ItemType itemType in lootType.itemList
+                        current += itemType.getLootProbability()
+                        if roll <= current
+                            Log.trace("Loot found : " + itemType.itemType.toString())
+                            createItem(itemType.itemType, spread)
+                            SpecialEffectType.MIRRORIMAGECASTER.flashWithoutLeak(spread)
+                            break
+                    break
+
+public function getItemForRoll(real roll) returns int
+    return 0
+
+init
+    LinkedList<ItemType> listGold = new LinkedList<ItemType>()
+    LinkedList<ItemType> listArrows = new LinkedList<ItemType>()
+    LinkedList<ItemType> listBags = new LinkedList<ItemType>()
+    LinkedList<ItemType> listBows = new LinkedList<ItemType>()
+    LinkedList<ItemType> listFragments = new LinkedList<ItemType>()
+    LinkedList<ItemType> listScrolls = new LinkedList<ItemType>()
+
+    for ItemType itemType in ItemType.LIST
+        /*if itemType == ItemType.PIECES_OR
+            listGold.add(elems)
+        else */if itemType instanceof ItemTypeArrows
+            listArrows.add(itemType)
+        else if itemType instanceof ItemTypeBag
+            listBags.add(itemType)
+        else if itemType instanceof ItemTypeBow
+            listBows.add(itemType)
+        else if itemType instanceof ItemTypeFragment
+            listFragments.add(itemType)
+        else if itemType instanceof ItemTypeSpellScroll
+            listScrolls.add(itemType)
+
+    // 
+    LootType.LIST.add(new LootType(listArrows, 1.0))
+    LootType.LIST.add(new LootType(listBags, 0.0))
+    LootType.LIST.add(new LootType(listBows, 0.0))
+    LootType.LIST.add(new LootType(listFragments, 0.0))
+    LootType.LIST.add(new LootType(listScrolls, 0.0))
+
+    LootType.LOOT_TYPE_MAX_ROLL = 0
+    for LootType lootType in LootType.LIST
+        LootType.LOOT_TYPE_MAX_ROLL += lootType.classProbability

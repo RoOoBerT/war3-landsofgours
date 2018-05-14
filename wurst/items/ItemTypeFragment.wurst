@@ -12,14 +12,14 @@ public class ItemTypeFragment extends ItemType
     constant int howManyRequired
     
     // Functions
-    private construct(int itemType, boolean unique, ItemType fragmentOfWhat)
-        super(itemType, unique)
+    private construct(int itemType, ItemType fragmentOfWhat)
+        super(itemType)
         this.fragmentOfWhat = fragmentOfWhat
         this.howManyRequired = 1
     
-    private construct(int itemType, boolean unique, ItemType fragmentOfWhat, int howManyRequired)
-        super(itemType, unique)
+    private construct(int itemType, ItemType fragmentOfWhat, int howManyRequired)
+        super(itemType)
         this.fragmentOfWhat = fragmentOfWhat
         this.howManyRequired = howManyRequired
     
-    static constant ItemTypeFragment ANNEAU_ELFIQUE_1 = new ItemTypeFragment('I002', false, ItemType.ANNEAU_ELFIQUE_EN_OR, 2)
+    static constant ItemTypeFragment ANNEAU_ELFIQUE_1 = new ItemTypeFragment('I002', ItemType.ANNEAU_ELFIQUE_EN_OR, 2)

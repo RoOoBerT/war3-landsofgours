@@ -8,6 +8,7 @@ import LinkedList
 
 // Custom imports
 import DilatableTime
+import Memory
 import SpecialEffects
 
 @configurable public constant real CONE_EFFECTS_UPDATE_PERIOD = ANIMATION_PERIOD
@@ -37,6 +38,8 @@ public class ConicWaveGraphics
 
 /** Data related to a spell with a line/cone/circle shape */
 public class ConeEffect
+    private static int REF_COUNTER = 0
+
     // Generic properties
     /** The time at which the effect started */
     private real beginTime
@@ -91,6 +94,7 @@ public class ConeEffect
     static constant LinkedList<ConeEffect> LIST = new LinkedList<ConeEffect>
 
     construct(real duration, vec3 origin, unit emitter, unit followUnit)
+        REF_COUNTER++
         this.duration = duration
         this.origin = origin
         this.emitter = emitter
@@ -105,6 +109,10 @@ public class ConeEffect
     
     ondestroy
         DestroyGroup(this.unitsInCone)
+        REF_COUNTER--
+        
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("Special effects", LIST.size(), REF_COUNTER)
 
     // Modifiers
     function setAngle(angle ang)

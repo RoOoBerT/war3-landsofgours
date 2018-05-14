@@ -10,11 +10,11 @@ import PlayerData
 import WizardSpell
 
 /** Maps a spell scroll item to a castable spell */
-class ItemTypeSpellScroll extends ItemType
+public class ItemTypeSpellScroll extends ItemType
     constant Spell learnableSpell
 
     private construct(int itemId, Spell learnableSpell)
-        super(itemId, false)
+        super(itemId)
         this.learnableSpell = learnableSpell
 
     // ======== SPELL BOOK DIRECTORY ========

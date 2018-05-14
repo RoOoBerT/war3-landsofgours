@@ -8,7 +8,9 @@ import StringUtils
 
 // Custom imports
 import Adventure
+import AoeEffect
 import BuffTypesImpl
+import ConeEffect
 import CreatureStats
 import Imports
 import Memory
@@ -62,6 +64,7 @@ abstract class Command
     static constant BUFF = new CommandBuff()
     static constant CHEATS = new CommandCheats()
     static constant DEBUG = new CommandDebug()
+    static constant KILL = new CommandKill()
     static constant MEMORY = new CommandMemory()
     static constant MUSIC = new CommandMusic()
     static constant ORDER = new CommandOrder()
@@ -224,6 +227,23 @@ class CommandDebug extends Command
         // Show current debug level
         displayMessage(MessageType.INFO, who, 15, "Niveau de traces actuel : " + DEBUG_LEVEL.getTag())
 
+class CommandKill extends Command
+    construct()
+        super(true, false, "kill", "-kill", "Tue instantanément les unités sélectionnées. ")
+    
+    override function onCall(player who, LinkedList<string> params)
+        group selectedUnits = CreateGroup()
+        GroupEnumUnitsSelected(selectedUnits, who, null)
+
+        // Kill
+        for unit u in selectedUnits
+            displayMessage(MessageType.INFO, who, 5, "Unité tuée : '" + u.getName() + "'")
+            u.kill()
+    
+        // Cleanup
+        DestroyGroup(selectedUnits)
+        
+
 class CommandMemory extends Command
     construct()
         super(false, false, "memory", "-memory", "Affiche des détails sur l'utilisation de la mémoire")
@@ -231,6 +251,8 @@ class CommandMemory extends Command
     override function onCall(player who, LinkedList<string> params)
         //displayMessage(MessageType.INFO, who, 15.0, UnitsBuffs.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, AllUnitsBuffs.getMemoryUsage().toString())
+        displayMessage(MessageType.INFO, who, 15.0, AoeEffect.getMemoryUsage().toString())
+        displayMessage(MessageType.INFO, who, 15.0, ConeEffect.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, Projectile.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, CreatureStats.getMemoryUsage().toString())
         displayMessage(MessageType.INFO, who, 15.0, SpecialEffect.getMemoryUsage().toString())
@@ -268,7 +290,6 @@ class CommandOrder extends Command
         
         // Cleanup
         DestroyGroup(selectedUnits)
-
 
 class CommandSpellBook extends Command
     construct()

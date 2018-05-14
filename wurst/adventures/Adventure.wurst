@@ -13,9 +13,7 @@ import AdventureCreatureGroup
 import CreatureGroupType
 import Initialization
 import PlayerData
-
-public constant int ADVENTURE_ENTRY_UNIT_TYPE_ID = 'n00B'
-public constant int ADVENTURE_EXIT_UNIT_TYPE_ID = 'n00H'
+import SpecialEffects
 
 /** Represents the basic information for each adventure */
 public abstract class Adventure
@@ -110,9 +108,9 @@ public abstract class Adventure
         findUnitsInRectMatching(gp, this.area, filter, 0)
         for unit u in gp
             switch u.getTypeId()
-                case ADVENTURE_ENTRY_UNIT_TYPE_ID
+                case AdventureCreatureGroup.MARKER_ENTRY
                     this.startLocations.add(new AdventureStartLocation(u.getPos(), u.getFacingAngle()))
-                case ADVENTURE_EXIT_UNIT_TYPE_ID
+                case AdventureCreatureGroup.MARKER_EXIT_LOCATION
                     this.exitLocations.add(new AdventureExitLocation(u.getPos(), u.getFacingAngle(), 64))
                 default
                     // Check if this is a marker of a known creatures pack
@@ -142,10 +140,10 @@ public abstract class Adventure
             creatureGroup.getCreatureGroupType().spawn(this.allUnits, creatureGroup.getPosition(), creatureGroup.getOrientation())
         
         // Hide exit locations
-        for AdventureExitLocation exitLoc in this.exitLocations
+        /*for AdventureExitLocation exitLoc in this.exitLocations
             unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], ADVENTURE_EXIT_UNIT_TYPE_ID, exitLoc.getPos(), exitLoc.getOrientation())
             u.hide()
-            this.allUnits.addUnit(u)
+            this.allUnits.addUnit(u)*/
         
         if this.exitLocations.isEmpty()
             Log.error("No exit location for this adventure !")
@@ -168,7 +166,7 @@ public abstract class Adventure
 
     /** Cleanup the adventure */
     function cleanup()
-        /*for unit u from this.allUnits
+        /*FIXME for unit u from this.allUnits
             u.remove()*/
         
     // Overridable functions
@@ -183,6 +181,15 @@ public abstract class Adventure
 
     /** Called when a unit dies */
     function onUnitDying(unit _dying)
+
+    /** Called when a unit takes an exit */
+    function onUnitExit(unit _exit, unit who)
+        let pd = PlayerData.get(who)
+        if pd != null
+            SpecialEffectType.MASSTELEPORTTARGET.flashWithoutLeak(who.getPos())
+            who.setPos(gg_rct_TownEntry.getCenter())
+            SpecialEffectType.MASSTELEPORTTARGET.flashWithoutLeak(who.getPos())
+            pd.getPlayer().panCamToTimed(who, 0.5)
 
 /** Manages the list of available adventures */
 public class AdventureManager
@@ -240,3 +247,15 @@ init
         let adventure = AdventureManager.getCurrent()
         if adventure != null
             adventure.onUnitAttacked(GetAttacker(), GetTriggerUnit())
+
+    // Register when a unit takes an exit
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ISSUED_UNIT_ORDER) ->
+        let exit = GetOrderTargetUnit()
+        if exit != null and exit.getTypeId() == AdventureCreatureGroup.MARKER_EXIT_LOCATION
+            let adventure = AdventureManager.getCurrent()
+            if adventure != null
+                let u = GetTriggerUnit()
+                if u.getPos().distanceToSq(exit.getPos()) < 256 * 256
+                    adventure.onUnitExit(exit, u)
+                else
+                    u.issuePointOrder("move", exit.getPos())

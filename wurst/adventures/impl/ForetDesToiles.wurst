@@ -5,9 +5,9 @@ package ForetDesToiles
 // Custom imports
 import Adventure
 import AdventureCreatureGroup
+import AdventureExitLocation
 import CreatureGroupType
 import CreatureType
-import Initialization
 import Musics
 import PlayerData
 
@@ -78,13 +78,15 @@ public class ForetDesToiles extends Adventure
 
         // Did the boss die ?
         if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
-            // FIXME This call is VERY slow and generates a freeze !
-            unit exitLoc = findFirstUnitInGroupMatching(this.allUnits, new GenericUnitFilter(ADVENTURE_EXIT_UNIT_TYPE_ID))
-            exitLoc.show()
+            // Hide exit locations
+            for AdventureExitLocation exitLoc in this.exitLocations
+                unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], AdventureCreatureGroup.MARKER_EXIT_LOCATION, exitLoc.getPos(), exitLoc.getOrientation())
+                this.allUnits.addUnit(u)
+
             Music.MUSIC_TOWN.loopMusic(true)
 
     override function onEnd()
 
 init
-    ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Parmi les espèces sauvages qui vivent dans la forêt, une d'entre elles a pris le dessus.", gg_rct_Adv1)
+    ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Parmi les espèces sauvages qui vivent dans la forêt, l'une d'entre elles a pris le dessus.", gg_rct_Adv1)
     AdventureManager.register(adventure)

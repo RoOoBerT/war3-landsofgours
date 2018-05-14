@@ -7,6 +7,7 @@ import LinkedList
 
 // Custom imports
 import DilatableTime
+import Memory
 import SpecialEffects
 
 @configurable public constant real AOE_EFFECTS_UPDATE_PERIOD = 0.1 //ANIMATION_PERIOD
@@ -39,14 +40,18 @@ public class GenericImpactHandler implements AoeImpactHandler
         this.effectType.flashWithoutLeak(where)
 
         // Impact after some delay
+        unit emitter = aoe.getEmitter()
+        real radius = aoe.getRadius()
         doAfter(this.delay) ->
             // Impact happened
             if this.damage != 0.
-                forUnitsInRange(where, aoe.getRadius()) u ->
-                    aoe.getEmitter().damageTarget(u, this.damage, this.attackType)
+                forUnitsInRange(where, radius) u ->
+                    emitter.damageTarget(u, this.damage, this.attackType)
 
 /** Data related to a spell with an Area of Effect (AoE) */
 public class AoeEffect
+    private static int REF_COUNTER = 0
+
     // AoE properties
     /** The time at which the effect will stop */
     private constant real endTime
@@ -78,12 +83,19 @@ public class AoeEffect
     static constant LinkedList<AoeEffect> LIST = new LinkedList<AoeEffect>
 
     construct(real endTime, unit emitter, vec3 center, real radius, real frequency, AoeImpactHandler impactHandler)
+        REF_COUNTER++
         this.endTime = endTime
         this.emitter = emitter
         this.center = center
         this.radius = radius
         this.frequency = max(frequency, 0.01)
         this.impactHandler = impactHandler
+
+    ondestroy
+        REF_COUNTER--
+
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("Special effects", LIST.size(), REF_COUNTER)
 
     // Accessors
     function getEndTime() returns real

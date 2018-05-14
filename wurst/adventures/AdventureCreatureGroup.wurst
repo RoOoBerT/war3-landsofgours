@@ -35,18 +35,20 @@ public class AdventureCreatureGroup
         return this.inventory[index]
 
     // Marker types directory
-    static constant int MARKER_SMALL_TRAP = 'n00K'
+    static constant int MARKER_SMALL_TRAP               = 'n00K'
+    static constant int MARKER_ENTRY                    = 'n00B'
+    static constant int MARKER_EXIT_LOCATION            = 'n00H'
 
     // 
-    static constant int MARKER_FEW_CREATURES_SMALL = 'n001'
-    static constant int MARKER_FEW_CREATURES_MEDIUM = 'n005'
-    static constant int MARKER_FEW_CREATURES_LARGE = 'n008'
-    static constant int MARKER_SEVERAL_CREATURES_SMALL = 'n000'
+    static constant int MARKER_FEW_CREATURES_SMALL      = 'n001'
+    static constant int MARKER_FEW_CREATURES_MEDIUM     = 'n005'
+    static constant int MARKER_FEW_CREATURES_LARGE      = 'n008'
+    static constant int MARKER_SEVERAL_CREATURES_SMALL  = 'n000'
     static constant int MARKER_SEVERAL_CREATURES_MEDIUM = 'n004'
-    static constant int MARKER_SEVERAL_CREATURES_LARGE = 'n007'
-    static constant int MARKER_MANY_CREATURES_SMALL = 'n002'
-    static constant int MARKER_MANY_CREATURES_MEDIUM = 'n003'
-    static constant int MARKER_MANY_CREATURES_LARGE = 'n006'
+    static constant int MARKER_SEVERAL_CREATURES_LARGE  = 'n007'
+    static constant int MARKER_MANY_CREATURES_SMALL     = 'n002'
+    static constant int MARKER_MANY_CREATURES_MEDIUM    = 'n003'
+    static constant int MARKER_MANY_CREATURES_LARGE     = 'n006'
 
     // Bosses
     static constant int MARKER_MINI_BOSS = 'n009'

@@ -18,8 +18,8 @@ public class ItemTypeBow extends ItemType
     constant ItemTypeArrows selfSupplyArrows = null
 
     // Functions
-    private construct(int itemType, boolean unique, BuffType casterStats, ItemTypeArrows selfSupplyArrows)
-        super(itemType, unique)
+    private construct(int itemType, BuffType casterStats, ItemTypeArrows selfSupplyArrows)
+        super(itemType)
         this.casterStats = casterStats
         this.selfSupplyArrows = selfSupplyArrows
     
@@ -30,12 +30,12 @@ public class ItemTypeBow extends ItemType
         return this.selfSupplyArrows
     
     // Bows directory
-    static constant ItemTypeBow ARC_ELUNE_JOUR = new ItemTypeBow('I015', false, BUFF_EMPTY, null)
-    static constant ItemTypeBow ARC_ELUNE_NUIT = new ItemTypeBow('I014', false, BUFF_EMPTY, null)
-    static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', false, BUFF_EMPTY, null)
-    static constant ItemTypeBow ARC_CYCLONIQUE = new ItemTypeBow('I013', false, BUFF_EMPTY, null)
-    static constant ItemTypeBow ARC_SPIRITUEL = new ItemTypeBow('I00Z', false, BUFF_EMPTY, ItemTypeArrows.FLECHES_SPIRITUELLES)
-    static constant ItemTypeBow ARC_TONNERRE = new ItemTypeBow('I016', false, BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_ELUNE_JOUR = new ItemTypeBow('I015', BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_ELUNE_NUIT = new ItemTypeBow('I014', BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_PRIMITIF = new ItemTypeBow('I00O', BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_CYCLONIQUE = new ItemTypeBow('I013', BUFF_EMPTY, null)
+    static constant ItemTypeBow ARC_SPIRITUEL = new ItemTypeBow('I00Z', BUFF_EMPTY, ItemTypeArrows.FLECHES_SPIRITUELLES)
+    static constant ItemTypeBow ARC_TONNERRE = new ItemTypeBow('I016', BUFF_EMPTY, null)
 
     // Bow constrictor
     // Robin hood bow

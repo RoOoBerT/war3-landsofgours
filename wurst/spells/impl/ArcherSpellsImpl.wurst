@@ -7,11 +7,8 @@ import EventHelper
 import RegisterEvents
 
 // Custom imports
-import AoeEffect
 import Combat
 import CreatureStats
-import DilatableTime
-import SpecialEffects
 import WizardSpell
 
 let STATS_BOUCLIER_GLACE_FROST = new CreatureStats()

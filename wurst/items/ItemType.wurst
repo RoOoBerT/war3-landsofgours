@@ -15,10 +15,12 @@ public interface ItemFilter
 /** Types of objects and associated metadata */
 public class ItemType
     // Properties
-    int itemType
+    constant int itemType
+
+    private real lootProbability = 0.0
     
     // Unique items
-    private boolean unique
+    private boolean unique = false
     private item uniqueInstance = null
 
     // Directory
@@ -26,10 +28,10 @@ public class ItemType
     static constant HashMap<int, ItemType> MAP = new HashMap<int, ItemType>
 
     // Functions
-    private construct (int itemType, boolean unique)
+    private construct (int itemType)
         this.itemType = itemType
-        this.unique = unique
 
+        // Register the item type and ensure no collision
         LIST.add(this)
         let collision = MAP.get(itemType)
         MAP.put(itemType, this)
@@ -38,6 +40,7 @@ public class ItemType
         if collision != null
             Log.error("Duplicate item type found : {0} !".format(I2S(this.itemType)))
 
+    // Accessors
     function getType() returns int
         return this.itemType
 
@@ -46,7 +49,18 @@ public class ItemType
     
     function getUniqueInstance() returns item
         return this.uniqueInstance
+
+    function getLootProbability() returns real
+        return this.lootProbability
     
+    // Modifiers
+    function setUnique(boolean unique)
+        this.unique = unique
+
+    function setLootProbability(real lootProbability)
+        this.lootProbability = lootProbability
+
+    // Functions
     /** Return ItemInstance metadata of an item type */
     static function getObject(item whichItem) returns ItemType
         // Check in cache
@@ -67,6 +81,9 @@ public class ItemType
         
         return itemTuple(null, null)
         
-    static constant ItemType ANNEAU_ELFIQUE_EN_OR = new ItemType('I000', true)
-    static constant ItemType PIECES_OR = new ItemType('I003', false)
+    static constant ItemType ANNEAU_ELFIQUE_EN_OR = new ItemType('I000')
+                    ..setUnique(true)
+                    ..setLootProbability(0.1)
+    static constant ItemType PIECES_OR = new ItemType('I003')
+                    
 
