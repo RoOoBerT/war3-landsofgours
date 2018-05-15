@@ -328,8 +328,10 @@ init
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_DEATH)
         ..addAction() ->
             unit u = GetTriggerUnit()
+            Log.trace("Cleanup buff for unit : " + u.getName())
             let unitBuffs = AllUnitsBuffs.MAP.get(u)
             if unitBuffs != null
+                Log.trace("Found : " + unitBuffs.getUnit().getName())
                 AllUnitsBuffs.LIST.remove(unitBuffs)
                 AllUnitsBuffs.MAP.remove(u)
                 destroy unitBuffs

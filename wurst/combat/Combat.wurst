@@ -171,6 +171,10 @@ public function onUnitInstantPhysicalAttack(unit attacker, unit target)
 
     onUnitPhysicalAttack(attacker, attackerStats, target)
 
+    // Cleanup
+    destroy attackerStats
+    destroy attackerStatsPercent
+
 /** When a unit emits a "game" instant attack (melee).
 The instant modifiers (buffs) of the attacker should be used. */
 public function onUnitPhysicalAttack(unit attacker, CreatureStats statsAdded, unit target)

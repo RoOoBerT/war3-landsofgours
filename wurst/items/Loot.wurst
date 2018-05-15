@@ -14,7 +14,7 @@ import ItemTypeSpellScroll
 import SpecialEffects
 
 constant real LOOT_GOLD_PROBABILITY = 0.4
-constant real LOOT_ITEM_PROBABILITY = 1
+constant real LOOT_ITEM_PROBABILITY = 0.3
 
 // Probabilities of looting each class of item
 class LootType
@@ -61,12 +61,12 @@ public function generateLoot(vec2 pos, int itemLevel, int numRolls)
                 createGoldCoin(spread, amount)
 
         if testProbability(LOOT_ITEM_PROBABILITY)
-            spread = spread.polarOffset(GetRandomDirectionDeg().asAngleDegrees(), GetRandomReal(8, 32))
+            spread = spread.polarOffset(GetRandomDirectionDeg().asAngleDegrees(), GetRandomReal(16, 32))
 
             // What class of item should be gerenated ?
             real roll = GetRandomReal(0, LootType.LOOT_TYPE_MAX_ROLL)
             real current = 0.0
-            Log.trace("Class roll : " + roll.round().toString())
+            //Log.trace("Class roll : " + roll.round().toString())
             for LootType lootType in LootType.LIST
                 current += lootType.classProbability
                 if roll <= current
@@ -74,13 +74,13 @@ public function generateLoot(vec2 pos, int itemLevel, int numRolls)
                     // What item of this class should be looted ?
                     roll = GetRandomReal(0, lootType.maximumRoll)
                     current = 0.0
-                    Log.trace("Type roll : " + roll.round().toString())
+                    //Log.trace("Type roll : " + roll.round().toString())
                     for ItemType itemType in lootType.itemList
                         current += itemType.getLootProbability()
                         if roll <= current
-                            Log.trace("Loot found : " + itemType.itemType.toString())
+                            //Log.trace("Loot found : " + itemType.itemType.toString())
                             createItem(itemType.itemType, spread)
-                            SpecialEffectType.MIRRORIMAGECASTER.flashWithoutLeak(spread)
+                            SpecialEffectType.FLAKTARGET.flashWithoutLeak(spread)
                             break
                     break
 

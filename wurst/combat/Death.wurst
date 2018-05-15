@@ -49,7 +49,7 @@ function onGoursUnitDied(unit deadUnit, unit killer)
                 if character != null and character.isAlive() and character.getPos().distanceToSq(deadUnit.getPos()) < EXPERIENCE_GAIN_RADIUS * EXPERIENCE_GAIN_RADIUS
                     giveXp(character, xpGain)
 
-        // TODO Drop items
+        // Ajut loot parameters
         generateLoot(deadUnit.getPos(), 666, 1)
 
 init

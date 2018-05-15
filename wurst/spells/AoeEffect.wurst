@@ -95,7 +95,7 @@ public class AoeEffect
         REF_COUNTER--
 
     static function getMemoryUsage() returns memoryUsage
-        return memoryUsage("Special effects", LIST.size(), REF_COUNTER)
+        return memoryUsage("AoE effects", LIST.size(), REF_COUNTER)
 
     // Accessors
     function getEndTime() returns real

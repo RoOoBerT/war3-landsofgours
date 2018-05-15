@@ -61,7 +61,7 @@ public class WizardSpell extends Spell
 
     // ======== WIZARD SPELL BOOK DIRECTORY ========
     constant static WizardSpell ARME_ENFLAMMEE                      = new WizardSpell('A009', 20, TargetType.UNIT    , "", SpellSchool.ABJURATION)
-    constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "", SpellSchool.TRANSMUTATION)
+    constant static WizardSpell BAIES_NOURRICIERES                  = new WizardSpell('A00S', 20, TargetType.NONE    , "animatedead", SpellSchool.TRANSMUTATION)
     constant static WizardSpell BOUCLIER_GLACE                      = new WizardSpell('A016', 20, TargetType.UNIT    , "frostarmor", SpellSchool.ABJURATION)
     constant static WizardSpell CONE_FROID                          = new WizardSpell('A00W', 20, TargetType.LOCATION, "carrionswarm", SpellSchool.EVOCATION)
     constant static WizardSpell DILATATION_TEMPORELLE               = new WizardSpell('A01F', 20, TargetType.LOCATION, "", SpellSchool.TRANSMUTATION)

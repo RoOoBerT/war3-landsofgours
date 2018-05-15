@@ -279,9 +279,11 @@ init
         //real duration = 30 + level * 2.5
 
         ImpactHandler handler = (vec3 v) ->
-            onUnitPhysicalAttack(emitter, new CreatureStats()
-                    ..setDamage(DamageClass.DAMAGE_CONTONDANT, 5)
+            let stats = new CreatureStats()
+                ..setDamage(DamageClass.DAMAGE_CONTONDANT, 5)
+            onUnitPhysicalAttack(emitter, stats
                 , target)
+            destroy stats
 
         real delay = 0.2
         for int i = 0 to level

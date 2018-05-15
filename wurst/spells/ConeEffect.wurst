@@ -112,7 +112,7 @@ public class ConeEffect
         REF_COUNTER--
         
     static function getMemoryUsage() returns memoryUsage
-        return memoryUsage("Special effects", LIST.size(), REF_COUNTER)
+        return memoryUsage("Cone effects", LIST.size(), REF_COUNTER)
 
     // Modifiers
     function setAngle(angle ang)

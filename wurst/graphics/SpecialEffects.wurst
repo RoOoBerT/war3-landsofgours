@@ -94,6 +94,7 @@ public class SpecialEffectType
     static constant DEATHANDDECAYTARGET   = new SpecialEffectType(Abilities.deathandDecayTarget  , 0.2)
     static constant DEVOUREFFECTART       = new SpecialEffectType(Abilities.devourEffectArt      , 0.2)
     static constant FAERIEDRAGON_INVIS    = new SpecialEffectType(Abilities.faerieDragon_Invis   , 0.2)
+    static constant FLAKTARGET            = new SpecialEffectType(Abilities.flakTarget           , 0.2)
     static constant FLAMESTRIKEEMBERS     = new SpecialEffectType(Abilities.flameStrikeEmbers    , FLASHABLE)
     static constant FROSTARMORDAMAGE      = new SpecialEffectType(Abilities.frostArmorDamage     , 0.2)
     static constant IMMOLATIONREDDAMAGE   = new SpecialEffectType(Abilities.immolationRedDamage  , 0.2)

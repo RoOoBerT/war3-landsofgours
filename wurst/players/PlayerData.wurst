@@ -122,7 +122,7 @@ function onCharacterSelected(unit _seller, unit character)
     displayMessage(MessageType.SUCCESS, owner, 10, "Félicitations ! " + owner.getName() + " est maintenant : " + characterClass.getColoredName())
     owner.setName("|r[{1}] {0}".format(owner.getNameColored(), characterClass.getColoredName()))
 
-    // Specifics : ARCHER
+    // Specifics : HUNTER
     if characterClass == CharacterClass.CHASSEUR
         character.setAbilityLevel('A00J', 2) // 2 slots in inventory
         character.addItemById('I00O') // Give bow
