@@ -84,9 +84,6 @@ public function generateLoot(vec2 pos, int itemLevel, int numRolls)
                             break
                     break
 
-public function getItemForRoll(real roll) returns int
-    return 0
-
 init
     LinkedList<ItemType> listGold = new LinkedList<ItemType>()
     LinkedList<ItemType> listArrows = new LinkedList<ItemType>()
@@ -111,10 +108,10 @@ init
 
     // 
     LootType.LIST.add(new LootType(listArrows, 1.0))
-    LootType.LIST.add(new LootType(listBags, 0.0))
+    LootType.LIST.add(new LootType(listBags, 0.1))
     LootType.LIST.add(new LootType(listBows, 0.0))
     LootType.LIST.add(new LootType(listFragments, 0.0))
-    LootType.LIST.add(new LootType(listScrolls, 0.0))
+    LootType.LIST.add(new LootType(listScrolls, 0.2))
 
     LootType.LOOT_TYPE_MAX_ROLL = 0
     for LootType lootType in LootType.LIST

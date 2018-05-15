@@ -19,21 +19,36 @@ public class ItemTypeSpellScroll extends ItemType
 
     // ======== SPELL BOOK DIRECTORY ========
     constant static ItemTypeSpellScroll PEAU_PIERRE                       = new ItemTypeSpellScroll('I004', WizardSpell.PEAU_PIERRE                      )
+        ..setLootProbability(0.1)
     constant static ItemTypeSpellScroll TRANSMUTATION_CHAIR_PIERRE        = new ItemTypeSpellScroll('I005', WizardSpell.TRANSMUTATION_CHAIR_PIERRE       )
     constant static ItemTypeSpellScroll FLETRISSURE_ABOMINABLE_ABI_DALZIM = new ItemTypeSpellScroll('I007', WizardSpell.FLETRISSURE_ABOMINABLE_ABI_DALZIM)
+        ..setLootProbability(0.03)
     constant static ItemTypeSpellScroll NUAGE_PUANT                       = new ItemTypeSpellScroll('I008', WizardSpell.NUAGE_PUANT                      )
+        ..setLootProbability(0.5)
     constant static ItemTypeSpellScroll PROJECTILE_MAGIQUE                = new ItemTypeSpellScroll('I009', WizardSpell.PROJECTILE_MAGIQUE               )
+        ..setLootProbability(1.0)
     constant static ItemTypeSpellScroll NUAGE_MORTEL                      = new ItemTypeSpellScroll('I00A', WizardSpell.NUAGE_MORTEL                     )
+        ..setLootProbability(0.1)
     constant static ItemTypeSpellScroll NUAGE_INCENDIAIRE                 = new ItemTypeSpellScroll('I00B', WizardSpell.NUAGE_INCENDIAIRE                )
+        ..setLootProbability(0.05)
     constant static ItemTypeSpellScroll HATE                              = new ItemTypeSpellScroll('I00I', WizardSpell.HATE                             )
+        ..setLootProbability(0.5)
     constant static ItemTypeSpellScroll RENVOI_SORTS                      = new ItemTypeSpellScroll('I00J', WizardSpell.RENVOI_SORTS                     )
+        ..setLootProbability(0.5)
     constant static ItemTypeSpellScroll NUEE_METEORES                     = new ItemTypeSpellScroll('I00K', WizardSpell.NUEE_METEORES                    )
+        ..setLootProbability(0.01)
     constant static ItemTypeSpellScroll BAIES_NOURRICIERES                = new ItemTypeSpellScroll('I00M', WizardSpell.BAIES_NOURRICIERES               )
+        ..setLootProbability(0.8)
     constant static ItemTypeSpellScroll CONE_FROID                        = new ItemTypeSpellScroll('I00P', WizardSpell.CONE_FROID                       )
+        ..setLootProbability(0.5)
     constant static ItemTypeSpellScroll INCINERATEUR_AGANAZZAR            = new ItemTypeSpellScroll('I00Q', WizardSpell.INCINERATEUR_AGANAZZAR           )
+        ..setLootProbability(0.8)
     constant static ItemTypeSpellScroll TOILES_ARAIGNEE                   = new ItemTypeSpellScroll('I00T', WizardSpell.TOILES_ARAIGNEE                  )
+        ..setLootProbability(0.5)
     constant static ItemTypeSpellScroll FEU_SOLAIRE                       = new ItemTypeSpellScroll('I00U', WizardSpell.FEU_SOLAIRE                      )
+        ..setLootProbability(0.05)
     constant static ItemTypeSpellScroll BOUCLIER_GLACE                    = new ItemTypeSpellScroll('I00V', WizardSpell.BOUCLIER_GLACE                   )
+        ..setLootProbability(0.8)
 
 init
     // Use spell scroll
@@ -62,5 +77,3 @@ init
                     displayMessage(MessageType.ERROR, owner, 10, "Vous connaissez déjà ce sort : " + GetAbilityName(spell.abilityId))
             else
                 displayMessage(MessageType.ERROR, owner, 10, "Seul un magicien pour utiliser cet objet !")
-
-    

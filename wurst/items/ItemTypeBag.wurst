@@ -23,10 +23,15 @@ public class ItemTypeBag extends ItemType
     
     // Bags directory
     static constant ItemTypeBag POCHETTE_ROUGE = new ItemTypeBag('I00C', 2)
+        ..setLootProbability(1.0)
     static constant ItemTypeBag BOURSE_BLEUE = new ItemTypeBag('I00E', 3)
+        ..setLootProbability(0.75)
     static constant ItemTypeBag SACOCHE_ROSE = new ItemTypeBag('I00F', 4)
+        ..setLootProbability(0.50)
     static constant ItemTypeBag SAV_VERT_TISSU = new ItemTypeBag('I00G', 5)
+        ..setLootProbability(0.250)
     static constant ItemTypeBag SAC_MERCENAIRE = new ItemTypeBag('I00D', 6)
+        ..setLootProbability(0.125)
 
 /** Called when a unit equips a bag */
 function onEquipBag(unit who, item _bag, ItemTypeBag typ)

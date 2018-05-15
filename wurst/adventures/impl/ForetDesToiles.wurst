@@ -79,11 +79,11 @@ public class ForetDesToiles extends Adventure
         // Did the boss die ?
         if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
             // Hide exit locations
-            for AdventureExitLocation exitLoc in this.exitLocations
+            /*for AdventureExitLocation exitLoc in this.exitLocations
                 unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], AdventureCreatureGroup.MARKER_EXIT_LOCATION, exitLoc.getPos(), exitLoc.getOrientation())
                 this.allUnits.addUnit(u)
 
-            Music.MUSIC_TOWN.loopMusic(true)
+            Music.MUSIC_TOWN.loopMusic(true)*/
 
     override function onEnd()
 

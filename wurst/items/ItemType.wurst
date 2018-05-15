@@ -17,11 +17,15 @@ public class ItemType
     // Properties
     constant int itemType
 
+    // Loot
     private real lootProbability = 0.0
     
     // Unique items
     private boolean unique = false
     private item uniqueInstance = null
+
+    // Curse
+    private boolean cursed = false
 
     // Directory
     static constant LinkedList<ItemType> LIST = new LinkedList<ItemType>
@@ -44,6 +48,9 @@ public class ItemType
     function getType() returns int
         return this.itemType
 
+    function isCursed() returns boolean
+        return this.cursed
+
     function isUnique() returns boolean
         return this.unique
     
@@ -54,6 +61,9 @@ public class ItemType
         return this.lootProbability
     
     // Modifiers
+    function setCursed(boolean cursed)
+        this.cursed = cursed
+
     function setUnique(boolean unique)
         this.unique = unique
 
