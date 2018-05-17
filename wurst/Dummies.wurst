@@ -1,0 +1,22 @@
+package Dummies
+
+// Standard imports
+
+// Custom imports
+
+/** Unit-type ID of generic invisible Dummy */
+public constant int DUMMY_TYPE_ID = 'h001'
+
+/** Unit-type ID of visible Dummy (mainly for debugging) */
+public constant int DUMMY_TYPE_ID_VISIBLE = 'h009'
+
+/** Returns true if the provided unit is a dummy unit */
+public function isDummyUnit(unit u) returns boolean
+    if u == null
+        return false
+    
+    return u.getTypeId() == DUMMY_TYPE_ID or u.getTypeId() == DUMMY_TYPE_ID_VISIBLE
+
+/** Returns true if the triggering unit is not a dummy caster */
+public function isTriggeringUnitNotDummy() returns boolean
+    return not isDummyUnit(GetTriggerUnit())

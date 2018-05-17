@@ -7,7 +7,9 @@ import HashMap
 import CharacterClass
 import CreatureRace
 import CreatureStats
+import Dummies
 import PlayerConstants
+import UnitsBuffs
 
 /** The properties of one specific type of creatures (unit-type) */
 public class CreatureType

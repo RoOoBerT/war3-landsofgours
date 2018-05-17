@@ -10,6 +10,7 @@ import CreatureGroupType
 import CreatureType
 import Musics
 import PlayerData
+import WizardSpell
 
 /** Represents a simple adventure */
 public class ForetDesToiles extends Adventure
@@ -67,7 +68,13 @@ public class ForetDesToiles extends Adventure
     override function onUnitAttacked(unit attacker, unit target)
         if target.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
             or attacker.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
+                // Play boss music
                 Music.MUSIC_BGII_IRENICUSBATTLE.loopMusic(false)
+
+                // Cast spell
+                if target.getAbilityCooldownRemaining(WizardSpell.TOILES_ARAIGNEE.abilityId) > 0.0
+                    if not target.issuePointOrder(WizardSpell.TOILES_ARAIGNEE.order, attacker.getPos())
+                        Log.error("Error casting " + WizardSpell.TOILES_ARAIGNEE.order + "  from unit : " + target.getName())
 
     override function onUnitDying(unit dying)
         // Did an egg sack die ?
@@ -78,12 +85,12 @@ public class ForetDesToiles extends Adventure
 
         // Did the boss die ?
         if dying.getTypeId() == CreatureType.BROODMOTHER.getUnitTypeId()
-            // Hide exit locations
-            /*for AdventureExitLocation exitLoc in this.exitLocations
+            // Show exit locations
+            for AdventureExitLocation exitLoc in this.exitLocations
                 unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], AdventureCreatureGroup.MARKER_EXIT_LOCATION, exitLoc.getPos(), exitLoc.getOrientation())
                 this.allUnits.addUnit(u)
 
-            Music.MUSIC_TOWN.loopMusic(true)*/
+            //Music.MUSIC_TOWN.loopMusic(true)
 
     override function onEnd()
 

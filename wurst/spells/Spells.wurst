@@ -5,7 +5,7 @@ import HashMap
 import LinkedList
 
 // Custom imports
-import Dummys
+import Dummies
 
 // Constants
 /** Available types of targets */

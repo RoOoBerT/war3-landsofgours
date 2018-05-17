@@ -306,6 +306,8 @@ init
         real frequency = 1 / (1 + 0.25 * level)
         real radius = 400.0 + 20.0 * level
 
+        
+
         AoeImpactHandler handler = new GenericImpactHandler(SpecialEffectType.WEB, 2, color(0, 0, 0), 1, 250, 40)
         new AoeEffect(endTime, emitter, target.withZ(0.), radius, frequency, handler)
             ..start()

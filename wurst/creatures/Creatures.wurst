@@ -1,0 +1,50 @@
+package Creatures
+
+// Standard imports
+
+// Custom imports
+import CreatureRace
+import CreatureStats
+import CreatureType
+import Dummies
+import UnitsBuffs
+
+/** Returns the total *current* stats of a unit */
+public function computeTotalStats(unit who, CreatureStats stats)
+    // Skip it for dummy units
+    if isDummyUnit(who)
+        return
+
+    // Get creature properties
+    CreatureType creatureType = CreatureType.get(who.getTypeId())
+    if creatureType == null
+        Log.error("Properties not found for : " + who.getName() + ", cannot retrieve stats")
+        return
+    CreatureRace creatureRace = creatureType.getRace()
+    
+    // Compute the total cumulated stats of the attacker
+    if creatureRace != null
+        stats.modifyAdd(creatureRace.getStatsAdded()) // Race bonuses
+        stats.modifyAdd(creatureType.getStatsAdded()) // Creature type bonuses
+        stats.modifyAdd(AllUnitsBuffs.getStatsAdded(who)) // Buffs/state bonuses
+
+    // Compute cumulated bonus percentage
+    CreatureStats statsPercent = new CreatureStats()
+    if creatureRace != null
+        statsPercent.modifyAdd(creatureRace.getStatsAddedPercent()) // Race bonuses %
+    statsPercent.modifyAdd(creatureType.getStatsAddedPercent()) // Creature type bonuses %
+    statsPercent.modifyAdd(AllUnitsBuffs.getStatsAddedPercent(who)) // Buffs/state bonuses %
+
+    // Apply percentage bonuses
+    stats.modifyAddPercent(statsPercent, 1.0)
+
+    // Cleanup
+    destroy statsPercent
+
+/** Updates the stats of the specified unit following to a change of state */
+public function updateUnitStats(unit who)
+    if not isDummyUnit(who)
+        CreatureStats stats = new CreatureStats()
+        computeTotalStats(who, stats)
+        stats.apply(who)
+        destroy stats

@@ -12,7 +12,7 @@ import public BuffType
 import BuffTypesImpl
 import CreatureStats
 import DilatableTime
-import Dummys
+import Dummies
 import Memory
 
 constant real BUFFS_UPDATE_PERIOD = 2.5 //ANIMATION_PERIOD
@@ -158,6 +158,8 @@ class UnitBuffs
         return false
 
     function removeBuffByType(BuffType buffType) returns boolean
+        boolean change = false
+
         // Is the buff stackable ?
         int id = buffType.id
         if id != BUFF_ID_STACKABLE
@@ -173,6 +175,7 @@ class UnitBuffs
                         iter.remove()
                         this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
                         this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
+                        change = true
                         break
             else
                 // Buff not present : nothing to do
@@ -187,12 +190,12 @@ class UnitBuffs
                     iter.remove()
                     this.totalStatsAdded.modifySubtract(unitBuff.getBuffType().getAddedStatsModifiers())
                     this.totalStatsAddedPercent.modifySubtract(unitBuff.getBuffType().getAddedPercentStatsModifiers())
-                    // FIXME maybe ajust return value ?
+                    change = true
 
         // Is there a buff icon to hide ?
         if buffType.abilityId != 0
             this.who.removeAbility(buffType.abilityId)
-        return true
+        return change
 
     function update() returns boolean
         let iter = this.buffs.iterator()
@@ -269,7 +272,8 @@ public class AllUnitsBuffs
 
     static function removeBuffsByType(unit target, BuffType buffType)
         if not isDummyUnit(target)
-            getUnitBuffs(target).removeBuffByType(buffType)
+            if getUnitBuffs(target).removeBuffByType(buffType)
+                
 
     static function hasBuffByType(unit target, BuffType buffType) returns boolean
         if not isDummyUnit(target)
@@ -278,21 +282,17 @@ public class AllUnitsBuffs
 
     static function getStatsAdded(unit target) returns CreatureStats
         if isDummyUnit(target)
-            Log.error("getStatsAdded called for Dummy unit !")
+            //Log.error("getStatsAdded called for Dummy unit !")
             return null
         return getUnitBuffs(target).getTotalStatsAdded()
 
     /** Returns the total stats of this unit's buff */
     static function getStatsAddedPercent(unit target) returns CreatureStats
         if isDummyUnit(target)
-            Log.error("getTotalBuffs called for Dummy unit !")
+            //Log.error("getTotalBuffs called for Dummy unit !")
             return null
         return getUnitBuffs(target).getTotalStatsAddedPercent()
     
-    /*@deprecated("Bad idea to access the internal list... Try to avoid using this method as possible")
-    private static function getAllBuffs(unit target) returns LinkedList<UnitBuff>
-        return getUnitBuffs(target).buffs*/
-
     static function getMemoryUsage() returns memoryUsage
         return memoryUsage("UnitBuffs", UnitBuffs.REF_COUNTER, LIST.size())
 

@@ -7,7 +7,7 @@ import StringUtils
 // Custom imports
 import AoeEffect
 import ConeEffect
-import Dummys
+import Dummies
 
 /** List of AoE that should stop if the caster stops channeling */
 public constant HashMap<unit, AoeEffect> CHANELING_AOES = new HashMap<unit, AoeEffect>()
@@ -35,7 +35,6 @@ class MyTextTag
             UNITS_TAGS.put(u, tt)
         return tt
 
-
 init
     // When a unit starts channeling
     CreateTrigger()
@@ -44,7 +43,7 @@ init
         ..addAction() ->
             // Animate unit
             unit u = GetTriggerUnit()
-            u.setAnimation("channel")
+            u.setAnimation("spell")
 
             // Show ability name
             string abilityName = GetAbilityName(GetSpellAbilityId())

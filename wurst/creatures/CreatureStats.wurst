@@ -25,6 +25,10 @@ public class CreatureStats
     static function getMemoryUsage() returns memoryUsage
         return memoryUsage("CreatureStats", 0, REF_COUNTER)
 
+    // Constants
+    static constant real DEFAULT_MOVESPEED = 522 / 2
+    static constant real DEFAULT_ATTACKCD = 2.0
+
     // General
     private real moveSpeed = 0.0
     private real life = 0.0
@@ -203,6 +207,14 @@ public class CreatureStats
             if statsAddPercent.resistanceMaps.has(damageClass)
                 real amount = factor * (1 + statsAddPercent.resistanceMaps.get(damageClass))
                 mapAdd(this.resistanceMaps, damageClass, amount)
+
+    function apply(unit who)
+        who.setMoveSpeed(DEFAULT_MOVESPEED * (1 + this.moveSpeed))
+        who.setAttackCooldown(DEFAULT_ATTACKCD * (1 - this.attackSpeed), 0)
+
+
+        // Only informational
+        //TODO who.setBaseDamage
 
     /** Returns a detailed text with all data stored in this object */
     function toDetailedString(boolean showEmpty, boolean percent) returns string

@@ -4,17 +4,14 @@ package Combat
 import ClosureForGroups
 import DamageDetection
 import DamageType
-import RegisterEvents
 
 // Custom imports
 import CharacterClass
-import CreatureRace
+import Creatures
 import CreatureStats
-import CreatureType
 import Imports
 import public ItemTypeArrows
 import public ItemTypeBow
-import Musics
 import PlayerData
 import Projectiles
 import UnitsBuffs
@@ -145,35 +142,13 @@ public function onUnitAttackWithBow(unit attacker, unit target)
 /** When a unit emits a "game" instant attack (delayed).
 The specified modifiers of the attacker should be used. */
 public function onUnitInstantPhysicalAttack(unit attacker, unit target)
-    // Get creature properties
-    CreatureType creatureType = CreatureType.get(attacker.getTypeId())
-    if creatureType == null
-        Log.warn("Properties not found for : " + attacker.getName() + ", aborting attack")
-        return
-    CreatureRace creatureRace = creatureType.getRace()
-    
-    // Compute the total cumulated stats of the attacker
     CreatureStats attackerStats = new CreatureStats()
-    if creatureRace != null
-        attackerStats.modifyAdd(creatureRace.getStatsAdded()) // Race bonuses
-    attackerStats.modifyAdd(creatureType.getStatsAdded()) // Creature type bonuses
-    attackerStats.modifyAdd(AllUnitsBuffs.getStatsAdded(attacker)) // Buffs/state bonuses
-
-    // Compute cumulated bonus percentage
-    CreatureStats attackerStatsPercent = new CreatureStats()
-    if creatureRace != null
-        attackerStatsPercent.modifyAdd(creatureRace.getStatsAddedPercent()) // Race bonuses %
-    attackerStatsPercent.modifyAdd(creatureType.getStatsAddedPercent()) // Creature type bonuses %
-    attackerStatsPercent.modifyAdd(AllUnitsBuffs.getStatsAddedPercent(attacker)) // Buffs/state bonuses %
-
-    // Apply percentage bonuses
-    attackerStats.modifyAddPercent(attackerStatsPercent, 1.0)
+    computeTotalStats(attacker, attackerStats)
 
     onUnitPhysicalAttack(attacker, attackerStats, target)
 
     // Cleanup
     destroy attackerStats
-    destroy attackerStatsPercent
 
 /** When a unit emits a "game" instant attack (melee).
 The instant modifiers (buffs) of the attacker should be used. */

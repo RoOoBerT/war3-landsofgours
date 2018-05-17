@@ -3,7 +3,7 @@ package WizardSpell
 // Standard imports
 
 // Custom imports
-import Dummys
+import Dummies
 import Imports
 import LinkedList
 import public Spells
@@ -77,7 +77,7 @@ public class WizardSpell extends Spell
     constant static WizardSpell PEAU_PIERRE                         = new WizardSpell('A006', 20, TargetType.UNIT    , "chainlightning", SpellSchool.TRANSMUTATION)
     constant static WizardSpell PROJECTILE_MAGIQUE                  = new WizardSpell('A00N', 20, TargetType.UNIT    , "creepthunderbolt", SpellSchool.EVOCATION)
     constant static WizardSpell RENVOI_SORTS                        = new WizardSpell('A00I', 20, TargetType.UNIT    , "", SpellSchool.ABJURATION)
-    constant static WizardSpell TOILES_ARAIGNEE                     = new WizardSpell('A014', 20, TargetType.LOCATION, "cloudoffog", SpellSchool.INVOCATION)
+    constant static WizardSpell TOILES_ARAIGNEE                     = new WizardSpell('A014', 20, TargetType.LOCATION, "clusterrockets", SpellSchool.INVOCATION)
     constant static WizardSpell TRANSMUTATION_CHAIR_PIERRE          = new WizardSpell('A00E', 20, TargetType.UNIT    , "", SpellSchool.TRANSMUTATION)
 
 // Functions
