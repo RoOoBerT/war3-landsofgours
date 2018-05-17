@@ -72,7 +72,7 @@ public class ForetDesToiles extends Adventure
                 Music.MUSIC_BGII_IRENICUSBATTLE.loopMusic(false)
 
                 // Cast spell
-                if target.getAbilityCooldownRemaining(WizardSpell.TOILES_ARAIGNEE.abilityId) > 0.0
+                if target.getAbilityCooldownRemaining(WizardSpell.TOILES_ARAIGNEE.abilityId) <= 0.0
                     if not target.issuePointOrder(WizardSpell.TOILES_ARAIGNEE.order, attacker.getPos())
                         Log.error("Error casting " + WizardSpell.TOILES_ARAIGNEE.order + "  from unit : " + target.getName())
 

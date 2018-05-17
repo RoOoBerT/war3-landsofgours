@@ -14,7 +14,6 @@ import public ItemTypeArrows
 import public ItemTypeBow
 import PlayerData
 import Projectiles
-import UnitsBuffs
 
 /** Dummy invisible ability used to detect units with ranged attack */
 constant int ABILITY_RANGED = 'A00Z'
@@ -74,13 +73,16 @@ public function generateArrowFromUnit(unit attacker, unit target, ItemTypeArrows
         let customImpactHandler = arrows.getCustomImpactHandler()
         if customImpactHandler == null
             // Do the standard impact handling for arrows
-            CreatureStats statsAdded = AllUnitsBuffs.getStatsAdded(attacker)
+            CreatureStats attackerStats = new CreatureStats()
+            computeTotalStats(attacker, attackerStats)
 
             // Is there a radius of effect ?
             real impactRadius = arrows.getImpactRadius()
             if impactRadius > 0
                 forUnitsInRange(impactPoint.toVec2(), impactRadius) u ->
-                    onUnitPhysicalAttack(attacker, statsAdded, target)
+                    onUnitPhysicalAttack(attacker, attackerStats, target)
+
+            destroy attackerStats
         else
             // Call the custom impact handler
             customImpactHandler.onImpact(impactPoint)
@@ -154,15 +156,15 @@ public function onUnitInstantPhysicalAttack(unit attacker, unit target)
 The instant modifiers (buffs) of the attacker should be used. */
 public function onUnitPhysicalAttack(unit attacker, CreatureStats statsAdded, unit target)
     // Check the stats of the attacker and the defender
-    CreatureStats targetStatsAdded = AllUnitsBuffs.getStatsAdded(attacker)
+    CreatureStats defenderStats = new CreatureStats()
+    computeTotalStats(target, defenderStats)
 
     vec3 ttagOffset = vec3(0, 0, 0)
     for DamageClass damageClass in DamageClass.LIST
         real damageOfType = statsAdded.getDamage(damageClass)
         if damageOfType != 0
-            real resistanceOfType = 0.0
-            if targetStatsAdded != null
-                resistanceOfType = targetStatsAdded.getResistance(damageClass)
+            if defenderStats != null
+                real resistanceOfType = defenderStats.getResistance(damageClass)
                 damageOfType *= (1 - resistanceOfType)
 
         if damageOfType != 0

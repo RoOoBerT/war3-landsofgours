@@ -17,7 +17,7 @@ import Imports
 import Projectiles
 import SpecialEffects
 import SpellCasting
-import UnitsBuffs
+import Creatures
 import WizardSpell
 
 let STATS_BOUCLIER_GLACE_FROST = new CreatureStats()

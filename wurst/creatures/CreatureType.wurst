@@ -2,14 +2,13 @@ package CreatureType
 
 // Standard imports
 import HashMap
+import LinkedList
 
 // Custom imports
 import CharacterClass
 import CreatureRace
 import CreatureStats
-import Dummies
 import PlayerConstants
-import UnitsBuffs
 
 /** The properties of one specific type of creatures (unit-type) */
 public class CreatureType
@@ -32,8 +31,13 @@ public class CreatureType
     /** TODO */
     private real powerIndication = 1.0
 
+    // Various "default" stats of the creature type : Computed at startup
+    private real defaultMovespeed
+    private real defaultAttackspeed
+
     /** Mapping of all creature types */
     private static constant HashMap<int, CreatureType> MAP = new HashMap<int, CreatureType>()
+    static constant LinkedList<CreatureType> LIST = new LinkedList<CreatureType>()
 
     private construct(int unitTypeId, CreatureRace creatureRace)
         this.unitTypeId = unitTypeId
@@ -173,3 +177,13 @@ public class CreatureType
             ..setDamage(DamageClass.DAMAGE_TRANCHANT, 4)
             ..setDamage(DamageClass.DAMAGE_POISON, 8)
         )
+
+
+// FIXME !
+init
+    for CreatureType creatureType in CreatureType.LIST
+        unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], creatureType.getUnitTypeId(), ZERO2, 0.0.asAngleRadians())
+
+        creatureType.defaultMovespeed = u.getMoveSpeed()
+
+        u.remove()

@@ -1,13 +1,19 @@
 package Creatures
 
 // Standard imports
+import ClosureTimers
+import HashMap
+import LinkedList
 
 // Custom imports
 import CreatureRace
 import CreatureStats
 import CreatureType
 import Dummies
+import Memory
 import UnitsBuffs
+
+constant real BUFFS_UPDATE_PERIOD = 2.5 //ANIMATION_PERIOD
 
 /** Returns the total *current* stats of a unit */
 public function computeTotalStats(unit who, CreatureStats stats)
@@ -48,3 +54,93 @@ public function updateUnitStats(unit who)
         computeTotalStats(who, stats)
         stats.apply(who)
         destroy stats
+
+/** Class for handling all buffs of the game */
+public class AllUnitsBuffs
+    protected static constant HashMap<unit, UnitBuffs> MAP = new HashMap<unit, UnitBuffs>()
+    protected static constant LinkedList<UnitBuffs> LIST = new LinkedList<UnitBuffs>()
+
+    private static function getUnitBuffs(unit who) returns UnitBuffs
+        UnitBuffs unitBuffs = MAP.get(who)
+        if unitBuffs == null
+            unitBuffs = new UnitBuffs(who)
+            //Log.debug("Put " + who.getName())
+            MAP.put(who, unitBuffs)
+            LIST.add(unitBuffs)
+        return unitBuffs
+
+    static function addBuffPermanent(unit who, BuffType buffType)
+        if not isDummyUnit(who)
+            addBuffTimed(who, buffType, BUFF_DURATION_INFINITE)
+            updateUnitStats(who)
+
+    static function addBuffTimed(unit who, BuffType buffType, real duration)
+        if not isDummyUnit(who)
+            getUnitBuffs(who).addBuff(buffType, duration)
+            updateUnitStats(who)
+
+    static function removeBuffsByType(unit who, BuffType buffType)
+        if not isDummyUnit(who)
+            if getUnitBuffs(who).removeBuffByType(buffType)
+                updateUnitStats(who)
+
+    static function hasBuffByType(unit who, BuffType buffType) returns boolean
+        if not isDummyUnit(who)
+            return getUnitBuffs(who).hasBuffByType(buffType)
+        return false
+
+    static function getStatsAdded(unit who) returns CreatureStats
+        if isDummyUnit(who)
+            //Log.error("getStatsAdded called for Dummy unit !")
+            return null
+        return getUnitBuffs(who).getTotalStatsAdded()
+
+    /** Returns the total stats of this unit's buff */
+    static function getStatsAddedPercent(unit target) returns CreatureStats
+        if isDummyUnit(target)
+            //Log.error("getTotalBuffs called for Dummy unit !")
+            return null
+        return getUnitBuffs(target).getTotalStatsAddedPercent()
+    
+    static function getMemoryUsage() returns memoryUsage
+        return memoryUsage("UnitBuffs", UnitBuffs.REF_COUNTER, LIST.size())
+        
+// 
+init
+    // Periodically update buffs
+    doPeriodically(BUFFS_UPDATE_PERIOD) cb -> 
+        // 
+        if AllUnitsBuffs.LIST.size() != UnitBuffs.REF_COUNTER
+            Log.error("Mauvaise gestion des buffs d'unites : " +
+                "{0} instances totales != {1} referencées !".format(UnitBuffs.REF_COUNTER.toString(), AllUnitsBuffs.LIST.size().toString()))
+
+        // Keep an eye on references of these classes
+        if UnitBuffs.REF_COUNTER > 15 or UnitBuff.REF_COUNTER > 30
+            Log.warn("UnitBuffs count | UnitBuff count = " + UnitBuffs.REF_COUNTER.toString() + " | " + UnitBuff.REF_COUNTER.toString())
+
+        let iter = AllUnitsBuffs.LIST.iterator()
+        while iter.hasNext()
+            UnitBuffs unitBuffs = iter.next()
+            let u = unitBuffs.getUnit()
+            if u == null
+                Log.error("Buffs liés à une unité null !")
+            else
+                //Log.trace("Unité possédant des buffs : " + u.getName())
+            if unitBuffs.update()
+                /*// Finished !
+                iter.remove()
+                AllUnitsBuffs.MAP.remove(unitBuffs.getUnit())
+                destroy unitBuffs*/
+
+    // When a unit dies -> Cleanup hashtable data
+    CreateTrigger()
+        ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_DEATH)
+        ..addAction() ->
+            unit u = GetTriggerUnit()
+            Log.trace("Cleanup buff for unit : " + u.getName())
+            let unitBuffs = AllUnitsBuffs.MAP.get(u)
+            if unitBuffs != null
+                Log.trace("Found : " + unitBuffs.getUnit().getName())
+                AllUnitsBuffs.LIST.remove(unitBuffs)
+                AllUnitsBuffs.MAP.remove(u)
+                destroy unitBuffs

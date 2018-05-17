@@ -5,7 +5,6 @@ import LinkedList
 
 // Custom imports
 import GoldCoins
-import ItemType
 import ItemTypeArrows
 import ItemTypeBag
 import ItemTypeBow
@@ -85,7 +84,6 @@ public function generateLoot(vec2 pos, int itemLevel, int numRolls)
                     break
 
 init
-    LinkedList<ItemType> listGold = new LinkedList<ItemType>()
     LinkedList<ItemType> listArrows = new LinkedList<ItemType>()
     LinkedList<ItemType> listBags = new LinkedList<ItemType>()
     LinkedList<ItemType> listBows = new LinkedList<ItemType>()

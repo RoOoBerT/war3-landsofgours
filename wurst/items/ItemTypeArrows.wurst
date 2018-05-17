@@ -1,14 +1,12 @@
 package ItemTypeArrows
 
 // Standard imports
-import LinkedList
 
 // Custom imports
 import ImpactHandlers
 import Imports
 import public ItemType
 import Projectiles
-
 
 /** Describes metadata of an arrow ItemInstance (ammo) */
 public class ItemTypeArrows extends ItemType
