@@ -8,24 +8,25 @@ import LinkedList
 // Custom imports
 import CreatureRace
 import CreatureStats
-import CreatureType
+import public CreatureType
 import Dummies
 import Memory
+import PlayerConstants
 import UnitsBuffs
 
 constant real BUFFS_UPDATE_PERIOD = 2.5 //ANIMATION_PERIOD
 
 /** Returns the total *current* stats of a unit */
-public function computeTotalStats(unit who, CreatureStats stats)
+public function computeTotalStats(unit who, CreatureStats stats) returns CreatureType
     // Skip it for dummy units
     if isDummyUnit(who)
-        return
+        return null
 
     // Get creature properties
     CreatureType creatureType = CreatureType.get(who.getTypeId())
     if creatureType == null
         Log.error("Properties not found for : " + who.getName() + ", cannot retrieve stats")
-        return
+        return null
     CreatureRace creatureRace = creatureType.getRace()
     
     // Compute the total cumulated stats of the attacker
@@ -47,13 +48,32 @@ public function computeTotalStats(unit who, CreatureStats stats)
     // Cleanup
     destroy statsPercent
 
+    return creatureType
+
 /** Updates the stats of the specified unit following to a change of state */
 public function updateUnitStats(unit who)
     if not isDummyUnit(who)
         CreatureStats stats = new CreatureStats()
-        computeTotalStats(who, stats)
-        stats.apply(who)
+        CreatureType creatureType = computeTotalStats(who, stats)
+
+        if creatureType != null
+            CreatureStats defaultStats = creatureType.getDefaultStats()
+            who.setMoveSpeed(defaultStats.getMoveSpeed() * (1 + stats.getMoveSpeed()))
+            who.setAttackCooldown(defaultStats.getAttackSpeed() * (1 - stats.getAttackSpeed()), 0)
+            who.setMaxHP((defaultStats.getLife() * (1 + stats.getLife())).round())
+            who.setMaxMana((defaultStats.getMana() * (1 + stats.getLife())).round())
+
+            // Only informational
+        else
+            Log.error("Updating stats for unit without creature type : " + who.getName())
+
         destroy stats
+
+public function spawnCreature(CreatureType creatureType, vec2 where, angle orientation) returns unit
+    unit u = createUnit(PLAYER_GOURS_HOSTILE, creatureType.getUnitTypeId(), where, orientation)
+    creatureType.getRace().setUnitRace(u)
+    updateUnitStats(u)
+    return u
 
 /** Class for handling all buffs of the game */
 public class AllUnitsBuffs
@@ -115,7 +135,7 @@ init
                 "{0} instances totales != {1} referencées !".format(UnitBuffs.REF_COUNTER.toString(), AllUnitsBuffs.LIST.size().toString()))
 
         // Keep an eye on references of these classes
-        if UnitBuffs.REF_COUNTER > 15 or UnitBuff.REF_COUNTER > 30
+        if UnitBuffs.REF_COUNTER > 75 or UnitBuff.REF_COUNTER > 150
             Log.warn("UnitBuffs count | UnitBuff count = " + UnitBuffs.REF_COUNTER.toString() + " | " + UnitBuff.REF_COUNTER.toString())
 
         let iter = AllUnitsBuffs.LIST.iterator()
@@ -137,7 +157,7 @@ init
         ..registerAnyUnitEvent(EVENT_PLAYER_UNIT_DEATH)
         ..addAction() ->
             unit u = GetTriggerUnit()
-            Log.trace("Cleanup buff for unit : " + u.getName())
+            //Log.trace("Cleanup buff for unit : " + u.getName())
             let unitBuffs = AllUnitsBuffs.MAP.get(u)
             if unitBuffs != null
                 Log.trace("Found : " + unitBuffs.getUnit().getName())

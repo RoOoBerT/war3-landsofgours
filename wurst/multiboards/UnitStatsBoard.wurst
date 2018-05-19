@@ -68,7 +68,44 @@ public class UnitStatsBoard
         statsBoard.setItemsValue("")
         statsBoard.setItemsValueColor(255, 255, 255, 0)
 
-        // Row 1 : Column headers
+        // Row 0 : Header
+        statsBoard.getItem(0, 0)
+            ..setValue(this.who.getName())
+            ..setStyle(true, false)
+
+        // Row 1 : Life
+        statsBoard.getItem(1, 0)
+            ..setValue("Vie")
+            ..setStyle(true, false)
+        statsBoard.getItem(1, 1)
+            ..setValue(this.who.getLife().round().toString())
+            ..setStyle(true, false)
+
+        // Row 2 : Mana
+        statsBoard.getItem(1, 0)
+            ..setValue("Mana")
+            ..setStyle(true, false)
+        statsBoard.getItem(1, 1)
+            ..setValue(this.who.getLife().round().toString())
+            ..setStyle(true, false)
+
+        // Row 3 : Vitesse de déplacement
+        statsBoard.getItem(2, 0)
+            ..setValue("Déplacement")
+            ..setStyle(true, false)
+        statsBoard.getItem(2, 1)
+            ..setValue(stats.getMoveSpeed().round().toString())
+            ..setStyle(true, false)
+
+        // Row 4 : Vitesse d'attaque
+        statsBoard.getItem(3, 0)
+            ..setValue("Vitesse d'attaque")
+            ..setStyle(true, false)
+        statsBoard.getItem(3, 1)
+            ..setValue(stats.getAttackSpeed().round().toString())
+            ..setStyle(true, false)
+
+        // Row x : Column headers
         statsBoard.getItem(damageClassesHeaderRow, 1)
             ..setValue("Classe")
             ..setStyle(true, false)
@@ -79,7 +116,7 @@ public class UnitStatsBoard
             ..setValue("Résistance")
             ..setStyle(true, false)
 
-        // Row 2 -> n
+        // Row x + 1 -> n
         int row = damageClassesHeaderRow + 1
         for damageFamily in DamageFamily.LIST
             // Separation between damage families
@@ -121,10 +158,11 @@ public class UnitStatsBoard
 /* TODO | Caractéristiques de <Nom de l'unité> |
 0 <ICON> <Nom de l'unité>
 1 
-2 Vitesse :
-3 
-4 
-5 Entête table : Classe | Dommages | Résistance
+2 : 
+4 Vitesse de déplacement :
+5 
+6 
+7 Entête table : Classe | Dommages | Résistance
 
 */
 

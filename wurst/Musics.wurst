@@ -20,7 +20,7 @@ public class Music
         if CURRENT != this or restart
             CURRENT = this
             Log.info("Starting music : " + this.path)
-            StopMusic(fadeOut)
+            // FIXME ? StopMusic(fadeOut)
             PlayMusic(this.path)
 
     static constant Music MUSIC_NVNDE_CHARWOOD        = new Music(gg_snd_MUSIC_NVN_Charwood       )

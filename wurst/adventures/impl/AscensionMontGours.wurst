@@ -1,0 +1,106 @@
+package AscensionMontGours
+
+// Standard imports
+
+// Custom imports
+import Adventure
+import AdventureCreatureGroup
+import AdventureExitLocation
+import CreatureGroupType
+import CreatureType
+import Musics
+import WizardSpell
+
+/** Represents an intermediate adventure */
+public class AscensionMontGours extends Adventure
+    construct(string name, string description, rect area)
+        super(name, description, area)
+
+        let groupTrap1  = new CreatureGroupType()..addSpawn(CreatureType.BONHOMME_NEIGE, 1, 1)
+
+        // 
+        let groupFewSmall  = new CreatureGroupType()..addSpawn(CreatureType.LOUVETEAU_NEIGES, 1, 2)
+        let groupSevSmall  = new CreatureGroupType()
+            ..addSpawn(CreatureType.LOUVETEAU_NEIGES, 1, 2)
+            ..addSpawn(CreatureType.LOUVE_NEIGES, 1, 1)
+        let groupManSmall  = new CreatureGroupType()
+            ..addSpawn(CreatureType.LOUVETEAU_NEIGES, 1, 3)
+            ..addSpawn(CreatureType.LOUVE_NEIGES, 1, 2)
+            ..addSpawn(CreatureType.LOUP_ALPHA_NEIGES, 1, 1)
+
+        let groupFewMediu  = new CreatureGroupType()
+            ..addSpawn(CreatureType.FURBOLG_POLAIRE, 1, 2)
+        let groupSevMediu  = new CreatureGroupType()
+            ..addSpawn(CreatureType.FURBOLG_POLAIRE, 1, 2)
+            ..addSpawn(CreatureType.CHAMAN_FURBOLG_POLAIRE, 1, 2)
+            ..addSpawn(CreatureType.CHASSEUR_FURBOLG_POLAIRE, 1, 1)
+        let groupManMediu  = new CreatureGroupType()
+            ..addSpawn(CreatureType.FURBOLG_POLAIRE, 2, 3)
+            ..addSpawn(CreatureType.CHAMAN_FURBOLG_POLAIRE, 2, 2)
+            ..addSpawn(CreatureType.CHASSEUR_FURBOLG_POLAIRE, 1, 2)
+            ..addSpawn(CreatureType.CHAMPION_FURBOLG_POLAIRE, 1, 1)
+
+        let groupFewLarge  = new CreatureGroupType()
+            ..addSpawn(CreatureType.CHASSEUR_FURBOLG_POLAIRE, 1, 1)
+            ..addSpawn(CreatureType.LOUP_ALPHA_NEIGES, 1, 2)
+        let groupSevLarge  = new CreatureGroupType()
+            ..addSpawn(CreatureType.FURBOLG_POLAIRE, 1, 2)
+            ..addSpawn(CreatureType.CHAMAN_FURBOLG_POLAIRE, 1, 2)
+            ..addSpawn(CreatureType.CHASSEUR_FURBOLG_POLAIRE, 1, 1)
+        let groupManLarge  = new CreatureGroupType()
+            ..addSpawn(CreatureType.FURBOLG_POLAIRE, 2, 3)
+            ..addSpawn(CreatureType.CHAMAN_FURBOLG_POLAIRE, 2, 2)
+            ..addSpawn(CreatureType.CHASSEUR_FURBOLG_POLAIRE, 1, 2)
+            ..addSpawn(CreatureType.CHAMPION_FURBOLG_POLAIRE, 1, 1)
+
+        let groupMiniBoss  = new CreatureGroupType()..addSpawn(CreatureType.REVENANT_GLACES, 1)
+        let groupBos       = new CreatureGroupType()..addSpawn(CreatureType.GRAND_MAMOUTH_BLANC, 1)
+        
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SMALL_TRAP              , groupTrap1)
+
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_SMALL     , groupFewSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_SMALL , groupSevSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_SMALL    , groupManSmall)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_MEDIUM    , groupFewMediu)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_MEDIUM, groupSevMediu)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_MEDIUM   , groupManMediu)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_FEW_CREATURES_LARGE     , groupFewLarge)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_SEVERAL_CREATURES_LARGE , groupSevLarge)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MANY_CREATURES_LARGE    , groupManLarge)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_MINI_BOSS               , groupMiniBoss)
+        this.creatureGroupsMap.put(AdventureCreatureGroup.MARKER_BOSS                    , groupBos)
+
+    override function onStarted()
+        Music.MUSIC_NVNDE_CHARWOOD.loopMusic(true)
+
+    override function onUnitAttacked(unit attacker, unit target)
+        if target.getTypeId() == CreatureType.GRAND_MAMOUTH_BLANC.getUnitTypeId()
+            or attacker.getTypeId() == CreatureType.GRAND_MAMOUTH_BLANC.getUnitTypeId()
+                // Play boss music
+                Music.MUSIC_BGII_IRENICUSBATTLE.loopMusic(false)
+
+                // Cast spell
+                /*if target.getAbilityCooldownRemaining(WizardSpell.TOILES_ARAIGNEE.abilityId) <= 0.0
+                    if not target.issuePointOrder(WizardSpell.TOILES_ARAIGNEE.order, attacker.getPos())
+                        Log.error("Error casting " + WizardSpell.TOILES_ARAIGNEE.order + "  from unit : " + target.getName())*/
+
+    override function onUnitDying(unit dying)
+        // Did an egg sack die ?
+        if dying.getTypeId() == CreatureType.BONHOMME_NEIGE.getUnitTypeId()
+            WizardSpell.CONE_FROID.castPoint(dying.getOwner(), dying.getPos(), dying.getPos().polarOffset(GetRandomDirectionDeg().asAngleDegrees(), 16), GetRandomInt(1, 5))
+
+        // Did the boss die ?
+        if dying.getTypeId() == CreatureType.GRAND_MAMOUTH_BLANC.getUnitTypeId()
+            // Show exit locations
+            for AdventureExitLocation exitLoc in this.exitLocations
+                unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], AdventureCreatureGroup.MARKER_EXIT_LOCATION, exitLoc.getPos(), exitLoc.getOrientation())
+                this.allUnits.addUnit(u)
+
+            Music.MUSIC_TOWN.loopMusic(true)
+
+    override function onEnd()
+        super.cleanup()
+
+init
+    AscensionMontGours adventure = new AscensionMontGours("Ascension du Mont Gours", "L'ascension du Mont Gours aurait pu être une partie de plaisir si vous étiez les premiers à la réaliser...", gg_rct_Adv2)
+    AdventureManager.register(adventure)

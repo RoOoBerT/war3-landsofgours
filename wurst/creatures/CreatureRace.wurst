@@ -70,11 +70,6 @@ public class CreatureRace
         who.setAbilityLevel(CreatureRace.ABILITY, this.index + 1)
 
     // Race directory
-    static constant CreatureRace ARACHNID = new CreatureRace(false
-        , new CreatureStats()
-            ..setDamage(DamageClass.DAMAGE_POISON, 1.0)
-        , null
-    )
     static constant CreatureRace CENTAUR = new CreatureRace(true
         , new CreatureStats()
             ..setMoveSpeed(40)
@@ -91,3 +86,16 @@ public class CreatureRace
     )
     static constant CreatureRace UNDEAD = new CreatureRace(true)
     static constant CreatureRace ORC = new CreatureRace(true)
+
+    //
+    static constant CreatureRace ARACHNID = new CreatureRace(false
+        , new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_POISON, 1.0)
+        , null
+    )
+    static constant CreatureRace FROST_MONSTER = new CreatureRace(false
+        , new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_FROID, 1.0)
+            ..setResistance(DamageClass.DAMAGE_FROID, 1.0)
+        , null
+    )

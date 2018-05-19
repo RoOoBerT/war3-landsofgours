@@ -4,7 +4,7 @@ package CreatureGroupType
 import LinkedList
 
 // Custom imports
-import CreatureType
+import Creatures
 
 /** */
 public class CreatureTypeSpawnProperties
@@ -80,15 +80,13 @@ public class CreatureGroupType
         // Spawn this pack of creatures ?
         if this.spawnProbability == 1.0 or GetRandomReal(0.0, 1.0) <= this.spawnProbability
             //Log.trace("A creature group should spawn : " + this.spawns.size().toString())
-            real power = 0
             for CreatureTypeSpawnProperties spawn in this.spawns
                 if spawn.getSpawnProbability() == 1.0 or GetRandomReal(0.0, 1.0) <= spawn.getSpawnProbability()
                     int numUnits = GetRandomInt(spawn.getMin(), spawn.getMax())
                     for int i = 1 to numUnits
                         CreatureType ctype = spawn.getCreatureType()
-                        unit u = ctype.spawn(where, orientation)
+                        unit u = spawnCreature(ctype, where, orientation)
                         allUnits.addUnit(u)
-                        power += ctype.getPowerIndication()
                         count++
 
         return count

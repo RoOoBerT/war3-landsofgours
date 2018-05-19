@@ -49,8 +49,14 @@ function onGoursUnitDied(unit deadUnit, unit killer)
                 if character != null and character.isAlive() and character.getPos().distanceToSq(deadUnit.getPos()) < EXPERIENCE_GAIN_RADIUS * EXPERIENCE_GAIN_RADIUS
                     giveXp(character, xpGain)
 
-        // Ajut loot parameters
-        generateLoot(deadUnit.getPos(), 666, 1)
+        // Ajust loot parameters
+        int level = deadUnit.getLevel()
+        if level != 1
+            int numRolls = 1
+            if level > 20
+                numRolls = level div 20
+            int itemLevel = deadUnit.getLevel() mod 20
+            generateLoot(deadUnit.getPos(), itemLevel, numRolls)
 
 init
     // Register player's main character's death

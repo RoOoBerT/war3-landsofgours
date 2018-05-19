@@ -166,8 +166,9 @@ public abstract class Adventure
 
     /** Cleanup the adventure */
     function cleanup()
-        /*FIXME for unit u from this.allUnits
-            u.remove()*/
+        for unit u from this.allUnits
+            u.kill()
+            u.remove()
         
     // Overridable functions
     /** Called when the adventure has been cleanup */

@@ -369,15 +369,18 @@ class CommandStats extends Command
         if selectedUnits.hasNext()
             let u = selectedUnits.next()
 
-            let detailedStatsAdded = AllUnitsBuffs.getStatsAdded(u).toDetailedString(false, false)
+            /*let detailedStatsAdded = AllUnitsBuffs.getStatsAdded(u).toDetailedString(false, false)
             displayMessage(MessageType.INFO, who, 10, "Bonus de stats de " + u.getName() + " : " + detailedStatsAdded)
 
             let detailedStatsAddedPercent = AllUnitsBuffs.getStatsAdded(u).toDetailedString(false, true)
-            displayMessage(MessageType.INFO, who, 10, "Bonus de stats de (en pourcentage) " + u.getName() + " : " + detailedStatsAddedPercent)
+            displayMessage(MessageType.INFO, who, 10, "Bonus de stats de (en pourcentage) " + u.getName() + " : " + detailedStatsAddedPercent)*/
 
-            let stats = AllUnitsBuffs.getStatsAdded(u)
-            UnitStatsBoard board = new UnitStatsBoard(u, stats)
-            board.minimalize(false)
+            CreatureStats stats = new CreatureStats()
+            if computeTotalStats(u, stats) != null
+                UnitStatsBoard board = new UnitStatsBoard(u, stats)
+                board.minimalize(false)
+                // FIXME destroy board
+            destroy stats
 
         // Cleanup
         DestroyGroup(selectedUnits)

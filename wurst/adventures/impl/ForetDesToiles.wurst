@@ -90,9 +90,10 @@ public class ForetDesToiles extends Adventure
                 unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], AdventureCreatureGroup.MARKER_EXIT_LOCATION, exitLoc.getPos(), exitLoc.getOrientation())
                 this.allUnits.addUnit(u)
 
-            //Music.MUSIC_TOWN.loopMusic(true)
+            Music.MUSIC_TOWN.loopMusic(true)
 
     override function onEnd()
+        super.cleanup()
 
 init
     ForetDesToiles adventure = new ForetDesToiles("Forêt des Toiles", "Parmi les espèces sauvages qui vivent dans la forêt, l'une d'entre elles a pris le dessus.", gg_rct_Adv1)

@@ -8,7 +8,6 @@ import LinkedList
 import CharacterClass
 import CreatureRace
 import CreatureStats
-import PlayerConstants
 
 /** The properties of one specific type of creatures (unit-type) */
 public class CreatureType
@@ -28,12 +27,8 @@ public class CreatureType
     /** Quantity of experience given by this type of creatures */
     private int xpGain = 0
 
-    /** TODO */
-    private real powerIndication = 1.0
-
     // Various "default" stats of the creature type : Computed at startup
-    private real defaultMovespeed
-    private real defaultAttackspeed
+    private constant CreatureStats defaultStats = new CreatureStats()
 
     /** Mapping of all creature types */
     private static constant HashMap<int, CreatureType> MAP = new HashMap<int, CreatureType>()
@@ -42,6 +37,7 @@ public class CreatureType
     private construct(int unitTypeId, CreatureRace creatureRace)
         this.unitTypeId = unitTypeId
         this.creatureRace = creatureRace
+        this.computeDefaultStats()
 
         if MAP.has(this.unitTypeId)
             Log.error("Duplicated creature type found : " + this.unitTypeId.toString())
@@ -58,9 +54,6 @@ public class CreatureType
     function getXpGain() returns int
         return this.xpGain
 
-    function getPowerIndication() returns real
-        return this.powerIndication
-    
     function getRace() returns CreatureRace
         return this.creatureRace
 
@@ -72,6 +65,9 @@ public class CreatureType
 
     function getStatsAddedPercent() returns CreatureStats
         return this.statsAddedPercent
+    
+    function getDefaultStats() returns CreatureStats
+        return this.defaultStats
 
     // Modifiers
     function setClass(CharacterClass characterClass)
@@ -87,10 +83,15 @@ public class CreatureType
         this.statsAddedPercent = statsAddedPercent
     
     // Functions
-    function spawn(vec2 where, angle orientation) returns unit
-        unit u = createUnit(PLAYER_GOURS_HOSTILE, this.unitTypeId, where, orientation)
-        this.creatureRace.setUnitRace(u)
-        return u
+    private function computeDefaultStats()
+        unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], this.unitTypeId, ZERO2, 0.0.asAngleRadians())
+
+        this.defaultStats.setMoveSpeed(u.getMoveSpeed())
+        this.defaultStats.setAttackSpeed(u.getAttackCooldown(0))
+        this.defaultStats.setLife(u.getMaxHP())
+        this.defaultStats.setMana(u.getMaxMana())
+
+        u.remove()
 
     // ======= CREATURES DIRECTORY =======
 
@@ -145,9 +146,10 @@ public class CreatureType
             ..setDamage(DamageClass.DAMAGE_AIR, 2)
         )
 
+    // === Common neutral objects ===
 
     // === Neutral monsters ===
-    // Spider family
+    // Spiders family
     static constant CreatureType OEUFS_ARAIGNEE       = new CreatureType('n00L', CreatureRace.ARACHNID)
         ..setXpGain(1)
     static constant CreatureType ARAIGNEE_PROGENITURE = new CreatureType('n00I', CreatureRace.ARACHNID)
@@ -178,12 +180,63 @@ public class CreatureType
             ..setDamage(DamageClass.DAMAGE_POISON, 8)
         )
 
+    // Frost wolves family
+    static constant CreatureType LOUVETEAU_NEIGES      = new CreatureType('n00O', CreatureRace.FROST_MONSTER)
+        ..setXpGain(4)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 1)
+            ..setDamage(DamageClass.DAMAGE_FROID, 2)
+        )
+    static constant CreatureType LOUVE_NEIGES      = new CreatureType('n00P', CreatureRace.FROST_MONSTER)
+        ..setXpGain(10)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 3)
+            ..setDamage(DamageClass.DAMAGE_FROID, 2)
+        )
+    static constant CreatureType LOUP_ALPHA_NEIGES      = new CreatureType('n00Q', CreatureRace.FROST_MONSTER)
+        ..setXpGain(18)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 5)
+            ..setDamage(DamageClass.DAMAGE_FROID, 3)
+        )
 
-// FIXME !
-init
-    for CreatureType creatureType in CreatureType.LIST
-        unit u = createUnit(players[PLAYER_NEUTRAL_PASSIVE], creatureType.getUnitTypeId(), ZERO2, 0.0.asAngleRadians())
+    // Frost furbolgs family
+    static constant CreatureType FURBOLG_POLAIRE      = new CreatureType('n00S', CreatureRace.FROST_MONSTER)
+        ..setXpGain(8)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 2)
+            ..setDamage(DamageClass.DAMAGE_FROID, 2)
+        )
+    static constant CreatureType CHAMAN_FURBOLG_POLAIRE      = new CreatureType('n00T', CreatureRace.FROST_MONSTER)
+        ..setXpGain(8)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 1)
+            ..setDamage(DamageClass.DAMAGE_FROID, 2)
+        )
+    static constant CreatureType CHASSEUR_FURBOLG_POLAIRE      = new CreatureType('n00U', CreatureRace.FROST_MONSTER)
+        ..setXpGain(18)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 5)
+            ..setDamage(DamageClass.DAMAGE_FROID, 3)
+        )
+    static constant CreatureType CHAMPION_FURBOLG_POLAIRE      = new CreatureType('n00V', CreatureRace.FROST_MONSTER)
+        ..setXpGain(28)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 5)
+            ..setDamage(DamageClass.DAMAGE_FROID, 3)
+    )
 
-        creatureType.defaultMovespeed = u.getMoveSpeed()
-
-        u.remove()
+    // Solitary frost creatures
+    static constant CreatureType BONHOMME_NEIGE       = new CreatureType('n00N', CreatureRace.FROST_MONSTER)
+    static constant CreatureType REVENANT_GLACES      = new CreatureType('n00W', CreatureRace.FROST_MONSTER)
+        ..setXpGain(300)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 2)
+            ..setDamage(DamageClass.DAMAGE_FROID, 2)
+        )
+    static constant CreatureType GRAND_MAMOUTH_BLANC      = new CreatureType('n00R', CreatureRace.FROST_MONSTER)
+        ..setXpGain(400)
+        ..setStatsAdded(new CreatureStats()
+            ..setDamage(DamageClass.DAMAGE_TRANCHANT, 3)
+            ..setDamage(DamageClass.DAMAGE_FROID, 2)
+        )
